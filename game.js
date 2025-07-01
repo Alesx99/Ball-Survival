@@ -1812,7 +1812,7 @@ class BallSurvivalGame {
         
         // Aggiungi messaggio se non ci sono cristalli
         if (this.totalGems === 0) {
-            container.innerHTML = `<div style="text-align: center; color: #f1c40f; font-size: 16px; margin-bottom: 20px; padding: 15px; background: rgba(241, 196, 15, 0.1); border: 2px solid #f1c40f; border-radius: 8px;">
+            container.innerHTML = `<div class="zero-gems-message">
                 💎 Non hai ancora cristalli! Completa partite per guadagnarne.
             </div>`;
         }
