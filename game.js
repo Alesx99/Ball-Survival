@@ -802,6 +802,12 @@ class BallSurvivalGame {
         this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
         this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
         
+        // Tasto pausa mobile
+        const pauseBtnMobile = document.getElementById('pauseButtonMobile');
+        if (pauseBtnMobile) {
+            pauseBtnMobile.onclick = () => this.togglePause();
+        }
+
         this.dom.menuOverlay.onclick = () => {
             if (this.state === 'gameOver' || this.state === 'startScreen') {
                 return; 
