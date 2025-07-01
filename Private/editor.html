@@ -163,8 +163,9 @@ function encodeSave() {
     document.getElementById('encodeSuccess').textContent = '';
     if (!currentSave) return;
     try {
-        // Ricostruisco un nuovo oggetto di salvataggio
-        let save = {};
+        // Copio tutti i campi del salvataggio originale
+        let save = Object.assign({}, currentSave);
+        // Sovrascrivo solo i campi editabili
         save.v = currentSave.v || "4.7-menus";
         save.gems = parseInt(document.getElementById('gems').value) || 0;
         save.unlocked_archetypes = JSON.parse(document.getElementById('archetypesList').dataset.unlocked);
@@ -179,14 +180,12 @@ function encodeSave() {
         save.stat_area = parseFloat(document.getElementById('stat_area').value) || 0;
         save.stat_xpgain = parseFloat(document.getElementById('stat_xpgain').value) || 0;
         save.stat_luck = parseFloat(document.getElementById('stat_luck').value) || 0;
-        // Upgrades permanenti
-        save.perm_upgrades = {};
+        // Upgrades permanenti: includo sempre tutte le chiavi
+        save.perm_upgrades = save.perm_upgrades || {};
         permanentUpgrades.forEach(upg => {
             const sel = document.getElementById(upg.key);
             save.perm_upgrades[upg.key] = parseInt(sel.value) || 0;
         });
-        // Eventuali altri campi del salvataggio originale
-        // (aggiungi qui se servono campi custom)
         let json = JSON.stringify(save);
         let code = btoa(json);
         document.getElementById('saveOutput').value = code;
