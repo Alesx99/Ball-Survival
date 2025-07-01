@@ -21,6 +21,9 @@
         .archetypes-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
         .archetype-chip { background: #333b4d; border-radius: 5px; padding: 4px 10px; cursor: pointer; border: 2px solid transparent; }
         .archetype-chip.selected { border-color: #4a90e2; background: #223; }
+        #permUpgradesFields { margin-top: 10px; }
+        #permUpgradesFields > div { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .upgrade-desc { color: #f1c40f; font-size: 0.95em; margin-left: 8px; }
     </style>
 </head>
 <body>
@@ -76,14 +79,14 @@ const archetypes = [
     { id: 'tech', name: 'Giroscopio Tecnologico' }
 ];
 const permanentUpgrades = [
-    { key: 'health', name: 'Salute Base', max: 10 },
-    { key: 'defense', name: 'Difesa Base', max: 10 },
-    { key: 'power', name: 'Potenza Globale', max: 10 },
-    { key: 'frequency', name: 'Frequenza Globale', max: 10 },
-    { key: 'area', name: "Area d'Effetto", max: 10 },
-    { key: 'speed', name: 'Velocità Base', max: 5 },
-    { key: 'xpGain', name: 'Guadagno XP', max: 10 },
-    { key: 'luck', name: 'Fortuna', max: 10 }
+    { key: 'health', name: 'Salute Base', max: 10, desc: "Aumenta la salute massima di 10 per livello." },
+    { key: 'defense', name: 'Difesa Base', max: 10, desc: "Aumenta la riduzione danno dell'1% per livello." },
+    { key: 'power', name: 'Potenza Globale', max: 10, desc: "Aumenta i danni globali del 5% per livello." },
+    { key: 'frequency', name: 'Frequenza Globale', max: 10, desc: "Riduce la ricarica delle abilità del 3% per livello." },
+    { key: 'area', name: "Area d'Effetto", max: 10, desc: "Aumenta l'area delle abilità del 4% per livello." },
+    { key: 'speed', name: 'Velocità Base', max: 5, desc: "Aumenta la velocità base di 0.1 per livello." },
+    { key: 'xpGain', name: 'Guadagno XP', max: 10, desc: "Aumenta l'XP guadagnata del 5% per livello." },
+    { key: 'luck', name: 'Fortuna', max: 10, desc: "Aumenta la probabilità di drop del 2% per livello." }
 ];
 let currentSave = null;
 function decodeSave() {
@@ -123,8 +126,9 @@ function decodeSave() {
                 options += `<option value="${i}"${i === value ? ' selected' : ''}>${i}</option>`;
             }
             field.innerHTML = `
-                <label>${upg.name}:</label>
-                <select id="${upg.key}">${options}</select>
+                <label title="${upg.name}: ${upg.desc}">${upg.name}:</label>
+                <select id="${upg.key}" title="${upg.name}: ${upg.desc}">${options}</select>
+                <span class="upgrade-desc">${upg.desc}</span>
             `;
             permUpgradesFields.appendChild(field);
         });
