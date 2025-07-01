@@ -13,6 +13,7 @@ const CONFIG = {
             bonus: "Nessuno.",
             malus: "Nessuno.",
             color: '#4488ff',
+            cost: 0, // Sempre sbloccato
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 200) * 2;
                 ctx.strokeStyle = player.archetype.color; 
@@ -31,6 +32,7 @@ const CONFIG = {
             bonus: "+5% Riduzione Danno (DR) base.",
             malus: "-10% Velocità di movimento.",
             color: '#bdc3c7',
+            cost: 200,
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 300) * 1;
                 ctx.fillStyle = player.archetype.color;
@@ -49,6 +51,7 @@ const CONFIG = {
             bonus: "Infligge piccoli danni da bruciatura ai nemici al contatto.",
             malus: "+5% tempo di ricarica per tutte le abilità.",
             color: '#e67e22',
+            cost: 300,
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 150) * 2;
                 ctx.fillStyle = '#2c3e50';
@@ -67,6 +70,7 @@ const CONFIG = {
             bonus: "Rallenta brevemente i nemici che entrano in contatto.",
             malus: "-15 Salute massima.",
             color: '#3498db',
+            cost: 300,
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 250) * 2;
                 ctx.fillStyle = `rgba(52, 152, 219, 0.4)`;
@@ -84,6 +88,7 @@ const CONFIG = {
             bonus: "+15% Velocità di movimento.",
             malus: "-15% Salute massima.",
             color: '#8e44ad',
+            cost: 400,
             draw: (ctx, player) => {
                 const radius = player.stats.radius;
                 const g = ctx.createRadialGradient(player.x, player.y, radius * 0.2, player.x, player.y, radius);
@@ -101,6 +106,7 @@ const CONFIG = {
             bonus: "+12% Area d'effetto.",
             malus: "-5% Danno globale.",
             color: '#1abc9c',
+            cost: 500,
             draw: (ctx, player) => {
                 const radius = player.stats.radius;
                 ctx.strokeStyle = player.archetype.color;
@@ -1393,22 +1399,44 @@ class BallSurvivalGame {
         container.innerHTML = '';
         for (const key in CONFIG.characterArchetypes) {
             const archetype = CONFIG.characterArchetypes[key];
+            const unlocked = unlockedArchetypes.has(archetype.id);
             const div = document.createElement('div');
-            div.className = 'character-option';
+            div.className = 'character-option' + (unlocked ? '' : ' locked');
             div.dataset.id = archetype.id;
             div.innerHTML = `
                 <h5>${archetype.name}</h5>
                 <p>${archetype.desc}</p>
                 <p class="character-bonus"><strong>Bonus:</strong> ${archetype.bonus}</p>
                 <p class="character-malus"><strong>Malus:</strong> ${archetype.malus}</p>
+                ${archetype.cost > 0 ? `<p class="character-cost">Costo: ${archetype.cost} 💎</p>` : ''}
+                <button class="buy-archetype-btn" style="display:${!unlocked && archetype.cost > 0 ? 'block' : 'none'}" ${this.totalGems < archetype.cost ? 'disabled' : ''}>Sblocca</button>
             `;
-            div.onclick = () => this.selectCharacter(archetype.id);
+            div.onclick = () => {
+                if (unlockedArchetypes.has(archetype.id)) {
+                    this.selectCharacter(archetype.id);
+                }
+            };
+            // Gestione acquisto
+            const buyBtn = div.querySelector('.buy-archetype-btn');
+            if (buyBtn) {
+                buyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (this.totalGems >= archetype.cost) {
+                        this.totalGems -= archetype.cost;
+                        unlockedArchetypes.add(archetype.id);
+                        this.populateCharacterSelection();
+                        this.notifications.push({ text: `${archetype.name} sbloccato!`, life: 120 });
+                        this.dom.totalGemsShop.textContent = this.totalGems;
+                    }
+                };
+            }
             container.appendChild(div);
         }
-        this.selectCharacter(this.selectedArchetype); 
+        this.selectCharacter(this.selectedArchetype);
     }
 
     selectCharacter(archetypeId) {
+        if (!unlockedArchetypes.has(archetypeId)) return;
         this.selectedArchetype = archetypeId;
         document.querySelectorAll('.character-option').forEach(el => {
             el.classList.remove('selected');
@@ -1671,6 +1699,9 @@ class BallSurvivalGame {
     }
     drawMerchant() { const m = CONFIG.merchant; this.ctx.fillStyle = '#9b59b6'; this.ctx.fillRect(m.x, m.y, m.size, m.size); this.ctx.strokeStyle = '#f1c40f'; this.ctx.lineWidth = 3; this.ctx.strokeRect(m.x, m.y, m.size, m.size); if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { this.ctx.font = 'bold 14px "Courier New"'; this.ctx.fillStyle = 'white'; this.ctx.textAlign = 'center'; this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); } }
 }
+
+// Stato runtime degli archetipi acquistati (non salvato in localStorage)
+let unlockedArchetypes = new Set(['standard']);
 
 window.addEventListener('DOMContentLoaded', () => { 
     new BallSurvivalGame('gameCanvas'); 

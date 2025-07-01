@@ -207,4 +207,35 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     margin-bottom: 15px; border: 1px solid rgba(74, 144, 226, 0.2);
 }
 .run-stat-item { display: flex; flex-direction: column; align-items: center; font-size: clamp(10px, 2vw, 12px); color: var(--text-muted-color); }
-.run-stat-item span { font-size: clamp(14px, 2.5vw, 16px); font-weight: bold; color: var(--text-color); } 
+.run-stat-item span { font-size: clamp(14px, 2.5vw, 16px); font-weight: bold; color: var(--text-color); }
+
+.character-option.locked {
+    opacity: 0.5;
+    filter: grayscale(0.7);
+    pointer-events: auto;
+    position: relative;
+}
+.character-option .buy-archetype-btn {
+    margin-top: 8px;
+    background: #f1c40f;
+    color: #222;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.character-option .buy-archetype-btn:disabled {
+    background: #aaa;
+    color: #fff;
+    cursor: not-allowed;
+}
+.character-option.locked.selected {
+    outline: 2px solid #e74c3c;
+}
+.character-cost {
+    color: #f1c40f;
+    font-weight: bold;
+    margin: 4px 0 0 0;
+} 
