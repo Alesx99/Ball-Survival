@@ -29,10 +29,13 @@ const CONFIG = {
             name: "Palla d'Acciaio",
             desc: "Lenta ma incredibilmente resistente. Ideale per chi ama la mischia.",
             startingWeapon: 'shockwave',
-            bonus: "+5% Riduzione Danno (DR) base.",
-            malus: "-10% Velocità di movimento.",
+            bonus: "+8% Riduzione Danno (DR) base. Shockwave: +20% danno, +30% knockback.",
+            malus: "-5% Velocità di movimento.",
             color: '#bdc3c7',
             cost: 200,
+            weaponBonuses: {
+                shockwave: { damage: 1.2, knockback: 1.3 }
+            },
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 300) * 1;
                 ctx.fillStyle = player.archetype.color;
@@ -48,10 +51,13 @@ const CONFIG = {
             name: "Nucleo Magmatico",
             desc: "Una sfera volatile che incenerisce chiunque si avvicini troppo.",
             startingWeapon: 'fireball',
-            bonus: "Infligge piccoli danni da bruciatura ai nemici al contatto.",
+            bonus: "Infligge danni da bruciatura potenziati ai nemici al contatto. Fireball: +30% danno da bruciatura.",
             malus: "+5% tempo di ricarica per tutte le abilità.",
             color: '#e67e22',
             cost: 300,
+            weaponBonuses: {
+                fireball: { burnDamage: 1.3 }
+            },
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 150) * 2;
                 ctx.fillStyle = '#2c3e50';
@@ -67,10 +73,13 @@ const CONFIG = {
             name: "Cristallo di Gelo",
             desc: "Fragile ma capace di controllare il campo di battaglia con il suo freddo glaciale.",
             startingWeapon: 'frostbolt',
-            bonus: "Rallenta brevemente i nemici che entrano in contatto.",
-            malus: "-15 Salute massima.",
+            bonus: "Rallenta fortemente i nemici che entrano in contatto. Frostbolt: +20% slow, +10% danno.",
+            malus: "-8 Salute massima.",
             color: '#3498db',
             cost: 300,
+            weaponBonuses: {
+                frostbolt: { slow: 1.2, damage: 1.1 }
+            },
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 250) * 2;
                 ctx.fillStyle = `rgba(52, 152, 219, 0.4)`;
@@ -85,10 +94,13 @@ const CONFIG = {
             name: "Sfera d'Ombra",
             desc: "Veloce e letale, ma non può incassare molti colpi. Per giocatori audaci.",
             startingWeapon: 'shotgun',
-            bonus: "+15% Velocità di movimento.",
-            malus: "-15% Salute massima.",
+            bonus: "+18% Velocità di movimento. Shotgun: +1 proiettile, +10% critico.",
+            malus: "-8% Salute massima.",
             color: '#8e44ad',
             cost: 400,
+            weaponBonuses: {
+                shotgun: { count: 1, critChance: 0.1 }
+            },
             draw: (ctx, player) => {
                 const radius = player.stats.radius;
                 const g = ctx.createRadialGradient(player.x, player.y, radius * 0.2, player.x, player.y, radius);
@@ -103,10 +115,13 @@ const CONFIG = {
             name: "Giroscopio Tecnologico",
             desc: "Un congegno preciso che amplifica l'area d'effetto a discapito della potenza pura.",
             startingWeapon: 'lightning',
-            bonus: "+12% Area d'effetto.",
-            malus: "-5% Danno globale.",
+            bonus: "+15% Area d'effetto. Lightning: +1 rimbalzo, +10% area.",
+            malus: "-3% Danno globale.",
             color: '#1abc9c',
             cost: 500,
+            weaponBonuses: {
+                lightning: { chains: 1, area: 1.1 }
+            },
             draw: (ctx, player) => {
                 const radius = player.stats.radius;
                 ctx.strokeStyle = player.archetype.color;
@@ -283,24 +298,24 @@ class Player extends Entity {
         if (this.archetype) {
             switch(this.archetype.id) {
                 case 'steel':
-                    this.stats.dr += 0.05;
-                    this.stats.speed *= 0.90;
+                    this.stats.dr += 0.08;
+                    this.stats.speed *= 0.95;
                     break;
                 case 'magma':
                     this.modifiers.contactBurn = true;
                     this.modifiers.frequency *= 1.05;
                     break;
                 case 'frost':
-                    this.stats.maxHp -= 15;
+                    this.stats.maxHp -= 8;
                     this.modifiers.contactSlow = true;
                     break;
                 case 'shadow':
-                    this.stats.speed *= 1.15;
-                    this.stats.maxHp *= 0.85;
+                    this.stats.speed *= 1.18;
+                    this.stats.maxHp *= 0.92;
                     break;
                 case 'tech':
-                    this.modifiers.area *= 1.12;
-                    this.modifiers.power *= 0.95;
+                    this.modifiers.area *= 1.15;
+                    this.modifiers.power *= 0.97;
                     break;
             }
         }
@@ -1088,10 +1103,45 @@ class BallSurvivalGame {
         }));
         return true;
     }
-    castFireball(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage), type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 1.5); g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2); ctx.fill(); } })); return true; }
+    castFireball(now) {
+        const s = this.spells.fireball;
+        let burnDamage = s.burnDamage;
+        const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.fireball;
+        if (bonuses && bonuses.burnDamage) burnDamage *= bonuses.burnDamage;
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return false;
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            angle, damage: this.getDamage(s.damage), type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, burnDamage,
+            drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 1.5); g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2); ctx.fill(); }
+        }));
+        return true;
+    }
     castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 4), type: 'great_fireball', life: 200, speed: s.speed * 0.5, size: s.size * 3 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; }
     castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = [...this.entities.enemies, ...this.entities.bosses].filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 1.5)); for(let k=0; k<10; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 30, color: '#ffaa00' })); }, 750); } return true; }
-    castLightning(now) { const s = this.spells.lightning; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses], s.range); if (!nearest) return false; let lastTarget = this.player; let chainedEnemies = []; for (let c = 0; c < s.chains; c++) { let nextTarget = Utils.findNearest(lastTarget, [...this.entities.enemies, ...this.entities.bosses].filter(e => !chainedEnemies.includes(e)), 200); if (nextTarget) { nextTarget.takeDamage(this.getDamage(s.damage), this); this.addEntity('effects', new Effect(0, 0, { type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 })); lastTarget = nextTarget; chainedEnemies.push(nextTarget); } else break; } return true; }
+    castLightning(now) {
+        const s = this.spells.lightning;
+        let chains = s.chains, area = 1;
+        const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.lightning;
+        if (bonuses) {
+            if (bonuses.chains) chains += bonuses.chains;
+            if (bonuses.area) area *= bonuses.area;
+        }
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses], s.range);
+        if (!nearest) return false;
+        let lastTarget = this.player;
+        let chainedEnemies = [];
+        for (let c = 0; c < chains; c++) {
+            let nextTarget = Utils.findNearest(lastTarget, [...this.entities.enemies, ...this.entities.bosses].filter(e => !chainedEnemies.includes(e)), 200 * area);
+            if (nextTarget) {
+                nextTarget.takeDamage(this.getDamage(s.damage), this);
+                this.addEntity('effects', new Effect(0, 0, { type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 }));
+                lastTarget = nextTarget;
+                chainedEnemies.push(nextTarget);
+            } else break;
+        }
+        return true;
+    }
     castStorm(now) {
         const s = this.spells.lightning;
         const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses], 1000);
@@ -1115,7 +1165,23 @@ class BallSurvivalGame {
         }));
         return true;
     }
-    castFrostbolt(now) { const s = this.spells.frostbolt; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage), speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration: s.penetration, slow: s.slow, slowDuration: s.slowDuration, drawFunc: (ctx, p) => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6, outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); } })); return true; }
+    castFrostbolt(now) {
+        const s = this.spells.frostbolt;
+        let slow = s.slow, damage = this.getDamage(s.damage);
+        const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.frostbolt;
+        if (bonuses) {
+            if (bonuses.slow) slow *= bonuses.slow;
+            if (bonuses.damage) damage *= bonuses.damage;
+        }
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return false;
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            angle, damage, speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration: s.penetration, slow, slowDuration: s.slowDuration,
+            drawFunc: (ctx, p) => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6, outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        }));
+        return true;
+    }
     castGlacial(now) {
         const s = this.spells.frostbolt;
         this.addEntity('auras', new Aura(this.player.x, this.player.y, {
@@ -1138,7 +1204,27 @@ class BallSurvivalGame {
         }, 1000);
         return true;
     }
-    castShotgun(now) { const s = this.spells.shotgun; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); for (let i = 0; i < s.count; i++) { const offset = (i - (s.count-1) / 2) * (s.angleSpread / s.count); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle: angleBase + offset, damage: this.getDamage(s.damage), speed: 10, life: 30, size: 4 * this.player.modifiers.area, penetration: 1, color: '#ffaa00' })); } return true; }
+    castShotgun(now) {
+        const s = this.spells.shotgun;
+        let count = s.count, critChance = 0;
+        const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.shotgun;
+        if (bonuses) {
+            if (bonuses.count) count += bonuses.count;
+            if (bonuses.critChance) critChance = bonuses.critChance;
+        }
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return false;
+        const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        for (let i = 0; i < count; i++) {
+            const offset = (i - (count-1) / 2) * (s.angleSpread / count);
+            let damage = this.getDamage(s.damage);
+            if (critChance && Math.random() < critChance) damage *= 2;
+            this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+                angle: angleBase + offset, damage, speed: 10, life: 30, size: 4 * this.player.modifiers.area, penetration: 1, color: '#ffaa00'
+            }));
+        }
+        return true;
+    }
     castExplosive(now) {
         const s = this.spells.shotgun;
         const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
@@ -1167,22 +1253,38 @@ class BallSurvivalGame {
         }
         return true;
     }
-    castShockwave(now) { const s = this.spells.shockwave; const radius = s.radius * this.player.modifiers.area; for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) { if (Utils.getDistance(this.player, enemy) <= radius) { enemy.takeDamage(this.getDamage(s.damage), this); const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x); enemy.x += Math.cos(kAngle) * s.knockback; enemy.y += Math.sin(kAngle) * s.knockback; } } this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30 })); return true; }
+    castShockwave(now) {
+        const s = this.spells.shockwave;
+        let damage = this.getDamage(s.damage);
+        let knockback = s.knockback;
+        const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.shockwave;
+        if (bonuses) {
+            if (bonuses.damage) damage *= bonuses.damage;
+            if (bonuses.knockback) knockback *= bonuses.knockback;
+        }
+        const radius = s.radius * this.player.modifiers.area;
+        for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
+            if (Utils.getDistance(this.player, enemy) <= radius) {
+                enemy.takeDamage(damage, this);
+                const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
+                enemy.x += Math.cos(kAngle) * knockback;
+                enemy.y += Math.sin(kAngle) * knockback;
+            }
+        }
+        this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30 }));
+        return true;
+    }
     castResonant(now) {
         const s = this.spells.shockwave;
-        for (let i = 0; i < s.resonantCount; i++) {
-            setTimeout(() => {
-                const radius = (s.radius - i*20) * this.player.modifiers.area;
-                this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30 }));
-                [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
-                    if (Utils.getDistance(this.player, enemy) <= radius) {
-                        enemy.takeDamage(this.getDamage(s.damage) * (1 - i*0.2), this);
-                        const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
-                        enemy.x += Math.cos(kAngle) * s.knockback; enemy.y += Math.sin(kAngle) * s.knockback;
-                    }
-                });
-            }, i * s.resonantDelay);
-        }
+        const radius = s.radius * this.player.modifiers.area * 1.5;
+        this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30, color: '148,0,211' }));
+        [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+            if (Utils.getDistance(this.player, enemy) <= radius) {
+                enemy.takeDamage(this.getDamage(s.damage), this);
+                const kAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                enemy.x += Math.cos(kAngle) * s.knockback * 1.5; enemy.y += Math.sin(kAngle) * s.knockback * 1.5;
+            }
+        });
         return true;
     }
     castImplosion(now) {
