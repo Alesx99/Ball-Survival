@@ -246,4 +246,39 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     color: #f1c40f;
     font-weight: bold;
     margin: 4px 0 0 0;
+}
+
+@media (max-width: 700px) {
+  .popup-menu {
+    font-size: 13px;
+    max-width: 98vw;
+    max-height: 70vh;
+    padding: 10px 2vw 40px 2vw;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  .menu-content {
+    max-height: 32vh;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+  .menu-actions {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(10,30,52,0.92);
+    padding: 12px 0 8px 0;
+    z-index: 10001;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 -2px 8px #0005;
+  }
+  button {
+    font-size: 15px;
+    padding: 10px 18px;
+    min-width: 90px;
+  }
 } 
