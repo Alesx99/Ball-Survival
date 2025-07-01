@@ -75,6 +75,16 @@ const archetypes = [
     { id: 'shadow', name: "Sfera d'Ombra" },
     { id: 'tech', name: 'Giroscopio Tecnologico' }
 ];
+const permanentUpgrades = [
+    { key: 'health', name: 'Salute Base', max: 10 },
+    { key: 'defense', name: 'Difesa Base', max: 10 },
+    { key: 'power', name: 'Potenza Globale', max: 10 },
+    { key: 'frequency', name: 'Frequenza Globale', max: 10 },
+    { key: 'area', name: "Area d'Effetto", max: 10 },
+    { key: 'speed', name: 'Velocità Base', max: 5 },
+    { key: 'xpGain', name: 'Guadagno XP', max: 10 },
+    { key: 'luck', name: 'Fortuna', max: 10 }
+];
 let currentSave = null;
 function decodeSave() {
     document.getElementById('decodeError').textContent = '';
@@ -103,14 +113,20 @@ function decodeSave() {
         document.getElementById('stat_xpgain').value = data.stat_xpgain || 0;
         document.getElementById('stat_luck').value = data.stat_luck || 0;
         // Upgrades
-        document.getElementById('permUpgradesFields').innerHTML = '';
-        Object.entries(data.perm_upgrades || {}).forEach(([key, value]) => {
+        const permUpgradesFields = document.getElementById('permUpgradesFields');
+        permUpgradesFields.innerHTML = '';
+        permanentUpgrades.forEach(upg => {
+            const value = (data.perm_upgrades && typeof data.perm_upgrades[upg.key] !== 'undefined') ? data.perm_upgrades[upg.key] : 0;
             const field = document.createElement('div');
+            let options = '';
+            for (let i = 0; i <= upg.max; i++) {
+                options += `<option value="${i}"${i === value ? ' selected' : ''}>${i}</option>`;
+            }
             field.innerHTML = `
-                <label>${key}:</label>
-                <input type="number" id="${key}" value="${value}" step="0.01">
+                <label>${upg.name}:</label>
+                <select id="${upg.key}">${options}</select>
             `;
-            document.getElementById('permUpgradesFields').appendChild(field);
+            permUpgradesFields.appendChild(field);
         });
         document.getElementById('editSection').style.display = '';
     } catch (e) {
@@ -161,13 +177,9 @@ function encodeSave() {
         save.stat_luck = parseFloat(document.getElementById('stat_luck').value) || 0;
         // Upgrades permanenti
         save.perm_upgrades = {};
-        document.getElementById('permUpgradesFields').childNodes.forEach(field => {
-            const label = field.querySelector('label');
-            const input = field.querySelector('input');
-            if (label && input) {
-                const key = label.textContent.replace(':','').trim();
-                save.perm_upgrades[key] = parseFloat(input.value) || 0;
-            }
+        permanentUpgrades.forEach(upg => {
+            const sel = document.getElementById(upg.key);
+            save.perm_upgrades[upg.key] = parseInt(sel.value) || 0;
         });
         // Eventuali altri campi del salvataggio originale
         // (aggiungi qui se servono campi custom)
