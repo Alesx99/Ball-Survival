@@ -1566,7 +1566,8 @@ class BallSurvivalGame {
         const saveData = {
             v: "4.7-menus", 
             gems: this.totalGems,
-            perm_upgrades: this.permanentUpgrades
+            perm_upgrades: this.permanentUpgrades,
+            unlocked_archetypes: Array.from(unlockedArchetypes)
         };
 
         if (isDebug) {
