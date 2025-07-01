@@ -4,11 +4,12 @@
 
 ## Come giocare
 
-1. Vai su [Ball Survival su GitHub Pages](https://alesx99.github.io/Ball-Survival/Senza%20Fisica/) per giocare direttamente online all'ultima versione.
-2. Oppure scarica il repository e apri `Senza Fisica/index.html` con il tuo browser.
+1. Vai su [Ball Survival su GitHub Pages](https://alesx99.github.io/Ball-Survival/) per giocare direttamente online all'ultima versione.
+2. Oppure scarica il repository e apri `index.html` (o `Senza Fisica/index.html`) con il tuo browser.
 
 ## Struttura del progetto
-- `Senza Fisica/index.html`: Ultima versione giocabile del gioco.
+- `index.html`: Ultima versione giocabile del gioco, accessibile direttamente dalla root.
+- `Senza Fisica/index.html`: Copia della versione principale.
 - `Senza Fisica/Older Version/`: Tutte le versioni precedenti, per archivio storico.
 
 ## Licenza
