@@ -15,6 +15,16 @@
         <div id="pauseButton">||</div>
         <button id="pauseButtonMobile" style="display:none; position:fixed; top:12px; right:12px; z-index:1002; font-size:22px; padding:10px 18px; border-radius:50%; background:#4a90e2; color:#fff; border:none; box-shadow:0 2px 8px #0005;">⏸</button>
 
+        <!-- Barra XP Mobile Flottante -->
+        <div id="xpBarMobile" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:1001; background:rgba(0,0,0,0.9); border:2px solid #4a90e2; border-radius:8px; padding:8px 16px; box-shadow:0 4px 12px rgba(0,0,0,0.7);">
+          <div style="display:flex; align-items:center; gap:12px; color:#fff; font-size:14px; font-weight:bold;">
+            <span id="xpBarMobileText">LVL 1</span>
+            <div style="width:120px; height:12px; background:rgba(255,255,255,0.2); border-radius:6px; overflow:hidden;">
+              <div id="xpBarMobileFill" style="width:0%; height:100%; background:linear-gradient(90deg, #8e44ad, #e74c3c); transition:width 0.3s ease-out;"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- NUOVA UI DI GIOCO -->
         <div id="inGameUI">
             <div id="gameTimer">0s</div>

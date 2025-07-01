@@ -117,18 +117,19 @@ body, html {
 .popup-menu {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: linear-gradient(145deg, var(--dark-bg), #0f3460);
+    background: linear-gradient(145deg, rgba(10, 30, 52, 0.95), rgba(15, 52, 96, 0.95));
     border-radius: 15px;
-    z-index: 200;
+    z-index: 2000;
     text-align: center; 
-    border: 2px solid var(--primary-color);
+    border: 3px solid var(--primary-color);
     display: none;
     width: 90%; max-width: 650px;
     box-sizing: border-box;
     flex-direction: column; 
     max-height: 90vh;
-    box-shadow: 0 0 15px rgba(74, 144, 226, 0.3), 0 0 30px rgba(74, 144, 226, 0.2);
+    box-shadow: 0 0 25px rgba(74, 144, 226, 0.5), 0 0 50px rgba(74, 144, 226, 0.3);
     padding: clamp(15px, 3vw, 25px);
+    backdrop-filter: blur(10px);
 }
 .popup-menu h2, .popup-menu h3 {
     margin-top: 0; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 2px;
@@ -308,5 +309,17 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
   }
   #xpBarText {
     font-size: 11px;
+  }
+  #xpBarMobile {
+    display: block !important;
+  }
+  #inGameUI {
+    display: none !important;
+  }
+}
+
+@media (min-width: 701px) {
+  #xpBarMobile {
+    display: none !important;
   }
 } 

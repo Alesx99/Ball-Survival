@@ -1581,6 +1581,20 @@ class BallSurvivalGame {
             ui.xpBarFill.style.width = '100%';
         }
         ui.xpBarText.textContent = `LVL ${this.player.level}`;
+        
+        // Aggiorna anche la barra XP mobile
+        const xpBarMobile = document.getElementById('xpBarMobile');
+        const xpBarMobileFill = document.getElementById('xpBarMobileFill');
+        const xpBarMobileText = document.getElementById('xpBarMobileText');
+        if (xpBarMobile && xpBarMobileFill && xpBarMobileText) {
+            if (this.player.xpNext > 0) {
+                const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
+                xpBarMobileFill.style.width = xpPercent + '%';
+            } else {
+                xpBarMobileFill.style.width = '100%';
+            }
+            xpBarMobileText.textContent = `LVL ${this.player.level}`;
+        }
     }
 
     showPopup(popupKey) { 
@@ -1819,6 +1833,30 @@ class BallSurvivalGame {
         this.ctx.restore();
     }
     drawMerchant() { const m = CONFIG.merchant; this.ctx.fillStyle = '#9b59b6'; this.ctx.fillRect(m.x, m.y, m.size, m.size); this.ctx.strokeStyle = '#f1c40f'; this.ctx.lineWidth = 3; this.ctx.strokeRect(m.x, m.y, m.size, m.size); if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { this.ctx.font = 'bold 14px "Courier New"'; this.ctx.fillStyle = 'white'; this.ctx.textAlign = 'center'; this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); } }
+
+    showInGameUI() {
+        this.dom.inGameUI.style.display = 'flex';
+        this.dom.pauseButton.style.display = 'block';
+        this.dom.pauseButtonMobile.style.display = 'block';
+        
+        // Mostra la barra XP mobile se siamo su mobile
+        const xpBarMobile = document.getElementById('xpBarMobile');
+        if (xpBarMobile && window.innerWidth <= 700) {
+            xpBarMobile.style.display = 'block';
+        }
+    }
+
+    hideInGameUI() {
+        this.dom.inGameUI.style.display = 'none';
+        this.dom.pauseButton.style.display = 'none';
+        this.dom.pauseButtonMobile.style.display = 'none';
+        
+        // Nascondi la barra XP mobile
+        const xpBarMobile = document.getElementById('xpBarMobile');
+        if (xpBarMobile) {
+            xpBarMobile.style.display = 'none';
+        }
+    }
 }
 
 // Stato runtime degli archetipi acquistati (non salvato in localStorage)
