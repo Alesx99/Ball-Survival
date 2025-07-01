@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ball Survival - World Edition</title>
+    <style>
+        /* Stili CSS per il layout e l'aspetto del gioco */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000; /* Sfondo nero per le bande laterali */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: white;
+            overflow: hidden; /* Impedisce lo scroll su mobile */
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border: 3px solid #0f3460;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        #gemsDisplay {
+            margin-top: 5px;
+            color: #72f5f5; /* Ciano per i cristalli */
+            font-weight: bold;
+        }
+
+        /* Stile unificato per i menu popup */
+        #upgradeMenu, #gameOver, #startScreen, #pauseMenu, #permanentUpgradeShop {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            padding: 30px;
+            z-index: 200;
+            text-align: center;
+            border: 2px solid #4a90e2;
+            display: none; /* Nascosti di default */
+            width: 500px;
+        }
+        
+        #pauseMenu { width: 450px; }
+        #startScreen { display: block; width: auto; } /* Visibile all'inizio */
+        #gameOver { border-color: #e74c3c; width: auto; }
+        #upgradeMenu { min-width: 300px; width: auto; }
+        #permanentUpgradeShop { border-color: #f1c40f; }
+
+        .upgrade-option, .permanent-upgrade-option {
+            background: #2c3e50;
+            border: 1px solid #4a90e2;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        .permanent-upgrade-option {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+        }
+
+        .upgrade-option:hover {
+            background: #34495e;
+            border-color: #5dade2;
+            transform: scale(1.02);
+        }
+
+        .upgrade-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5dade2;
+        }
+        .perm-upgrade-cost { font-size: 14px; color: #f1c40f; }
+        .perm-upgrade-level { font-size: 12px; color: #bdc3c7; }
+
+        .upgrade-desc {
+            font-size: 12px;
+            color: #bdc3c7;
+            margin-top: 5px;
+        }
+
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #5dade2; }
+        button:disabled { background: #566573; cursor: not-allowed; }
+        .buy-button { background: #27ae60; }
+        .buy-button:hover { background: #2ecc71; }
+
+
+        .controls {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
+        #joystick-container { position: fixed; width: 120px; height: 120px; background: rgba(128, 128, 128, 0.4); border-radius: 50%; z-index: 150; display: none; pointer-events: none; }
+        #joystick-stick { position: absolute; top: 30px; left: 30px; width: 60px; height: 60px; background: rgba(200, 200, 200, 0.6); border-radius: 50%; }
+        
+        #pauseStats { margin-top: 20px; padding-top: 15px; border-top: 1px solid #4a90e2; max-height: 250px; overflow-y: auto; text-align: left; font-size: 13px; }
+        .stat-category { font-weight: bold; color: #5dade2; margin-top: 10px; margin-bottom: 5px; }
+        .stat-item { margin-left: 10px; color: #ecf0f1; }
+        .stat-item span { color: #bdc3c7; }
+        
+        #pauseButton { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.15); color: white; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; line-height: 20px; font-weight: bold; cursor: pointer; z-index: 150; }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="joystick-container"><div id="joystick-stick"></div></div>
+        <div id="pauseButton" onclick="togglePause()">||</div>
+
+        <div id="ui">
+            <div>HP: <span id="hp">100</span>/100</div>
+            <div>Livello: <span id="level">1</span></div>
+            <div>XP: <span id="xp">0</span>/<span id="xpNext">10</span></div>
+            <div>Nemici: <span id="enemies">0</span></div>
+            <div>Tempo: <span id="time">0</span>s</div>
+            <div>Punteggio: <span id="score">0</span></div>
+            <div id="gemsDisplay">Cristalli: <span id="gems">0</span></div>
+        </div>
+
+        <div id="startScreen">
+            <h2>⚽ Ball Survival</h2>
+            <p>Sopravvivi in un mondo enorme!</p>
+            <button onclick="startGame()">Inizia Partita</button>
+            <div class="controls">
+                <p><strong>Controlli:</strong></p>
+                <p>Tocca per muoverti (Mobile) / WASD o Frecce (PC)</p>
+                <p>Pulsante Pausa / ESC - Pausa</p>
+            </div>
+        </div>
+
+        <div id="upgradeMenu">
+            <h3>Scegli un Upgrade!</h3>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="pauseMenu">
+            <h2>Pausa</h2>
+            <button onclick="togglePause()">Riprendi</button>
+            <button onclick="restartFromPause()">Riavvia</button>
+            <div id="pauseStats"></div>
+        </div>
+
+        <div id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Sei sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
+            <p>Cristalli ottenuti: <span id="gemsEarned">0</span></p>
+            <p>Punteggio Finale: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">Riprova</button>
+        </div>
+
+        <div id="permanentUpgradeShop">
+            <h3>Negozio del Mercante</h3>
+            <p>I tuoi cristalli: <span id="totalGemsShop">0</span></p>
+            <div id="permanentUpgradeOptions"></div>
+            <button onclick="hideMerchantShop()">Chiudi</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const world = { width: 8000, height: 6000 };
+        const camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+
+        let gameRunning = false, gamePaused = false, startTime = 0, enemiesKilled = 0, score = 0, gameLoopId;
+        let nextChestSpawnTime = 0, enemiesKilledSinceBoss = 0;
+        let totalGems = 0;
+
+        const player = { x: world.width / 2, y: world.height / 2, radius: 15, hp: 100, maxHp: 100, speed: 3, level: 1, xp: 0, xpNext: 8, powerUpTimers: { invincibility: 0, damageBoost: 0 }, luck: 0, xpGainMod: 1, skillMods: { fireball: 0, lightning: 0, frostbolt: 0 } };
+        const keys = {};
+        const joystick = { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, stickRadius: 30, dx: 0, dy: 0, startX: 0, startY: 0, touchId: null };
+        let enemies = [], projectiles = [], xpOrbs = [], particles = [], effects = [], chests = [], droppedItems = [], notifications = [], gemOrbs = [], bosses = [], enemyProjectiles = [];
+        
+        const merchant = { x: world.width / 2, y: world.height / 2 - 200, size: 40, interactionRadius: 60 };
+
+        const itemTypes = {
+            'HEAL_POTION': { name: "Pozione di Cura", color: '#ff69b4', desc: "Ripristina il 50% degli HP massimi." },
+            'XP_BOMB': { name: "Bomba di XP", color: '#ffff00', desc: "Fornisce un'enorme quantità di XP." },
+            'INVINCIBILITY': { name: "Scudo Divino", color: '#ffffff', desc: "Immunità dai danni per 10 secondi." },
+            'DAMAGE_BOOST': { name: "Gemma del Potere", color: '#ff4500', desc: "Aumenta i danni del 25% per 20 secondi." },
+            'FIREBALL_MOD': { name: "Tomo del Vulcano", color: '#ff4500', desc: "Le prossime 5 Sfere di Fuoco sono giganti." },
+            'LIGHTNING_MOD': { name: "Pergamena della Tempesta", color: '#f1c40f', desc: "I prossimi 3 Fulmini rimbalzano più volte." },
+            'FROSTBOLT_MOD': { name: "Runa del Gelo Profondo", color: '#3498db', desc: "I prossimi 5 Dardi di Gelo congelano i nemici." },
+            'LEGENDARY_ORB': { name: "Frammento Divino", color: '#ff00ff', desc: "Invincibilità e danni aumentati per 60 secondi!" }
+        };
+        const spells = {};
+        const passives = {};
+        
+        let permanentUpgrades = {
+            health:   { name: "Salute Base",    level: 0, maxLevel: 10, baseCost: 20, costGrowth: 1.5, effect: level => `+${level * 10} HP` },
+            speed:    { name: "Velocità Base",  level: 0, maxLevel: 5,  baseCost: 50, costGrowth: 2.0, effect: level => `+${(level * 0.1).toFixed(1)} Vel.` },
+            xpGain:   { name: "Guadagno XP",    level: 0, maxLevel: 10, baseCost: 30, costGrowth: 1.6, effect: level => `+${level * 5}% XP` },
+            luck:     { name: "Fortuna",        level: 0, maxLevel: 10, baseCost: 40, costGrowth: 1.8, effect: level => `+${level * 2}% Drop` }
+        };
+
+        const tempUpgrades = [
+            { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', effect: () => { spells.fireball.level++; spells.fireball.damage += 5; spells.fireball.explosionRadius += 5; }, details: "+5 Danni, +5 Raggio Esplosione" },
+            { id: 'lightning', name: 'Fulmine a Catena', desc: 'Colpisce più nemici.', effect: () => { spells.lightning.level++; spells.lightning.damage += 4; spells.lightning.chains++; }, details: "+4 Danni, +1 Rimbalzo" },
+            { id: 'frostbolt', name: 'Dardo di Gelo', desc: 'Un dardo che perfora e rallenta.', effect: () => { spells.frostbolt.level++; spells.frostbolt.damage += 3; spells.frostbolt.penetration++; }, details: "+3 Danni, +1 Perforazione" },
+            { id: 'shotgun', name: 'Shotgun Arcano', desc: 'Una rosa di proiettili devastante.', effect: () => { spells.shotgun.level++; spells.shotgun.damage += 2; spells.shotgun.count += 2; }, details: "+2 Danni, +2 Proiettili" },
+            { id: 'shockwave', name: 'Onda d\'Urto', desc: 'Respinge e danneggia i nemici vicini.', effect: () => { spells.shockwave.level++; spells.shockwave.damage += 10; spells.shockwave.radius += 15; spells.shockwave.knockback += 5; }, details: "+10 Danni, +15 Raggio, +5 Forza di respinta" },
+            { id: 'heal', name: 'Impulso Curativo', desc: 'Emette un impulso che ripristina HP.', effect: () => { spells.heal.level++; spells.heal.amount += 10; spells.heal.cooldown = Math.max(4000, spells.heal.cooldown - 1000); }, details: "+10 HP Curati, -1s Ricarica" },
+            { id: 'shield', name: 'Scudo Magico', desc: 'Una barriera protettiva temporanea.', effect: () => { spells.shield.level++; spells.shield.duration += 1000; spells.shield.cooldown = Math.max(5000, spells.shield.cooldown - 1500); }, details: "+1s Durata, -1.5s Ricarica" },
+            { id: 'health', name: 'Vitalità', desc: 'Aumenta i tuoi HP massimi di 25.', effect: () => { player.maxHp += 25; player.hp += 25; passives.health.level++; } },
+            { id: 'speed', name: 'Velocità', desc: 'Aumenta la tua velocità di movimento.', effect: () => { player.speed += 0.4; passives.speed.level++; } },
+            { id: 'attack_speed', name: 'Rapidità', desc: 'Riduce la ricarica di tutte le abilità.', effect: () => { Object.values(spells).forEach(s => { if(s.cooldown) s.cooldown *= 0.92; }); passives.attack_speed.level++; }, details: "-8% Ricarica Globale" }
+        ];
+
+        // --- GESTIONE SHOP PERMANENTE ---
+        function showMerchantShop() {
+            gamePaused = true;
+            populateShop();
+            document.getElementById('permanentUpgradeShop').style.display = 'block';
+        }
+        function hideMerchantShop() {
+            document.getElementById('permanentUpgradeShop').style.display = 'none';
+            gamePaused = false;
+        }
+        function populateShop() {
+            document.getElementById('totalGemsShop').textContent = totalGems;
+            const container = document.getElementById('permanentUpgradeOptions');
+            container.innerHTML = '';
+            for (const key in permanentUpgrades) {
+                const upg = permanentUpgrades[key];
+                const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
+                let optionHTML = `
+                    <div class="permanent-upgrade-option">
+                        <div>
+                            <div class="upgrade-title">${upg.name}</div>
+                            <div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div>
+                            <div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div>
+                        </div>
+                `;
+                if (upg.level < upg.maxLevel) {
+                    optionHTML += `
+                        <div>
+                            <div class="perm-upgrade-cost">Costo: ${cost} 💎</div>
+                            <button class="buy-button" onclick="buyPermanentUpgrade('${key}')" ${totalGems < cost ? 'disabled' : ''}>Compra</button>
+                        </div>
+                    `;
+                } else {
+                    optionHTML += `<div><span style="color: #2ecc71;">MAX</span></div>`;
+                }
+                optionHTML += `</div>`;
+                container.innerHTML += optionHTML;
+            }
+        }
+        function buyPermanentUpgrade(key) {
+            const upg = permanentUpgrades[key];
+            const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
+            if (upg.level < upg.maxLevel && totalGems >= cost) {
+                totalGems -= cost;
+                upg.level++;
+                applyPermanentUpgrades();
+                populateShop();
+            }
+        }
+
+        // --- LOGICA DI GIOCO ---
+        function applyPermanentUpgrades() {
+            player.maxHp = 100 + (permanentUpgrades.health.level * 10);
+            player.hp = player.maxHp; 
+            player.speed = 3 + (permanentUpgrades.speed.level * 0.1);
+            player.xpGainMod = 1 + (permanentUpgrades.xpGain.level * 0.05);
+            player.luck = permanentUpgrades.luck.level * 0.02;
+        }
+
+        function resetSpells() {
+            spells.fireball = { name: "Sfera di Fuoco", level: 1, damage: 15, cooldown: 900, lastCast: 0, size: 8, speed: 7, explosionRadius: 20 };
+            spells.lightning = { name: "Fulmine a Catena", level: 0, damage: 10, cooldown: 1200, lastCast: 0, range: 250, chains: 2 };
+            spells.frostbolt = { name: "Dardo di Gelo", level: 0, damage: 12, cooldown: 1200, lastCast: 0, slow: 0.5, slowDuration: 120, size: 7, speed: 6, penetration: 1 };
+            spells.shotgun = { name: "Shotgun Arcano", level: 0, damage: 8, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0 };
+            spells.shockwave = { name: "Onda d'Urto", level: 0, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15 };
+            spells.heal = { name: "Cura", level: 0, amount: 20, cooldown: 10000, lastCast: 0 };
+            spells.shield = { name: "Scudo Magico", level: 0, duration: 3000, cooldown: 12000, lastCast: 0, active: false };
+            
+            passives.health = { name: "Vitalità", level: 0 };
+            passives.speed = { name: "Velocità", level: 0 };
+            passives.attack_speed = { name: "Rapidità", level: 0 };
+        }
+
+        document.addEventListener('keydown', (e) => { 
+            keys[e.code] = true; 
+            if (e.code === 'Escape') togglePause(); 
+            if (e.code === 'KeyE') {
+                const dist = getDistance(player, merchant);
+                if (dist < merchant.interactionRadius && !gamePaused) {
+                    showMerchantShop();
+                }
+            }
+        });
+        document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+        
+        canvas.addEventListener('click', handleCanvasClick);
+        window.addEventListener('touchstart', handleTouchStart, { passive: false });
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd);
+        window.addEventListener('touchcancel', handleTouchEnd);
+        
+        function handleCanvasClick(e) {
+            if (gamePaused || !gameRunning) return;
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            const worldX = clickX + camera.x;
+            const worldY = clickY + camera.y;
+
+            if (worldX >= merchant.x && worldX <= merchant.x + merchant.size &&
+                worldY >= merchant.y && worldY <= merchant.y + merchant.size) {
+                showMerchantShop();
+            }
+        }
+
+        function handleTouchStart(e) { if (joystick.active || gamePaused) return; const touch = e.changedTouches[0]; if (touch.clientX < window.innerWidth / 2) { e.preventDefault(); joystick.touchId = touch.identifier; joystick.active = true; joystick.startX = touch.clientX; joystick.startY = touch.clientY; joystick.container.style.display = 'block'; joystick.container.style.left = `${joystick.startX - joystick.radius}px`; joystick.container.style.top = `${joystick.startY - joystick.radius}px`; } }
+        function handleTouchMove(e) { if (!joystick.active) return; const touch = Array.from(e.changedTouches).find(t => t.identifier === joystick.touchId); if (!touch) return; e.preventDefault(); let deltaX = touch.clientX - joystick.startX; let deltaY = touch.clientY - joystick.startY; const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); const maxDistance = joystick.radius; if (distance > maxDistance) { deltaX = (deltaX / distance) * maxDistance; deltaY = (deltaY / distance) * maxDistance; } joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; joystick.dx = deltaX / maxDistance; joystick.dy = deltaY / maxDistance; }
+        function handleTouchEnd(e) { if (!joystick.active) return; const touch = Array.from(e.changedTouches).find(t => t.identifier === joystick.touchId); if (!touch) return; joystick.active = false; joystick.touchId = null; joystick.stick.style.transform = 'translate(0px, 0px)'; joystick.container.style.display = 'none'; joystick.dx = 0; joystick.dy = 0; }
+
+        function startGame() { 
+            let gemsThisRun = 0;
+            enemiesKilled = 0;
+            score = 0;
+            enemiesKilledSinceBoss = 0;
+            
+            player.level = 1; 
+            player.xp = 0; 
+            player.xpNext = 8; 
+            player.powerUpTimers = { invincibility: 0, damageBoost: 0 }; 
+            player.skillMods = { fireball: 0, lightning: 0, frostbolt: 0 };
+            player.x = world.width / 2;
+            player.y = world.height / 2;
+
+
+            enemies = []; projectiles = []; xpOrbs = []; particles = []; effects = []; chests = []; droppedItems = []; notifications = []; gemOrbs = []; bosses = []; enemyProjectiles = [];
+
+            document.getElementById('startScreen').style.display = 'none'; 
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('pauseButton').style.display = 'flex'; 
+
+            gameRunning = true; 
+            gamePaused = false; 
+            startTime = Date.now(); 
+            nextChestSpawnTime = Date.now() + 10000;
+            resetSpells(); 
+            applyPermanentUpgrades();
+
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            gameLoopId = requestAnimationFrame(gameLoop); 
+        }
+
+        function restartGame() { 
+            startGame();
+        }
+
+        function restartFromPause() { document.getElementById('pauseMenu').style.display = 'none'; restartGame(); }
+        
+        function togglePause() { 
+            if (!gameRunning || document.getElementById('upgradeMenu').style.display === 'block' || document.getElementById('gameOver').style.display === 'block' || document.getElementById('permanentUpgradeShop').style.display === 'block') return; 
+            gamePaused = !gamePaused; 
+            if (gamePaused) { 
+                populateStatsMenu(); 
+            } 
+            document.getElementById('pauseMenu').style.display = gamePaused ? 'block' : 'none'; 
+        }
+
+        function populateStatsMenu() {
+            const container = document.getElementById('pauseStats');
+            let html = `<div class="stat-category">Statistiche Giocatore</div>`;
+            html += `<div class="stat-item">HP Massimi: <span>${player.maxHp}</span></div>`;
+            html += `<div class="stat-item">Velocità: <span>${player.speed.toFixed(1)}</span></div>`;
+            if (passives.attack_speed.level > 0) { const reduction = (1 - Math.pow(0.92, passives.attack_speed.level)) * 100; html += `<div class="stat-item">Riduzione Ricarica: <span>${reduction.toFixed(0)}%</span></div>`; }
+            html += `<div class="stat-category">Abilità Acquisite</div>`;
+            for (const key in spells) { const s = spells[key]; if (s.level > 0) { html += `<div class="stat-item">${s.name} (Liv. ${s.level}): <span>`; let details = `Danno ${s.damage}`; if(s.count) details += `, Proiettili ${s.count}`; if(s.chains) details += `, Rimbalzi ${s.chains}`; if(s.explosionRadius) details += `, Raggio Espl. ${s.explosionRadius}`; if(s.penetration !== undefined) details += `, Perfora ${s.penetration}`; if(s.duration) details += `, Durata ${s.duration/1000}s`; if(s.amount) details += `, Cura ${s.amount} HP`; html += `${details}</span></div>`; } }
+            container.innerHTML = html;
+        }
+
+        function gameOver() { 
+            gameRunning = false; 
+            totalGems += gemsThisRun;
+            document.getElementById('gemsEarned').textContent = gemsThisRun;
+            document.getElementById('pauseButton').style.display = 'none'; 
+            document.getElementById('pauseMenu').style.display = 'none'; 
+            document.getElementById('survivalTime').textContent = Math.floor((Date.now() - startTime) / 1000); 
+            document.getElementById('enemiesKilled').textContent = enemiesKilled; 
+            document.getElementById('finalScore').textContent = score; 
+            document.getElementById('gameOver').style.display = 'block'; 
+        }
+        function getDistance(obj1, obj2) { const dx = obj1.x - obj2.x; const dy = obj1.y - obj2.y; return Math.sqrt(dx * dx + dy * dy); }
+
+        function updatePlayer() { let kDx = 0, kDy = 0; if (keys['KeyW'] || keys['ArrowUp']) kDy -= 1; if (keys['KeyS'] || keys['ArrowDown']) kDy += 1; if (keys['KeyA'] || keys['ArrowLeft']) kDx -= 1; if (keys['KeyD'] || keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } player.x += fDx * player.speed; player.y += fDy * player.speed; player.x = Math.max(player.radius, Math.min(world.width - player.radius, player.x)); player.y = Math.max(player.radius, Math.min(world.height - player.radius, player.y)); }
+        function updateCamera() { camera.x = player.x - camera.width / 2; camera.y = player.y - camera.height / 2; camera.x = Math.max(0, Math.min(camera.x, world.width - camera.width)); camera.y = Math.max(0, Math.min(camera.y, world.height - camera.height)); }
+        function updateEnemies() { for (let i = enemies.length - 1; i >= 0; i--) { const e = enemies[i]; if (e.stunTimer > 0) { e.stunTimer--; continue; } if(e.slowTimer > 0) e.slowTimer--; const angle = Math.atan2(player.y - e.y, player.x - e.x); const speed = e.speed * (e.slowTimer > 0 ? (1 - e.slowAmount) : 1); e.x += Math.cos(angle) * speed; e.y += Math.sin(angle) * speed; if (getDistance(e, player) < e.radius + player.radius) { if (!spells.shield.active && player.powerUpTimers.invincibility <= 0) { player.hp -= e.damage; if (player.hp <= 0) { gameOver(); return; } } const kAngle = Math.atan2(e.y - player.y, e.x - player.x); e.x += Math.cos(kAngle) * 20; e.y += Math.sin(kAngle) * 20; } if (e.hp <= 0) { enemiesKilled++; enemiesKilledSinceBoss++; score += Math.floor(e.maxHp); xpOrbs.push({ x: e.x, y: e.y, value: (2 + Math.floor(Math.random() * 3)) * player.xpGainMod }); if(Math.random() < 0.1 + player.luck) { gemOrbs.push({x: e.x, y: e.y, value: 1 + (Math.random() < player.luck ? 1 : 0)}) } for (let j = 0; j < 8; j++) particles.push({ x: e.x, y: e.y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: e.color }); enemies.splice(i, 1); } } }
+        
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                if (!p) continue;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+
+                let removed = false;
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const e = enemies[j];
+                    if (getDistance(p, e) < e.radius + p.size) {
+                        e.hp -= p.damage;
+                        if (p.slow) { e.slowAmount = p.slow; e.slowTimer = p.slowDuration; }
+                        if (p.stun) { e.stunTimer = p.stunDuration; }
+                        p.penetrated++;
+                        if (p.penetrated >= p.penetration) {
+                            if (p.type === 'fireball') createExplosion(p.x, p.y, p.explosionRadius, p.damage / 2);
+                            projectiles.splice(i, 1);
+                            removed = true;
+                            break; 
+                        }
+                    }
+                }
+                
+                if (!removed) {
+                    for (let j = bosses.length - 1; j >= 0; j--) {
+                        const b = bosses[j];
+                        if (getDistance(p,b) < b.radius + p.size) {
+                            b.hp -= p.damage;
+                            projectiles.splice(i,1);
+                            removed = true;
+                            break;
+                        }
+                    }
+                }
+
+
+                if (removed) { continue; }
+
+                if (p.life <= 0 || p.x < 0 || p.x > world.width || p.y < 0 || p.y > world.height) {
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        function updateXPOrbs() { for (let i = xpOrbs.length - 1; i >= 0; i--) { const orb = xpOrbs[i]; const dist = getDistance(orb, player); if (dist < 100) { const angle = Math.atan2(player.y - orb.y, player.x - orb.x); orb.x += Math.cos(angle) * 4; orb.y += Math.sin(angle) * 4; } if (dist < 20) { player.xp += orb.value; if (player.xp >= player.xpNext) levelUp(); xpOrbs.splice(i, 1); } } }
+        function updateGemOrbs() { for (let i = gemOrbs.length - 1; i >= 0; i--) { const orb = gemOrbs[i]; const dist = getDistance(orb, player); if (dist < 120) { const angle = Math.atan2(player.y - orb.y, player.x - orb.x); orb.x += Math.cos(angle) * 5; orb.y += Math.sin(angle) * 5; } if (dist < 20) { totalGems += orb.value; gemOrbs.splice(i, 1); } } }
+        function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) particles.splice(i, 1); } }
+        function updateEffects() { for (let i = effects.length - 1; i >= 0; i--) { effects[i].life--; if (effects[i].life <= 0) effects.splice(i, 1); } }
+        function updatePowerUps() { for (const key in player.powerUpTimers) { if (player.powerUpTimers[key] > 0) { player.powerUpTimers[key]--; } } }
+        function updateNotifications() { for (let i = notifications.length - 1; i >= 0; i--) { notifications[i].life--; if (notifications[i].life <= 0) { notifications.splice(i, 1); } } }
+        
+        function spawnEnemies() { const maxEnemies = 50 + Math.floor((Date.now() - startTime) / 15000); if (enemies.length >= maxEnemies) return; const side = Math.floor(Math.random() * 4); let x, y; const buffer = 50; switch (side) { case 0: x = camera.x + Math.random() * camera.width; y = camera.y - buffer; break; case 1: x = camera.x + camera.width + buffer; y = camera.y + Math.random() * camera.height; break; case 2: x = camera.x + Math.random() * camera.width; y = camera.y + camera.height + buffer; break; case 3: x = camera.x - buffer; y = camera.y + Math.random() * camera.height; break; } const timeFactor = (Date.now() - startTime) / 7000; const hpBonus = Math.floor(timeFactor / 2) * 15; const speedBonus = timeFactor * 0.05; enemies.push({ x, y, hp: 30 + hpBonus, maxHp: 30 + hpBonus, speed: 1 + Math.random() * 0.6 + speedBonus, radius: 12, damage: 10 + Math.floor(timeFactor / 3) * 4, slowTimer: 0, stunTimer: 0, slowAmount: 0, color: `hsl(${Math.random() * 60}, 70%, 50%)` }); }
+        
+        function spawnChests() { if (chests.length === 0 && Date.now() >= nextChestSpawnTime) { const buffer = 200; let x, y, dist; do { x = Math.random() * (world.width - buffer * 2) + buffer; y = Math.random() * (world.height - buffer * 2) + buffer; dist = getDistance({x,y}, player); } while (dist < camera.width); chests.push({ x, y, size: 25 }); } }
+        
+        function updateChests() { for (let i = chests.length - 1; i >= 0; i--) { const chest = chests[i]; const dist = getDistance(player, {x: chest.x + chest.size/2, y: chest.y + chest.size/2}); if (dist < player.radius + chest.size) { nextChestSpawnTime = Date.now() + 30000; const itemKeys = Object.keys(itemTypes).filter(k => k !== 'LEGENDARY_ORB'); const randomType = itemKeys[Math.floor(Math.random() * itemKeys.length)]; droppedItems.push({ x: chest.x + chest.size / 2, y: chest.y - 10, type: randomType, life: 600 }); if(Math.random() < 0.5 + player.luck) { let gemsFound = 5 + Math.floor(Math.random() * 6 * (1 + player.luck)); totalGems += gemsFound; } chests.splice(i, 1); } } }
+        function updateDroppedItems() { for (let i = droppedItems.length - 1; i >= 0; i--) { const item = droppedItems[i]; item.life--; if (item.life <= 0) { droppedItems.splice(i, 1); continue; } const dist = getDistance(player, item); if (dist < player.radius + 10) { applyItemEffect(item, player); droppedItems.splice(i, 1); } } }
+        
+        function applyItemEffect(item, player) {
+            const itemInfo = itemTypes[item.type];
+            notifications.push({ text: itemInfo.desc, life: 300 }); 
+            switch (item.type) { 
+                case 'HEAL_POTION': player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.5); for(let i=0; i<15; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*5 - 2, life: 40, color: itemTypes.HEAL_POTION.color }); break; 
+                case 'XP_BOMB': player.xp += player.xpNext; if (player.xp >= player.xpNext) levelUp(); for(let i=0; i<20; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4, life: 30, color: itemTypes.XP_BOMB.color }); break; 
+                case 'INVINCIBILITY': player.powerUpTimers.invincibility = 600; break; 
+                case 'DAMAGE_BOOST': player.powerUpTimers.damageBoost = 1200; break; 
+                case 'FIREBALL_MOD': player.skillMods.fireball = 5; break;
+                case 'LIGHTNING_MOD': player.skillMods.lightning = 3; break;
+                case 'FROSTBOLT_MOD': player.skillMods.frostbolt = 5; break;
+                case 'LEGENDARY_ORB': player.powerUpTimers.damageBoost = 3600; player.powerUpTimers.invincibility = 3600; break;
+            } 
+        }
+
+        function findNearestEnemy(from = player, range = 9999) { let nearest = null; let minDist = range; [...enemies, ...bosses].forEach(enemy => { const dist = getDistance(from, enemy); if (dist < minDist) { minDist = dist; nearest = enemy; }}); return nearest; }
+        function castSpells() { const now = Date.now(); if (spells.shotgun.level > 0 && now - spells.shotgun.lastCast > spells.shotgun.cooldown) castShotgun(now); if (spells.shockwave.level > 0 && now - spells.shockwave.lastCast > spells.shockwave.cooldown) castShockwave(now); if (spells.fireball.level > 0 && now - spells.fireball.lastCast > spells.fireball.cooldown) castFireball(now); if (spells.lightning.level > 0 && now - spells.lightning.lastCast > spells.lightning.cooldown) castLightning(now); if (spells.frostbolt.level > 0 && now - spells.frostbolt.lastCast > spells.frostbolt.cooldown) castFrostbolt(now); if (spells.heal.level > 0 && player.hp < player.maxHp && now - spells.heal.lastCast > spells.heal.cooldown) { player.hp = Math.min(player.maxHp, player.hp + spells.heal.amount); for(let i=0; i<10; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00' }); spells.heal.lastCast = now; } if (spells.shield.level > 0 && !spells.shield.active && now - spells.shield.lastCast > spells.shield.cooldown) { spells.shield.active = true; spells.shield.lastCast = now; setTimeout(() => { spells.shield.active = false; }, spells.shield.duration); } }
+        
+        function castFireball(now) { 
+            const nearest = findNearestEnemy(); 
+            if (!nearest) return; 
+            const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); 
+            const s = spells.fireball; 
+            const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1); 
+            let size = s.size;
+            let explosionRadius = s.explosionRadius;
+            if (player.skillMods.fireball > 0) {
+                size *= 2;
+                explosionRadius *= 2;
+                player.skillMods.fireball--;
+            }
+            projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: damage, type: 'fireball', life: 100, size: size, penetration: 1, penetrated: 0, explosionRadius: explosionRadius }); 
+            s.lastCast = now; 
+        }
+
+        function castFrostbolt(now) { 
+            const nearest = findNearestEnemy(); 
+            if (!nearest) return; 
+            const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); 
+            const s = spells.frostbolt; 
+            const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1); 
+            let stun = false;
+            if (player.skillMods.frostbolt > 0) {
+                stun = true;
+                player.skillMods.frostbolt--;
+            }
+            projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: damage, type: 'frostbolt', life: 100, slow: s.slow, slowDuration: s.slowDuration, size: s.size, penetration: s.penetration + 1, penetrated: 0, stun: stun, stunDuration: 60 }); 
+            s.lastCast = now; 
+        }
+
+        function castLightning(now) { 
+            const s = spells.lightning; 
+            const nearest = findNearestEnemy(player, s.range); 
+            if (!nearest) return; 
+            s.lastCast = now; 
+            let lastTarget = player; 
+            let chainedEnemies = []; 
+            const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1); 
+            let chains = s.chains;
+            if (player.skillMods.lightning > 0) {
+                chains += 3;
+                player.skillMods.lightning--;
+            }
+            for (let c = 0; c < chains; c++) { 
+                let nextTarget = findNearestChainingEnemy(lastTarget, chainedEnemies); 
+                if (nextTarget) { 
+                    nextTarget.hp -= damage; 
+                    effects.push({ type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 }); 
+                    lastTarget = nextTarget; 
+                    chainedEnemies.push(nextTarget); 
+                } else break; 
+            } 
+        }
+
+        function castShotgun(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angleBase = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.shotgun; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1); for (let i = 0; i < s.count; i++) { const offset = (i - (s.count-1) / 2) * (s.angleSpread / s.count); const angle = angleBase + offset; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, damage: damage, type: 'shotgun', life: 30, color: '#ffaa00', size: 4, penetration: 1, penetrated: 0 }); } s.lastCast = now; }
+        function castShockwave(now) { const s = spells.shockwave; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1); for (let enemy of [...enemies, ...bosses]) { if (getDistance(player, enemy) <= s.radius) { enemy.hp -= damage; const kAngle = Math.atan2(enemy.y - player.y, enemy.x - player.x); enemy.x += Math.cos(kAngle) * s.knockback; enemy.y += Math.sin(kAngle) * s.knockback; } } effects.push({ type: 'emp_wave', x: player.x, y: player.y, maxRadius: s.radius, life: 30, initialLife: 30, color: '#88aaff' }); s.lastCast = now; }
+        
+        function findNearestChainingEnemy(fromObj, excludeList) { let nearest = null; let minDist = 200; for (let enemy of [...enemies, ...bosses]) { if (excludeList.some(e => e === enemy)) continue; const dist = getDistance(fromObj, enemy); if (dist < minDist) { minDist = dist; nearest = enemy; } } return nearest; }
+        function createExplosion(x, y, radius, damage) { const finalDamage = damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1); effects.push({ type: 'explosion', x, y, maxRadius: radius, life: 20, initialLife: 20 }); for (let enemy of [...enemies, ...bosses]) { if (getDistance({x,y}, enemy) <= radius) enemy.hp -= finalDamage; } }
+        
+        function levelUp() { player.level++; player.hp = player.maxHp; player.xp -= player.xpNext; player.xpNext = Math.floor(player.xpNext * 1.55); player.powerUpTimers.invincibility = 120; effects.push({ type: 'level_up_burst', x: player.x, y: player.y, maxRadius: 60, life: 30, initialLife: 30 }); showUpgradeMenu(); }
+        function showUpgradeMenu() { gamePaused = true; const menu = document.getElementById('upgradeMenu'); const options = document.getElementById('upgradeOptions'); const allUpgrades = tempUpgrades.map(u => ({...u, spell: spells[u.id] })).filter(u => u.spell || u.id === 'health' || u.id === 'speed' || u.id === 'attack_speed' ); const availableUpgrades = allUpgrades.filter(u => !u.spell || u.spell.level < 5 || u.spell.level === undefined); let selectedUpgrades = []; for (let i = 0; i < 3 && availableUpgrades.length > 0; i++) { selectedUpgrades.push(availableUpgrades.splice(Math.floor(Math.random() * availableUpgrades.length), 1)[0]); } options.innerHTML = ''; selectedUpgrades.forEach(upgrade => { const div = document.createElement('div'); div.className = 'upgrade-option'; div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${upgrade.spell ? `(Liv. ${upgrade.spell.level})` : ''}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`; div.onclick = () => { upgrade.effect(); menu.style.display = 'none'; gamePaused = false; }; options.appendChild(div); }); menu.style.display = 'block'; }
+        
+        // --- BOSS LOGIC ---
+        function spawnBoss() {
+            const side = Math.floor(Math.random() * 4); let x, y; const buffer = 100; 
+            switch (side) { case 0: x = camera.x + Math.random() * camera.width; y = camera.y - buffer; break; case 1: x = camera.x + camera.width + buffer; y = camera.y + Math.random() * camera.height; break; case 2: x = camera.x + Math.random() * camera.width; y = camera.y + camera.height + buffer; break; case 3: x = camera.x - buffer; y = camera.y + Math.random() * camera.height; break; }
+            const timeFactor = (Date.now() - startTime) / 60000;
+            bosses.push({
+                x, y,
+                hp: 1000 + timeFactor * 500,
+                maxHp: 1000 + timeFactor * 500,
+                speed: 1.5,
+                radius: 40,
+                damage: 25,
+                attackCooldown: 2000,
+                lastAttack: 0,
+                color: '#8e44ad'
+            });
+            notifications.push({ text: "!!! UN BOSS È APPARSO !!!", life: 300 });
+        }
+
+        function updateBosses() {
+            for (let i = bosses.length - 1; i >= 0; i--) {
+                const b = bosses[i];
+                const angle = Math.atan2(player.y - b.y, player.x - b.x);
+                b.x += Math.cos(angle) * b.speed;
+                b.y += Math.sin(angle) * b.speed;
+
+                if(Date.now() - b.lastAttack > b.attackCooldown) {
+                    const angleToPlayer = Math.atan2(player.y - b.y, player.x - b.x);
+                    enemyProjectiles.push({
+                        x: b.x, y: b.y,
+                        vx: Math.cos(angleToPlayer) * 4,
+                        vy: Math.sin(angleToPlayer) * 4,
+                        damage: b.damage,
+                        radius: 8,
+                        life: 300
+                    });
+                    b.lastAttack = Date.now();
+                }
+
+                if (b.hp <= 0) {
+                    for (let j = 0; j < 50; j++) particles.push({ x: b.x, y: b.y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 40, color: b.color });
+                    droppedItems.push({ x: b.x, y: b.y, type: 'LEGENDARY_ORB', life: 1200 });
+                    totalGems += 50;
+                    bosses.splice(i, 1);
+                }
+            }
+        }
+        
+        function updateEnemyProjectiles() {
+            for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                const p = enemyProjectiles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if(getDistance(p, player) < player.radius + p.radius) {
+                    if (!spells.shield.active && player.powerUpTimers.invincibility <= 0) {
+                        player.hp -= p.damage;
+                        if(player.hp <= 0) gameOver();
+                    }
+                    enemyProjectiles.splice(i,1);
+                } else if (p.life <= 0) {
+                    enemyProjectiles.splice(i,1);
+                }
+            }
+        }
+
+
+        // --- DRAW FUNCTIONS ---
+        function draw() { 
+            ctx.fillStyle = 'black'; ctx.fillRect(0, 0, canvas.width, canvas.height); 
+            ctx.save(); ctx.translate(-camera.x, -camera.y); 
+            ctx.fillStyle = '#16213e'; ctx.fillRect(0, 0, world.width, world.height); 
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2; 
+            for (let x = 0; x < world.width; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, world.height); ctx.stroke(); } 
+            for (let y = 0; y < world.height; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(world.width, y); ctx.stroke(); } 
+            
+            drawMerchant();
+            
+            particles.forEach(p => { ctx.globalAlpha = p.life / 30; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); 
+            ctx.globalAlpha = 1; 
+            xpOrbs.forEach(orb => { ctx.fillStyle = '#00ff88'; ctx.beginPath(); ctx.arc(orb.x, orb.y, 6, 0, Math.PI * 2); ctx.fill(); }); 
+            drawGemOrbs(); drawChests(); drawDroppedItems(); 
+            enemies.forEach(e => { ctx.fillStyle = e.stunTimer > 0 ? '#ffffff' : (e.slowTimer > 0 ? '#66b2ff' : e.color); ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2); ctx.fill(); if(e.hp < e.maxHp){ const barW = e.radius*2, barH=4, x=e.x-barW/2, y=e.y-e.radius-8; ctx.fillStyle='#ff0000'; ctx.fillRect(x,y,barW,barH); ctx.fillStyle='#00ff00'; ctx.fillRect(x,y,barW*(e.hp/e.maxHp),barH); } }); 
+            drawBosses();
+            drawEnemyProjectiles();
+            projectiles.forEach(p => { if(p.type === 'fireball') drawFireball(p); else if(p.type === 'frostbolt') drawFrostbolt(p); else { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } }); 
+            drawEffects(); drawPlayer(); 
+            ctx.restore(); 
+            drawChestArrow(); drawMerchantArrow(); drawNotifications();
+        }
+        function drawPlayer() { ctx.fillStyle = player.powerUpTimers.damageBoost > 0 ? '#ff4500' : '#4488ff'; ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke(); if (spells.shield.active || player.powerUpTimers.invincibility > 0) { const shieldRadius = player.radius + 8 + Math.sin(Date.now() / 200) * 3; const alpha = player.powerUpTimers.invincibility > 0 ? (player.powerUpTimers.invincibility % 60 < 30 ? 0.9 : 0.5) : 0.8; ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`; ctx.fillStyle = `rgba(255, 255, 0, ${alpha/4})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(player.x, player.y, shieldRadius, 0, Math.PI * 2); ctx.stroke(); ctx.fill(); } }
+        function drawFireball(p) { const g = ctx.createRadialGradient(p.x,p.y,p.size/2, p.x,p.y, p.size*1.5); g.addColorStop(0,'rgba(255,200,0,1)'); g.addColorStop(0.5,'rgba(255,100,0,0.8)'); g.addColorStop(1,'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x,p.y,p.size*1.5,0,Math.PI*2); ctx.fill(); if(Math.random()>0.5) particles.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*1,vy:(Math.random()-0.5)*1,life:15,color:'#ffaa00'}); }
+        function drawFrostbolt(p) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6; const outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        function drawEffects() { effects.forEach(e => { const opacity = e.life / e.initialLife; if (e.type === 'emp_wave' || e.type === 'explosion' || e.type === 'level_up_burst') { const currentRadius = e.maxRadius * (1 - opacity); let color = '136,170,255'; if (e.type === 'explosion') color = '255,150,0'; if (e.type === 'level_up_burst') color = '255,215,0'; ctx.strokeStyle=`rgba(${color},${opacity})`; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(e.x,e.y,currentRadius,0,Math.PI*2); ctx.stroke(); } if (e.type === 'lightning_chain') { ctx.strokeStyle = `rgba(255,255,0,${opacity})`; ctx.lineWidth=Math.random()*3+2; drawJaggedLine(ctx, e.from.x, e.from.y, e.to.x, e.to.y, 10); } }); }
+        function drawJaggedLine(ctx,x1,y1,x2,y2,segments){ctx.beginPath();ctx.moveTo(x1,y1);const dx=x2-x1,dy=y2-y1,dist=Math.sqrt(dx*dx+dy*dy);for(let i=1;i<segments;i++){const t=i/segments,tx=x1+dx*t,ty=y1+dy*t,offset=(Math.random()-0.5)*(dist/segments)*2;ctx.lineTo(tx-dy/dist*offset,ty+dx/dist*offset);}ctx.lineTo(x2,y2);ctx.stroke();}
+        function drawChests() { chests.forEach(chest => { ctx.fillStyle = '#8B4513'; ctx.fillRect(chest.x, chest.y, chest.size, chest.size); ctx.fillStyle = '#FFD700'; ctx.fillRect(chest.x + chest.size * 0.3, chest.y - chest.size * 0.2, chest.size * 0.4, chest.size*0.4); ctx.fillRect(chest.x + chest.size * 0.4, chest.y + chest.size * 0.4, chest.size*0.2, chest.size*0.3); }); }
+        function drawDroppedItems() { droppedItems.forEach(item => { const itemInfo = itemTypes[item.type]; ctx.save(); ctx.globalAlpha = item.life > 60 ? 1.0 : Math.max(0, item.life / 60); const bob = Math.sin(Date.now()/200 + item.x) * 3; ctx.fillStyle = itemInfo.color; ctx.beginPath(); ctx.arc(item.x, item.y + bob, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore(); }); }
+        function drawGemOrbs() { gemOrbs.forEach(orb => { ctx.save(); ctx.translate(orb.x, orb.y); ctx.rotate(Date.now()/500); ctx.fillStyle = '#72f5f5'; ctx.strokeStyle = 'white'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(7, 0); ctx.lineTo(0, 7); ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }); }
+        function drawChestArrow() { if (chests.length === 0) return; const chest = chests[0]; const chestScreenX = chest.x - camera.x; const chestScreenY = chest.y - camera.y; if (chestScreenX > 0 && chestScreenX < canvas.width && chestScreenY > 0 && chestScreenY < canvas.height) { return; } const playerScreenX = player.x - camera.x; const playerScreenY = player.y - camera.y; const angle = Math.atan2(chestScreenY - playerScreenY, chestScreenX - playerScreenX); const padding = 30; let arrowX = playerScreenX + Math.cos(angle) * 2000; let arrowY = playerScreenY + Math.sin(angle) * 2000; arrowX = Math.max(padding, Math.min(canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(canvas.height - padding, arrowY)); ctx.save(); ctx.translate(arrowX, arrowY); ctx.rotate(angle); ctx.fillStyle = "rgba(255, 215, 0, 0.7)"; ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-15, -10); ctx.lineTo(-10, 0); ctx.lineTo(-15, 10); ctx.closePath(); ctx.fill(); ctx.strokeStyle = "white"; ctx.lineWidth = 1; ctx.stroke(); ctx.restore(); }
+        function drawMerchantArrow() { const merchScreenX = merchant.x - camera.x; const merchScreenY = merchant.y - camera.y; if (merchScreenX > 0 && merchScreenX < canvas.width && merchScreenY > 0 && merchScreenY < canvas.height) { return; } const playerScreenX = player.x - camera.x; const playerScreenY = player.y - camera.y; const angle = Math.atan2(merchScreenY - playerScreenY, merchScreenX - playerScreenX); const padding = 50; let arrowX = playerScreenX + Math.cos(angle) * 2000; let arrowY = playerScreenY + Math.sin(angle) * 2000; arrowX = Math.max(padding, Math.min(canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(canvas.height - padding, arrowY)); ctx.save(); ctx.translate(arrowX, arrowY); ctx.rotate(angle + Math.PI / 2); ctx.fillStyle = "rgba(155, 89, 182, 0.8)"; ctx.strokeStyle = "white"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(10, 10); ctx.lineTo(-10, 10); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        function drawNotifications() { ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 18px "Courier New", monospace'; notifications.forEach((n, index) => { const opacity = n.life > 30 ? 1.0 : n.life / 30; ctx.fillStyle = `rgba(255, 215, 0, ${opacity})`; ctx.shadowColor = "rgba(0, 0, 0, 0.7)"; ctx.shadowBlur = 5; const yPos = 40 + (index * 25); ctx.fillText(n.text, canvas.width / 2, yPos); }); ctx.restore(); }
+        function drawMerchant() { ctx.fillStyle = '#9b59b6'; ctx.fillRect(merchant.x, merchant.y, merchant.size, merchant.size); ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 3; ctx.strokeRect(merchant.x, merchant.y, merchant.size, merchant.size); const dist = getDistance(player, merchant); if (dist < merchant.interactionRadius) { ctx.font = 'bold 14px "Courier New"'; ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.fillText("Tocca / E", merchant.x + merchant.size / 2, merchant.y - 25); ctx.fillText("per Negozio", merchant.x + merchant.size / 2, merchant.y - 10); } }
+        function drawBosses() { bosses.forEach(b => { ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 4; ctx.stroke(); const barW = b.radius*2, barH=8, x=b.x-barW/2, y=b.y-b.radius-15; ctx.fillStyle='#ff0000'; ctx.fillRect(x,y,barW,barH); ctx.fillStyle='#00ff00'; ctx.fillRect(x,y,barW*(b.hp/b.maxHp),barH); }); }
+        function drawEnemyProjectiles() { enemyProjectiles.forEach(p => { ctx.fillStyle = '#ff5555'; ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); }); }
+
+        function updateUI() { 
+            document.getElementById('hp').textContent = `${Math.max(0, Math.floor(player.hp))}/${player.maxHp}`; 
+            document.getElementById('level').textContent = player.level; 
+            document.getElementById('xp').textContent = Math.floor(player.xp); 
+            document.getElementById('xpNext').textContent = player.xpNext; 
+            document.getElementById('enemies').textContent = enemies.length + bosses.length; 
+            document.getElementById('time').textContent = Math.floor((Date.now() - startTime) / 1000); 
+            document.getElementById('score').textContent = score; 
+            document.getElementById('gems').textContent = totalGems;
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            if (!gamePaused) {
+                updatePlayer(); updateCamera(); updatePowerUps(); updateNotifications();
+                castSpells();
+                spawnEnemies(); 
+                if (bosses.length === 0 && enemiesKilledSinceBoss >= 50) {
+                     spawnBoss();
+                     enemiesKilledSinceBoss = 0;
+                }
+                spawnChests(); 
+                updateEnemies(); updateBosses(); updateProjectiles(); updateEnemyProjectiles(); updateXPOrbs(); updateGemOrbs();
+                updateParticles(); updateEffects(); updateChests(); updateDroppedItems();
+            }
+            draw();
+            updateUI();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        document.getElementById('pauseButton').style.display = 'none';
+
+    </script>
+</body>
+</html>

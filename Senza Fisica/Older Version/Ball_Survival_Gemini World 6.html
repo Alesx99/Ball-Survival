@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ball Survival - World Edition</title>
+    <style>
+        /* Stili CSS per il layout e l'aspetto del gioco */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000; /* Sfondo nero per le bande laterali */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: white;
+            overflow: hidden; /* Impedisce lo scroll su mobile */
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border: 3px solid #0f3460;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Stile unificato per i menu popup */
+        #upgradeMenu, #gameOver, #startScreen, #pauseMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            padding: 30px;
+            z-index: 200;
+            text-align: center;
+            border: 2px solid #4a90e2;
+            display: none; /* Nascosti di default */
+        }
+        
+        #pauseMenu {
+            width: 450px;
+        }
+
+        #startScreen { display: block; } /* Visibile all'inizio */
+        #gameOver { border-color: #e74c3c; }
+        #upgradeMenu { min-width: 300px; padding: 20px; }
+
+        .upgrade-option {
+            background: #2c3e50;
+            border: 1px solid #4a90e2;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upgrade-option:hover {
+            background: #34495e;
+            border-color: #5dade2;
+            transform: scale(1.02);
+        }
+
+        .upgrade-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5dade2;
+        }
+
+        .upgrade-desc {
+            font-size: 12px;
+            color: #bdc3c7;
+            margin-top: 5px;
+        }
+
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5dade2;
+        }
+
+        .controls {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
+        /* Stili per il Joystick DINAMICO */
+        #joystick-container {
+            position: fixed; /* Rispetto alla finestra */
+            width: 120px;
+            height: 120px;
+            background: rgba(128, 128, 128, 0.4);
+            border-radius: 50%;
+            z-index: 150;
+            display: none; /* Nascosto di default */
+            pointer-events: none; /* Non deve intercettare i tocchi */
+        }
+
+        #joystick-stick {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: rgba(200, 200, 200, 0.6);
+            border-radius: 50%;
+        }
+        
+        /* Stili per il pannello statistiche */
+        #pauseStats {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #4a90e2;
+            max-height: 250px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 13px;
+        }
+        .stat-category {
+            font-weight: bold;
+            color: #5dade2;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .stat-item {
+            margin-left: 10px;
+            color: #ecf0f1;
+        }
+        .stat-item span {
+            color: #bdc3c7;
+        }
+        
+        /* Stile pulsante di pausa per mobile */
+        #pauseButton {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            line-height: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 150;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="joystick-container">
+            <div id="joystick-stick"></div>
+        </div>
+
+        <div id="pauseButton" onclick="togglePause()">||</div>
+
+        <div id="ui">
+            <div>HP: <span id="hp">100</span>/100</div>
+            <div>Livello: <span id="level">1</span></div>
+            <div>XP: <span id="xp">0</span>/<span id="xpNext">10</span></div>
+            <div>Nemici: <span id="enemies">0</span></div>
+            <div>Tempo: <span id="time">0</span>s</div>
+            <div>Punteggio: <span id="score">0</span></div>
+        </div>
+
+        <div id="startScreen">
+            <h2>⚽ Ball Survival</h2>
+            <p>Sopravvivi in un mondo enorme!</p>
+            <button onclick="startGame()">Inizia Partita</button>
+            <div class="controls">
+                <p><strong>Controlli:</strong></p>
+                <p>Tocca per muoverti (Mobile) / WASD o Frecce (PC)</p>
+                <p>Pulsante Pausa / ESC - Pausa</p>
+            </div>
+        </div>
+
+        <div id="upgradeMenu">
+            <h3>Scegli un Upgrade!</h3>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="pauseMenu">
+            <h2>Pausa</h2>
+            <button onclick="togglePause()">Riprendi</button>
+            <button onclick="restartFromPause()">Riavvia</button>
+            <div id="pauseStats"></div>
+        </div>
+
+        <div id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Hai sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
+            <p>Punteggio Finale: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">Riprova</button>
+        </div>
+    </div>
+
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Impostazioni del mondo e della camera
+        const world = { width: 8000, height: 6000 };
+        const camera = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+
+        // Stato del gioco
+        let gameRunning = false, gamePaused = false, startTime = 0, enemiesKilled = 0, score = 0, gameLoopId;
+
+        // Oggetto del giocatore
+        const player = { x: world.width / 2, y: world.height / 2, radius: 15, hp: 100, maxHp: 100, speed: 3, level: 1, xp: 0, xpNext: 10 };
+
+        // Input
+        const keys = {};
+        const joystick = { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, stickRadius: 30, dx: 0, dy: 0, startX: 0, startY: 0, touchId: null };
+
+        // Oggetti di gioco
+        let enemies = [], projectiles = [], xpOrbs = [], particles = [], effects = [];
+        
+        // --- DEFINIZIONE ABILITÀ E PASSIVE ---
+        const spells = {};
+        const passives = {};
+
+        function resetSpells() {
+            spells.fireball = { name: "Sfera di Fuoco", level: 1, damage: 15, cooldown: 900, lastCast: 0, size: 8, speed: 7, explosionRadius: 20 };
+            spells.lightning = { name: "Fulmine a Catena", level: 0, damage: 10, cooldown: 1200, lastCast: 0, range: 250, chains: 2 };
+            spells.frostbolt = { name: "Dardo di Gelo", level: 0, damage: 12, cooldown: 1200, lastCast: 0, slow: 0.5, slowDuration: 120, size: 7, speed: 6, penetration: 0 };
+            spells.shotgun = { name: "Shotgun Arcano", level: 0, damage: 8, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0 };
+            spells.shockwave = { name: "Onda d'Urto", level: 0, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15 };
+            spells.heal = { name: "Cura", level: 0, amount: 20, cooldown: 10000, lastCast: 0 };
+            spells.shield = { name: "Scudo Magico", level: 0, duration: 3000, cooldown: 12000, lastCast: 0, active: false };
+            
+            passives.health = { name: "Vitalità", level: 0 };
+            passives.speed = { name: "Velocità", level: 0 };
+            passives.attack_speed = { name: "Rapidità", level: 0 };
+        }
+
+        // --- DEFINIZIONE UPGRADE ---
+        const upgrades = [
+            // Armi
+            { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', effect: () => { spells.fireball.level++; spells.fireball.damage += 5; spells.fireball.explosionRadius += 5; }, details: "+5 Danni, +5 Raggio Esplosione" },
+            { id: 'lightning', name: 'Fulmine a Catena', desc: 'Colpisce più nemici.', effect: () => { spells.lightning.level++; spells.lightning.damage += 4; spells.lightning.chains++; }, details: "+4 Danni, +1 Rimbalzo" },
+            { id: 'frostbolt', name: 'Dardo di Gelo', desc: 'Un dardo che perfora e rallenta.', effect: () => { spells.frostbolt.level++; spells.frostbolt.damage += 3; spells.frostbolt.penetration++; }, details: "+3 Danni, +1 Perforazione" },
+            { id: 'shotgun', name: 'Shotgun Arcano', desc: 'Una rosa di proiettili devastante.', effect: () => { spells.shotgun.level++; spells.shotgun.damage += 2; spells.shotgun.count += 2; }, details: "+2 Danni, +2 Proiettili" },
+            { id: 'shockwave', name: 'Onda d\'Urto', desc: 'Respinge e danneggia i nemici vicini.', effect: () => { spells.shockwave.level++; spells.shockwave.damage += 10; spells.shockwave.radius += 15; spells.shockwave.knockback += 5; }, details: "+10 Danni, +15 Raggio, +5 Forza di respinta" },
+            
+            // Utilità
+            { id: 'heal', name: 'Impulso Curativo', desc: 'Emette un impulso che ripristina HP.', effect: () => { spells.heal.level++; spells.heal.amount += 10; spells.heal.cooldown = Math.max(4000, spells.heal.cooldown - 1000); }, details: "+10 HP Curati, -1s Ricarica" },
+            { id: 'shield', name: 'Scudo Magico', desc: 'Una barriera protettiva temporanea.', effect: () => { spells.shield.level++; spells.shield.duration += 1000; spells.shield.cooldown = Math.max(5000, spells.shield.cooldown - 1500); }, details: "+1s Durata, -1.5s Ricarica" },
+
+            // Statistiche Passive
+            { id: 'health', name: 'Vitalità', desc: 'Aumenta i tuoi HP massimi di 25.', effect: () => { player.maxHp += 25; player.hp += 25; passives.health.level++; } },
+            { id: 'speed', name: 'Velocità', desc: 'Aumenta la tua velocità di movimento.', effect: () => { player.speed += 0.4; passives.speed.level++; } },
+            { id: 'attack_speed', name: 'Rapidità', desc: 'Riduce la ricarica di tutte le abilità.', effect: () => { Object.values(spells).forEach(s => { if(s.cooldown) s.cooldown *= 0.92; }); passives.attack_speed.level++; }, details: "-8% Ricarica Globale" }
+        ];
+
+
+        // --- Event Listener ---
+        document.addEventListener('keydown', (e) => { keys[e.code] = true; if (e.code === 'Escape') togglePause(); });
+        document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+        
+        // Listener per Joystick Dinamico
+        window.addEventListener('touchstart', handleTouchStart, { passive: false });
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd);
+        window.addEventListener('touchcancel', handleTouchEnd);
+        
+        function handleTouchStart(e) {
+             // BUG FIX: Non attivare il joystick se il gioco è in pausa o se il tocco non è nostro.
+            if (joystick.active || gamePaused) return;
+
+            const touch = e.changedTouches[0];
+            // Attiva il joystick solo se il tocco è sulla metà sinistra dello schermo
+            if (touch.clientX < window.innerWidth / 2) {
+                e.preventDefault();
+                joystick.touchId = touch.identifier;
+                joystick.active = true;
+                joystick.startX = touch.clientX;
+                joystick.startY = touch.clientY;
+                joystick.container.style.display = 'block';
+                joystick.container.style.left = `${joystick.startX - joystick.radius}px`;
+                joystick.container.style.top = `${joystick.startY - joystick.radius}px`;
+            }
+        }
+        function handleTouchMove(e) {
+            if (!joystick.active) return;
+            const touch = Array.from(e.changedTouches).find(t => t.identifier === joystick.touchId);
+            if (!touch) return;
+            e.preventDefault();
+            let deltaX = touch.clientX - joystick.startX;
+            let deltaY = touch.clientY - joystick.startY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = joystick.radius;
+            if (distance > maxDistance) {
+                deltaX = (deltaX / distance) * maxDistance;
+                deltaY = (deltaY / distance) * maxDistance;
+            }
+            joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            joystick.dx = deltaX / maxDistance;
+            joystick.dy = deltaY / maxDistance;
+        }
+        function handleTouchEnd(e) {
+            if (!joystick.active) return;
+            const touch = Array.from(e.changedTouches).find(t => t.identifier === joystick.touchId);
+            if (!touch) return;
+            joystick.active = false;
+            joystick.touchId = null;
+            joystick.stick.style.transform = 'translate(0px, 0px)';
+            joystick.container.style.display = 'none';
+            joystick.dx = 0;
+            joystick.dy = 0;
+        }
+
+        // --- Funzioni Principali del Gioco ---
+        function startGame() { document.getElementById('startScreen').style.display = 'none'; document.getElementById('pauseButton').style.display = 'flex'; gameRunning = true; gamePaused = false; startTime = Date.now(); resetSpells(); gameLoopId = requestAnimationFrame(gameLoop); }
+        function restartGame() { if (gameLoopId) cancelAnimationFrame(gameLoopId); player.x = world.width / 2; player.y = world.height / 2; player.hp = 100; player.maxHp = 100; player.speed = 3; player.level = 1; player.xp = 0; player.xpNext = 10; enemies = []; projectiles = []; xpOrbs = []; particles = []; effects = []; enemiesKilled = 0; score = 0; document.getElementById('gameOver').style.display = 'none'; startGame(); }
+        function restartFromPause() { document.getElementById('pauseMenu').style.display = 'none'; restartGame(); }
+        
+        function togglePause() { 
+            if (!gameRunning || document.getElementById('upgradeMenu').style.display === 'block' || document.getElementById('gameOver').style.display === 'block') return; 
+            gamePaused = !gamePaused; 
+            if (gamePaused) {
+                populateStatsMenu();
+            }
+            document.getElementById('pauseMenu').style.display = gamePaused ? 'block' : 'none'; 
+        }
+
+        function populateStatsMenu() {
+            const container = document.getElementById('pauseStats');
+            let html = `<div class="stat-category">Statistiche Giocatore</div>`;
+            html += `<div class="stat-item">HP Massimi: <span>${player.maxHp}</span></div>`;
+            html += `<div class="stat-item">Velocità: <span>${player.speed.toFixed(1)}</span></div>`;
+            if (passives.attack_speed.level > 0) {
+                 const reduction = (1 - Math.pow(0.92, passives.attack_speed.level)) * 100;
+                 html += `<div class="stat-item">Riduzione Ricarica: <span>${reduction.toFixed(0)}%</span></div>`;
+            }
+
+            html += `<div class="stat-category">Abilità Acquisite</div>`;
+            
+            for (const key in spells) {
+                const s = spells[key];
+                if (s.level > 0) {
+                    html += `<div class="stat-item">${s.name} (Liv. ${s.level}): <span>`;
+                    let details = `Danno ${s.damage}`;
+                    if(s.count) details += `, Proiettili ${s.count}`;
+                    if(s.chains) details += `, Rimbalzi ${s.chains}`;
+                    if(s.explosionRadius) details += `, Raggio Espl. ${s.explosionRadius}`;
+                    if(s.penetration !== undefined) details += `, Perfora ${s.penetration}`;
+                    if(s.duration) details += `, Durata ${s.duration/1000}s`;
+                    if(s.amount) details += `, Cura ${s.amount} HP`;
+                    html += `${details}</span></div>`;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        function gameOver() { gameRunning = false; if (gameLoopId) cancelAnimationFrame(gameLoopId); document.getElementById('pauseButton').style.display = 'none'; document.getElementById('pauseMenu').style.display = 'none'; document.getElementById('survivalTime').textContent = Math.floor((Date.now() - startTime) / 1000); document.getElementById('enemiesKilled').textContent = enemiesKilled; document.getElementById('finalScore').textContent = score; document.getElementById('gameOver').style.display = 'block'; }
+        function getDistance(obj1, obj2) { const dx = obj1.x - obj2.x; const dy = obj1.y - obj2.y; return Math.sqrt(dx * dx + dy * dy); }
+
+        // --- Funzioni di Aggiornamento (Update) ---
+        function updatePlayer() { let kDx = 0, kDy = 0; if (keys['KeyW'] || keys['ArrowUp']) kDy -= 1; if (keys['KeyS'] || keys['ArrowDown']) kDy += 1; if (keys['KeyA'] || keys['ArrowLeft']) kDx -= 1; if (keys['KeyD'] || keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } player.x += fDx * player.speed; player.y += fDy * player.speed; player.x = Math.max(player.radius, Math.min(world.width - player.radius, player.x)); player.y = Math.max(player.radius, Math.min(world.height - player.radius, player.y)); }
+        function updateCamera() { camera.x = player.x - camera.width / 2; camera.y = player.y - camera.height / 2; camera.x = Math.max(0, Math.min(camera.x, world.width - camera.width)); camera.y = Math.max(0, Math.min(camera.y, world.height - camera.height)); }
+        function updateEnemies() { for (let i = enemies.length - 1; i >= 0; i--) { const e = enemies[i]; if (e.stunTimer > 0) { e.stunTimer--; continue; } if(e.slowTimer > 0) e.slowTimer--; const angle = Math.atan2(player.y - e.y, player.x - e.x); const speed = e.speed * (e.slowTimer > 0 ? (1 - e.slowAmount) : 1); e.x += Math.cos(angle) * speed; e.y += Math.sin(angle) * speed; if (getDistance(e, player) < e.radius + player.radius) { if (!spells.shield.active) { player.hp -= e.damage; if (player.hp <= 0) { gameOver(); return; } } const kAngle = Math.atan2(e.y - player.y, e.x - player.x); e.x += Math.cos(kAngle) * 20; e.y += Math.sin(kAngle) * 20; } if (e.hp <= 0) { enemiesKilled++; score += Math.floor(e.maxHp); xpOrbs.push({ x: e.x, y: e.y, value: 2 + Math.floor(Math.random() * 3) }); for (let j = 0; j < 8; j++) particles.push({ x: e.x, y: e.y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: e.color }); enemies.splice(i, 1); } } }
+        function updateProjectiles() { for (let i = projectiles.length - 1; i >= 0; i--) { const p = projectiles[i]; p.x += p.vx; p.y += p.vy; p.life--; let hit = false; for (let j = enemies.length - 1; j >= 0; j--) { const e = enemies[j]; if (getDistance(p, e) < e.radius + p.size) { hit = true; e.hp -= p.damage; if (p.slow) { e.slowAmount = p.slow; e.slowTimer = p.slowDuration; } p.penetrated++; if (p.penetrated >= p.penetration) { if (p.type === 'fireball') createExplosion(p.x, p.y, p.explosionRadius, p.damage / 2); projectiles.splice(i, 1); break; } } } if (p.life <= 0 || p.x < 0 || p.x > world.width || p.y < 0 || p.y > world.height) projectiles.splice(i, 1); } }
+        function updateXPOrbs() { for (let i = xpOrbs.length - 1; i >= 0; i--) { const orb = xpOrbs[i]; const dist = getDistance(orb, player); if (dist < 100) { const angle = Math.atan2(player.y - orb.y, player.x - orb.x); orb.x += Math.cos(angle) * 4; orb.y += Math.sin(angle) * 4; } if (dist < 20) { player.xp += orb.value; if (player.xp >= player.xpNext) levelUp(); xpOrbs.splice(i, 1); } } }
+        function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) particles.splice(i, 1); } }
+        function updateEffects() { for (let i = effects.length - 1; i >= 0; i--) { effects[i].life--; if (effects[i].life <= 0) effects.splice(i, 1); } }
+
+        function spawnEnemies() { const maxEnemies = 50 + Math.floor((Date.now() - startTime) / 20000); if (enemies.length >= maxEnemies) return; const side = Math.floor(Math.random() * 4); let x, y; const buffer = 50; switch (side) { case 0: x = camera.x + Math.random() * camera.width; y = camera.y - buffer; break; case 1: x = camera.x + camera.width + buffer; y = camera.y + Math.random() * camera.height; break; case 2: x = camera.x + Math.random() * camera.width; y = camera.y + camera.height + buffer; break; case 3: x = camera.x - buffer; y = camera.y + Math.random() * camera.height; break; } const timeFactor = (Date.now() - startTime) / 9000; const hpBonus = Math.floor(timeFactor / 2) * 12; enemies.push({ x, y, hp: 30 + hpBonus, maxHp: 30 + hpBonus, speed: 1 + Math.random() * 0.6, radius: 12, damage: 10 + Math.floor(timeFactor / 3) * 3, slowTimer: 0, slowAmount: 0, color: `hsl(${Math.random() * 60}, 70%, 50%)` }); }
+        
+        // --- Funzioni per le Abilità (Cast) ---
+        function findNearestEnemy(from = player, range = 9999) { let nearest = null; let minDist = range; for (let enemy of enemies) { const dist = getDistance(from, enemy); if (dist < minDist) { minDist = dist; nearest = enemy; } } return nearest; }
+        function castSpells() { const now = Date.now(); if (spells.shotgun.level > 0 && now - spells.shotgun.lastCast > spells.shotgun.cooldown) castShotgun(now); if (spells.shockwave.level > 0 && now - spells.shockwave.lastCast > spells.shockwave.cooldown) castShockwave(now); if (spells.fireball.level > 0 && now - spells.fireball.lastCast > spells.fireball.cooldown) castFireball(now); if (spells.lightning.level > 0 && now - spells.lightning.lastCast > spells.lightning.cooldown) castLightning(now); if (spells.frostbolt.level > 0 && now - spells.frostbolt.lastCast > spells.frostbolt.cooldown) castFrostbolt(now); if (spells.heal.level > 0 && player.hp < player.maxHp && now - spells.heal.lastCast > spells.heal.cooldown) { player.hp = Math.min(player.maxHp, player.hp + spells.heal.amount); for(let i=0; i<10; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00' }); spells.heal.lastCast = now; } if (spells.shield.level > 0 && !spells.shield.active && now - spells.shield.lastCast > spells.shield.cooldown) { spells.shield.active = true; spells.shield.lastCast = now; setTimeout(() => { spells.shield.active = false; }, spells.shield.duration); } }
+        function castFireball(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.fireball; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: s.damage, type: 'fireball', life: 100, size: s.size, penetration: 1, penetrated: 0, explosionRadius: s.explosionRadius }); s.lastCast = now; }
+        function castFrostbolt(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.frostbolt; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: s.damage, type: 'frostbolt', life: 100, slow: s.slow, slowDuration: s.slowDuration, size: s.size, penetration: s.penetration, penetrated: 0 }); s.lastCast = now; }
+        function castShotgun(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angleBase = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.shotgun; for (let i = 0; i < s.count; i++) { const offset = (i - (s.count-1) / 2) * (s.angleSpread / s.count); const angle = angleBase + offset; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, damage: s.damage, type: 'shotgun', life: 30, color: '#ffaa00', size: 4, penetration: 1, penetrated: 0 }); } s.lastCast = now; }
+        function castShockwave(now) { const s = spells.shockwave; for (let enemy of enemies) { if (getDistance(player, enemy) <= s.radius) { enemy.hp -= s.damage; const kAngle = Math.atan2(enemy.y - player.y, enemy.x - player.x); enemy.x += Math.cos(kAngle) * s.knockback; enemy.y += Math.sin(kAngle) * s.knockback; } } effects.push({ type: 'emp_wave', x: player.x, y: player.y, maxRadius: s.radius, life: 30, initialLife: 30, color: '#88aaff' }); s.lastCast = now; }
+        function castLightning(now) { const s = spells.lightning; const nearest = findNearestEnemy(player, s.range); if (!nearest) return; s.lastCast = now; let lastTarget = player; let chainedEnemies = []; for (let c = 0; c < s.chains; c++) { let nextTarget = findNearestChainingEnemy(lastTarget, chainedEnemies); if (nextTarget) { nextTarget.hp -= s.damage; effects.push({ type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 }); lastTarget = nextTarget; chainedEnemies.push(nextTarget); } else break; } }
+        function findNearestChainingEnemy(fromObj, excludeList) { let nearest = null; let minDist = 200; for (let enemy of enemies) { if (excludeList.some(e => e === enemy)) continue; const dist = getDistance(fromObj, enemy); if (dist < minDist) { minDist = dist; nearest = enemy; } } return nearest; }
+        function createExplosion(x, y, radius, damage) { effects.push({ type: 'explosion', x, y, maxRadius: radius, life: 20, initialLife: 20 }); for (let enemy of enemies) { if (getDistance({x,y}, enemy) <= radius) enemy.hp -= damage; } }
+        function levelUp() { player.level++; player.maxHp += 5; player.hp = player.maxHp; player.speed += 0.05; player.xp -= player.xpNext; player.xpNext = Math.floor(player.xpNext * 1.65); showUpgradeMenu(); }
+        function showUpgradeMenu() { gamePaused = true; const menu = document.getElementById('upgradeMenu'); const options = document.getElementById('upgradeOptions'); const allUpgrades = upgrades.map(u => ({...u, spell: spells[u.id] })).filter(u => u.spell || u.id === 'health' || u.id === 'speed' || u.id === 'attack_speed' ); const availableUpgrades = allUpgrades.filter(u => !u.spell || u.spell.level < 5 || u.spell.level === undefined); let selectedUpgrades = []; for (let i = 0; i < 3 && availableUpgrades.length > 0; i++) { selectedUpgrades.push(availableUpgrades.splice(Math.floor(Math.random() * availableUpgrades.length), 1)[0]); } options.innerHTML = ''; selectedUpgrades.forEach(upgrade => { const div = document.createElement('div'); div.className = 'upgrade-option'; div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${upgrade.spell ? `(Liv. ${upgrade.spell.level})` : ''}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`; div.onclick = () => { upgrade.effect(); menu.style.display = 'none'; gamePaused = false; }; options.appendChild(div); }); menu.style.display = 'block'; }
+        
+        // --- Funzioni di Disegno (Draw) ---
+        function draw() { ctx.fillStyle = 'black'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.save(); ctx.translate(-camera.x, -camera.y); ctx.fillStyle = '#16213e'; ctx.fillRect(0, 0, world.width, world.height); ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2; for (let x = 0; x < world.width; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, world.height); ctx.stroke(); } for (let y = 0; y < world.height; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(world.width, y); ctx.stroke(); } particles.forEach(p => { ctx.globalAlpha = p.life / 30; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1; xpOrbs.forEach(orb => { ctx.fillStyle = '#00ff88'; ctx.beginPath(); ctx.arc(orb.x, orb.y, 6, 0, Math.PI * 2); ctx.fill(); }); enemies.forEach(e => { ctx.fillStyle = e.slowTimer > 0 ? '#66b2ff' : e.color; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2); ctx.fill(); if(e.hp < e.maxHp){ const barW = e.radius*2, barH=4, x=e.x-barW/2, y=e.y-e.radius-8; ctx.fillStyle='#ff0000'; ctx.fillRect(x,y,barW,barH); ctx.fillStyle='#00ff00'; ctx.fillRect(x,y,barW*(e.hp/e.maxHp),barH); } }); projectiles.forEach(p => { if(p.type === 'fireball') drawFireball(p); else if(p.type === 'frostbolt') drawFrostbolt(p); else { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } }); drawEffects(); drawPlayer(); ctx.restore(); }
+        function drawPlayer() { ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke(); if (spells.shield.active) { const shieldRadius = player.radius + 8 + Math.sin(Date.now() / 200) * 3; ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)'; ctx.fillStyle = 'rgba(0, 255, 255, 0.1)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(player.x, player.y, shieldRadius, 0, Math.PI * 2); ctx.stroke(); ctx.fill(); } }
+        function drawFireball(p) { const g = ctx.createRadialGradient(p.x,p.y,p.size/2, p.x,p.y, p.size*1.5); g.addColorStop(0,'rgba(255,200,0,1)'); g.addColorStop(0.5,'rgba(255,100,0,0.8)'); g.addColorStop(1,'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x,p.y,p.size*1.5,0,Math.PI*2); ctx.fill(); if(Math.random()>0.5) particles.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*1,vy:(Math.random()-0.5)*1,life:15,color:'#ffaa00'}); }
+        function drawFrostbolt(p) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6; const outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        function drawEffects() { effects.forEach(e => { const opacity = e.life / e.initialLife; if (e.type === 'emp_wave' || e.type === 'explosion') { const currentRadius = e.maxRadius * (1 - opacity); const color = e.type === 'explosion' ? '255,150,0' : '136,170,255'; ctx.strokeStyle=`rgba(${color},${opacity})`; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(e.x,e.y,currentRadius,0,Math.PI*2); ctx.stroke(); } if (e.type === 'lightning_chain') { ctx.strokeStyle = `rgba(255,255,0,${opacity})`; ctx.lineWidth=Math.random()*3+2; drawJaggedLine(ctx, e.from.x, e.from.y, e.to.x, e.to.y, 10); } }); }
+        function drawJaggedLine(ctx,x1,y1,x2,y2,segments){ctx.beginPath();ctx.moveTo(x1,y1);const dx=x2-x1,dy=y2-y1,dist=Math.sqrt(dx*dx+dy*dy);for(let i=1;i<segments;i++){const t=i/segments,tx=x1+dx*t,ty=y1+dy*t,offset=(Math.random()-0.5)*(dist/segments)*2;ctx.lineTo(tx-dy/dist*offset,ty+dx/dist*offset);}ctx.lineTo(x2,y2);ctx.stroke();}
+        function updateUI() { document.getElementById('hp').textContent = `${Math.max(0, Math.floor(player.hp))}/${player.maxHp}`; document.getElementById('level').textContent = player.level; document.getElementById('xp').textContent = player.xp; document.getElementById('xpNext').textContent = player.xpNext; document.getElementById('enemies').textContent = enemies.length; document.getElementById('time').textContent = Math.floor((Date.now() - startTime) / 1000); document.getElementById('score').textContent = score; }
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (!gameRunning) return;
+            if (!gamePaused) {
+                updatePlayer();
+                updateCamera();
+                castSpells();
+                spawnEnemies();
+                updateEnemies();
+                updateProjectiles();
+                updateXPOrbs();
+                updateParticles();
+                updateEffects();
+            }
+            draw();
+            updateUI();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        // Nascondi il pulsante di pausa all'inizio
+        document.getElementById('pauseButton').style.display = 'none';
+
+    </script>
+</body>
+</html>

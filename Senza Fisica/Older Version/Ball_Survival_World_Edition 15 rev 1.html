@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ball Survival - World Edition</title>
+    <style>
+        /* Stili CSS per il layout e l'aspetto del gioco */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            color: white;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 4 / 3;
+            background: #000;
+            border: 3px solid #0f3460;
+            border-radius: 10px;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #menuOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 199;
+            display: none;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            font-size: clamp(10px, 2vw, 16px);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.3);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        #gemsDisplay {
+            margin-top: 5px;
+            color: #72f5f5;
+            font-weight: bold;
+        }
+        
+        .popup-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(15,52,96,0.95) 0%, rgba(10,30,50,0.95) 100%);
+            border-radius: 15px;
+            padding: clamp(15px, 4vw, 30px);
+            z-index: 200;
+            text-align: center;
+            border: 2px solid #4a90e2;
+            display: none;
+            width: 90%;
+            max-width: 600px;
+            box-sizing: border-box;
+            flex-direction: column;
+            max-height: 90vh;
+            box-shadow: 0 0 25px rgba(74, 144, 226, 0.5);
+        }
+        
+        #gameOver { border-color: #e74c3c; box-shadow: 0 0 25px rgba(231, 76, 60, 0.5); }
+        #permanentUpgradeShop { border-color: #f1c40f; box-shadow: 0 0 25px rgba(241, 196, 15, 0.5); }
+
+        #pauseMenu h2 {
+            margin-top: 0;
+            color: #f1c40f;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #pauseStatsContainer {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            margin: 15px 0;
+            padding: 5px;
+            text-align: left;
+        }
+        .stats-column {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .stats-section {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #f1c40f;
+        }
+        .stats-section-title {
+            font-weight: bold;
+            color: #5dade2;
+            margin-bottom: 10px;
+            font-size: clamp(15px, 2.5vw, 18px);
+            border-bottom: 1px solid rgba(74, 144, 226, 0.5);
+            padding-bottom: 5px;
+        }
+
+        #permanentUpgradeOptions, #upgradeOptions {
+            overflow-y: auto;
+            flex-grow: 1;
+            margin: 15px 0;
+            padding-right: 10px;
+            min-height: 50px;
+            text-align: left;
+        }
+
+        .permanent-upgrade-option {
+             display: flex;
+             flex-wrap: wrap;
+             justify-content: space-between;
+             align-items: center;
+             gap: 10px;
+             background: #2c3e50;
+             border: 1px solid #4a90e2;
+             margin: 10px 0;
+             padding: 15px;
+             border-radius: 5px;
+             text-align: left;
+        }
+        .upgrade-option {
+            background: #2c3e50;
+            border: 1px solid #4a90e2;
+            margin: 5px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        .upgrade-option:hover {
+            background: #34495e;
+            border-color: #5dade2;
+            transform: scale(1.02);
+        }
+        .upgrade-option.evolution { border-color: #f1c40f; }
+
+        .upgrade-title, .stat-item-title {
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: bold;
+            color: #5dade2;
+        }
+        .evolution .upgrade-title { color: #f1c40f; }
+
+        .perm-upgrade-cost { font-size: clamp(12px, 2vw, 14px); color: #f1c40f; }
+        .perm-upgrade-level { font-size: clamp(10px, 1.8vw, 12px); color: #bdc3c7; }
+        .upgrade-desc { font-size: clamp(10px, 1.8vw, 12px); color: #bdc3c7; margin-top: 5px; }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: clamp(12px, 2vw, 14px);
+        }
+        .stat-item .icon {
+            width: 20px;
+            height: 20px;
+            fill: #f1c40f;
+            flex-shrink: 0;
+        }
+        .stat-item-label { color: #ecf0f1; }
+        .stat-item-value { color: #bdc3c7; font-weight: bold; }
+        .weapon-stat-details {
+            font-size: clamp(10px, 1.8vw, 12px);
+            color: #bdc3c7;
+            margin-left: 28px;
+        }
+
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: clamp(12px, 2.2vw, 14px);
+            margin: 5px;
+            transition: background 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+        }
+        button:hover { background: #5dade2; }
+        button:disabled { background: #566573; cursor: not-allowed; }
+        .buy-button { background: #27ae60; }
+        .buy-button:hover { background: #2ecc71; }
+
+        .controls { margin-top: 20px; font-size: clamp(10px, 1.8vw, 12px); color: #bdc3c7; }
+        #joystick-container { position: fixed; width: 120px; height: 120px; background: rgba(128, 128, 128, 0.4); border-radius: 50%; z-index: 150; display: none; pointer-events: none; }
+        #joystick-stick { position: absolute; top: 30px; left: 30px; width: 60px; height: 60px; background: rgba(200, 200, 200, 0.6); border-radius: 50%; }
+        
+        #pauseButton { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.15); color: white; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; line-height: 20px; font-weight: bold; cursor: pointer; z-index: 150; }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="menuOverlay"></div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="joystick-container"><div id="joystick-stick"></div></div>
+        <div id="pauseButton">||</div>
+
+        <div id="ui">
+            <div>HP: <span id="hp">100</span>/100</div>
+            <div>Livello: <span id="level">1</span></div>
+            <div>XP: <span id="xp">0</span>/<span id="xpNext">10</span></div>
+            <div>Nemici: <span id="enemies">0</span></div>
+            <div>Tempo: <span id="time">0</span>s</div>
+            <div>Punteggio: <span id="score">0</span></div>
+            <div id="gemsDisplay">
+                <div>Cristalli: <span id="totalGemsUI">0</span> 💎</div>
+                <div>Raccolti: <span id="runGemsUI">0</span></div>
+            </div>
+        </div>
+
+        <div id="startScreen" class="popup-menu">
+            <h2>⚽ Ball Survival</h2>
+            <p>Sopravvivi il più a lungo possibile!</p>
+            <div class="controls">
+                <p><strong>Controlli:</strong></p>
+                <p>Joystick virtuale per muoverti (Mobile)</p>
+                <p>WASD o Frecce (PC)</p>
+                <p>Pulsante Pausa / ESC - Metti in Pausa</p>
+            </div>
+            <button onclick="startGame()">Inizia Partita</button>
+        </div>
+
+        <div id="upgradeMenu" class="popup-menu">
+            <h3>Scegli un Potenziamento!</h3>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="pauseMenu" class="popup-menu">
+            <h2>Pausa</h2>
+            <div id="pauseStatsContainer">
+                <div id="playerStatsColumn" class="stats-column"></div>
+                <div id="weaponsStatsColumn" class="stats-column"></div>
+            </div>
+            <button onclick="restartFromPause()">Riavvia</button>
+        </div>
+
+        <div id="gameOver" class="popup-menu">
+            <h2>Game Over!</h2>
+            <p>Sei sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
+            <p>Cristalli raccolti: <span id="gemsEarned">0</span></p>
+            <p>Punteggio Finale: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">Riprova</button>
+        </div>
+
+        <div id="permanentUpgradeShop" class="popup-menu">
+            <h3>Negozio Permanente</h3>
+            <p>I tuoi cristalli: <span id="totalGemsShop">0</span> 💎</p>
+            <div id="permanentUpgradeOptions"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('gameContainer');
+        const pauseButton = document.getElementById('pauseButton');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const popups = document.querySelectorAll('.popup-menu');
+
+        const world = { width: 8000, height: 6000 };
+        const camera = { x: 0, y: 0, width: 0, height: 0 }; 
+
+        let gameRunning = false, gamePaused = false, score = 0, gameLoopId, enemiesKilled = 0;
+        let nextChestSpawnTime = 0, enemiesKilledSinceBoss = 0, nextMapXpSpawnTime = 0;
+        
+        let totalElapsedTime = 0; 
+        let lastFrameTime = 0;    
+        
+        let totalGems = 0;
+        let gemsThisRun = 0;
+        
+        let menuCooldown = 0;
+
+        const player = { 
+            x: world.width / 2, y: world.height / 2, radius: 15, 
+            hp: 100, maxHp: 100, speed: 3, level: 1, xp: 0, xpNext: 10, 
+            powerUpTimers: { invincibility: 0, damageBoost: 0 }, 
+            luck: 0, xpGainMod: 1,
+            powerMod: 1, frequencyMod: 1, areaMod: 1
+        };
+        const keys = {};
+        const joystick = { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, stickRadius: 30, dx: 0, dy: 0, startX: 0, startY: 0, touchId: null };
+        let enemies = [], projectiles = [], xpOrbs = [], particles = [], effects = [], chests = [], droppedItems = [], notifications = [], gemOrbs = [], bosses = [], enemyProjectiles = [], fireTrails = [];
+        
+        const merchant = { x: world.width / 2, y: world.height / 2 - 200, size: 40, interactionRadius: 60 };
+
+        const itemTypes = {
+            'HEAL_POTION': { name: "Pozione di Cura", color: '#ff69b4', desc: "Ripristina il 50% della salute massima." },
+            'XP_BOMB': { name: "Bomba di XP", color: '#ffff00', desc: "Fornisce un'enorme quantità di esperienza." },
+            'INVINCIBILITY': { name: "Scudo Divino", color: '#ffffff', desc: "Immunità dai danni per 10 secondi." },
+            'DAMAGE_BOOST': { name: "Gemma del Potere", color: '#ff4500', desc: "Aumenta i danni del 25% per 20 secondi." },
+            'LEGENDARY_ORB': { name: "Frammento Divino", color: '#ff00ff', desc: "Invincibilità e danni aumentati per 60 secondi!" }
+        };
+        const spells = {};
+        const passives = {};
+        
+        const permanentUpgrades = {
+            health:   { name: "Salute Base",    level: 0, maxLevel: 10, baseCost: 10, costGrowth: 1.4, effect: level => `+${level * 10} HP` },
+            power:    { name: "Potenza Globale", level: 0, maxLevel: 10, baseCost: 15, costGrowth: 1.6, effect: level => `+${level * 5}% Danni` },
+            frequency:{ name: "Frequenza Globale", level: 0, maxLevel: 10, baseCost: 20, costGrowth: 1.7, effect: level => `-${level * 3}% Ricarica` },
+            area:     { name: "Area d'Effetto", level: 0, maxLevel: 10, baseCost: 15, costGrowth: 1.6, effect: level => `+${level * 4}% Area` },
+            speed:    { name: "Velocità Base",  level: 0, maxLevel: 5,  baseCost: 20, costGrowth: 1.8, effect: level => `+${(level * 0.1).toFixed(1)} Vel.` },
+            xpGain:   { name: "Guadagno XP",    level: 0, maxLevel: 10, baseCost: 15, costGrowth: 1.5, effect: level => `+${level * 5}% XP` },
+            luck:     { name: "Fortuna",        level: 0, maxLevel: 10, baseCost: 25, costGrowth: 1.7, effect: level => `+${level * 2}% Drop` }
+        };
+
+        const upgradeTree = {
+            'fireball': { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode all\'impatto.', details: "+5 Danni, +5 Raggio Esplosione", maxLevel: 4 },
+            'fireball_evolve_giant': { id: 'fireball_evolve_giant', name: 'EVOLUZIONE: Palla di Fuoco Gigante', desc: 'Trasforma l\'abilità in un\'unica, lenta ma devastante palla di fuoco che trapassa tutti i nemici e lascia una scia ardente.', details: "Danno e raggio massicci. Trapassa i nemici. Lascia fiamme.", type: 'evolution' },
+            'fireball_evolve_meteor': { id: 'fireball_evolve_meteor', name: 'EVOLUZIONE: Pioggia di Meteore', desc: 'Trasforma l\'abilità per far piovere meteore dal cielo sui nemici visibili, infliggendo danni ad area.', details: "Evoca 3 meteore sui nemici.", type: 'evolution' },
+            'fireball_giant_mastery': { id: 'fireball_giant_mastery', name: 'Maestria: Palla Gigante', desc: 'Aumenta ulteriormente i danni della Palla di Fuoco Gigante e della sua scia.', details: "+30 Danni, +5 Danni da bruciatura" },
+            'fireball_meteor_mastery': { id: 'fireball_meteor_mastery', name: 'Maestria: Pioggia di Meteore', desc: 'Aumenta il numero di meteore e il loro raggio d\'impatto.', details: "+1 Meteora, +10 Raggio d'impatto" },
+            'lightning': { id: 'lightning', name: 'Fulmine a Catena', desc: 'Un fulmine che rimbalza tra i nemici vicini.', details: "+4 Danni, +1 Rimbalzo", maxLevel: 8 },
+            'frostbolt': { id: 'frostbolt', name: 'Dardo di Gelo', desc: 'Un dardo che trapassa e rallenta i nemici.', details: "+3 Danni, +1 Perforazione", maxLevel: 8 },
+            'shotgun': { id: 'shotgun', name: 'Fucile Arcano', desc: 'Una rosa di proiettili a corto raggio.', details: "+2 Danni, +2 Proiettili", maxLevel: 8 },
+            'shockwave': { id: 'shockwave', name: 'Onda d\'Urto', desc: 'Respinge e danneggia i nemici circostanti.', details: "+10 Danni, +15 Raggio, +5 Respinta", maxLevel: 8 },
+            'heal': { id: 'heal', name: 'Impulso Curativo', desc: 'Emette un impulso che rigenera la salute.', details: "+10 Salute Curata, -1s Ricarica", maxLevel: 5 },
+            'shield': { id: 'shield', name: 'Scudo Magico', desc: 'Crea una barriera protettiva temporanea.', details: "+1s Durata, -1.5s Ricarica", maxLevel: 5 },
+            'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 25.', maxLevel: 10, type: 'passive' },
+            'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
+            'attack_speed': { id: 'attack_speed', name: 'Velocità d\'attacco', desc: 'Riduce la ricarica di tutte le abilità.', details: "-8% Ricarica Globale", maxLevel: 5, type: 'passive' }
+        };
+        
+        const statIcons = {
+            health: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
+            speed: `<svg class="icon" viewBox="0 0 24 24"><path d="M15.58 11.5l-3.5-3.5a1 1 0 00-1.41 1.41L12.17 11H5a1 1 0 000 2h7.17l-1.5 1.5a1 1 0 101.41 1.41l3.5-3.5c.19-.2.3-.45.3-.71s-.11-.51-.3-.71zM19 3a1 1 0 00-1 1v16a1 1 0 002 0V4a1 1 0 00-1-1z"/></svg>`,
+            power: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21L12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>`,
+            frequency: `<svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`,
+            area: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 11h2v2H3v-2zm2-2h2v2H5V9zm2-2h2v2H7V7zM3 3h2v2H3V3zm16 0h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm-4 4h2v2h-2v-2zM7 17h2v2H7v-2zm-2 2h2v2H5v-2zm-2-4h2v2H3v-2zm16-4h2v2h-2v-2zM15 5h2v2h-2V5zm-4 0h2v2h-2V5zm-4 0h2v2H7V5zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
+            luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
+            xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
+        };
+
+        function saveGame() { try { const saveData = { totalGems: totalGems, upgrades: permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare i dati:", e); } }
+        function loadGame() { try { const savedData = localStorage.getItem('ballSurvivalSaveData'); if (savedData) { const data = JSON.parse(savedData); totalGems = data.totalGems || 0; if (data.upgrades) { Object.keys(permanentUpgrades).forEach(key => { if (data.upgrades[key]) { permanentUpgrades[key].level = data.upgrades[key].level || 0; } else { permanentUpgrades[key].level = 0; } }); } } } catch (e) { console.error("Impossibile caricare i dati salvati:", e); } }
+        
+        function applyPermanentUpgrades() {
+            player.maxHp = 100 + (permanentUpgrades.health.level * 10);
+            player.hp = player.maxHp; 
+            player.speed = 3 + (permanentUpgrades.speed.level * 0.1);
+            player.xpGainMod = 1 + (permanentUpgrades.xpGain.level * 0.05);
+            player.luck = permanentUpgrades.luck.level * 0.02;
+            player.powerMod = 1 + (permanentUpgrades.power.level * 0.05);
+            player.frequencyMod = 1 - (permanentUpgrades.frequency.level * 0.03);
+            player.areaMod = 1 + (permanentUpgrades.area.level * 0.04);
+        }
+
+        function resetSpells() {
+            // BALANCE: Danno e ricarica proiettile base migliorati
+            spells.magicMissile = { id: 'magicMissile', name: "Proiettile Magico", level: 1, damage: 14, cooldown: 1200, lastCast: 0, speed: 6, size: 5, area: 5 };
+            spells.fireball = { id: 'fireball', name: "Sfera di Fuoco", level: 0, evolution: 'none', damage: 15, cooldown: 1200, lastCast: 0, size: 8, speed: 7, explosionRadius: 20, penetration: 1, burnDamage: 5, burnDuration: 180, meteorCount: 3, area: 20 };
+            spells.lightning = { id: 'lightning', name: "Fulmine a Catena", level: 0, damage: 10, cooldown: 1200, lastCast: 0, range: 250, chains: 2 };
+            spells.frostbolt = { id: 'frostbolt', name: "Dardo di Gelo", level: 0, damage: 12, cooldown: 1200, lastCast: 0, slow: 0.5, slowDuration: 120, size: 7, speed: 6, penetration: 1, area: 7 };
+            spells.shotgun = { id: 'shotgun', name: "Fucile Arcano", level: 0, damage: 8, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0 };
+            spells.shockwave = { id: 'shockwave', name: "Onda d'Urto", level: 0, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15, area: 100 };
+            spells.heal = { id: 'heal', name: "Cura", level: 0, amount: 20, cooldown: 10000, lastCast: 0 };
+            spells.shield = { id: 'shield', name: "Scudo Magico", level: 0, duration: 3000, cooldown: 12000, lastCast: 0, active: false };
+            passives.health = { level: 0 };
+            passives.speed = { level: 0 };
+            passives.attack_speed = { level: 0 };
+        }
+        
+        function hideAllPopups() {
+            popups.forEach(popup => popup.style.display = 'none');
+            menuOverlay.style.display = 'none';
+            if (gameRunning && gamePaused) {
+                const isGameOver = document.getElementById('gameOver').style.display === 'flex';
+                if (!isGameOver) {
+                    gamePaused = false;
+                    lastFrameTime = Date.now();
+                    menuCooldown = 5;
+                }
+            }
+        }
+
+        function showPopup(elementId) {
+            gamePaused = true;
+            menuOverlay.style.display = 'block';
+            document.getElementById(elementId).style.display = 'flex';
+        }
+
+        function showMerchantShop() {
+            populateShop();
+            showPopup('permanentUpgradeShop');
+        }
+        
+        function populateShop() {
+             document.getElementById('totalGemsShop').textContent = totalGems;
+             const container = document.getElementById('permanentUpgradeOptions');
+             container.innerHTML = '';
+             for (const key in permanentUpgrades) {
+                 const upg = permanentUpgrades[key];
+                 const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
+                 let optionHTML = `<div class="permanent-upgrade-option"><div><div class="upgrade-title">${upg.name}</div><div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div><div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div></div>`;
+                 if (upg.level < upg.maxLevel) {
+                     optionHTML += `<div><div class="perm-upgrade-cost">Costo: ${cost} 💎</div><button class="buy-button" onclick="buyPermanentUpgrade('${key}')" ${totalGems < cost ? 'disabled' : ''}>Compra</button></div>`;
+                 } else {
+                     optionHTML += `<div><span style="color: #2ecc71;">MAX</span></div>`;
+                 }
+                 optionHTML += `</div>`;
+                 container.innerHTML += optionHTML;
+             }
+        }
+        
+        function buyPermanentUpgrade(key) {
+             const upg = permanentUpgrades[key];
+             const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
+             if (upg.level < upg.maxLevel && totalGems >= cost) {
+                 totalGems -= cost;
+                 upg.level++;
+                 saveGame();
+                 applyPermanentUpgrades();
+                 populateShop();
+             }
+        }
+
+        document.addEventListener('keydown', (e) => { 
+            keys[e.code] = true; 
+            if (e.code === 'Escape') {
+                const anyPopupOpen = Array.from(popups).some(p => p.style.display === 'flex');
+                if (anyPopupOpen) {
+                    hideAllPopups();
+                } else {
+                    togglePause();
+                }
+            }
+            if (e.code === 'KeyE') { 
+                if (menuCooldown > 0) return;
+                const dist = getDistance(player, merchant); 
+                if (gameRunning && !gamePaused && dist < merchant.interactionRadius) { 
+                    showMerchantShop(); 
+                } 
+            } 
+        });
+        document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+        
+        canvas.addEventListener('pointerdown', handleCanvasInteraction);
+        
+        function handleCanvasInteraction(e) { 
+            if (gamePaused || !gameRunning || menuCooldown > 0) return; 
+            const rect = canvas.getBoundingClientRect(); 
+            const clientX = e.clientX; const clientY = e.clientY; 
+            const screenX = (clientX - rect.left) * (canvas.width / rect.width); 
+            const screenY = (clientY - rect.top) * (canvas.height / rect.height); 
+            const worldX = screenX + camera.x; const worldY = screenY + camera.y; 
+            if (getDistance({x: worldX, y: worldY}, merchant) < merchant.interactionRadius) { 
+                showMerchantShop(); return; 
+            } 
+            if (e.pointerType === 'touch') { 
+                if (joystick.active) return; 
+                e.preventDefault(); 
+                joystick.touchId = e.pointerId; joystick.active = true; 
+                joystick.startX = clientX; joystick.startY = clientY; 
+                joystick.container.style.display = 'block'; 
+                joystick.container.style.left = `${joystick.startX - joystick.radius}px`; 
+                joystick.container.style.top = `${joystick.startY - joystick.radius}px`; 
+                canvas.addEventListener('pointermove', handleJoystickMove, { passive: false }); 
+                canvas.addEventListener('pointerup', handleJoystickEnd); 
+                canvas.addEventListener('pointercancel', handleJoystickEnd); 
+            } 
+        }
+
+        function handleJoystickMove(e) { if (!joystick.active || e.pointerId !== joystick.touchId) return; e.preventDefault(); let deltaX = e.clientX - joystick.startX; let deltaY = e.clientY - joystick.startY; const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); const maxDistance = joystick.radius; if (distance > maxDistance) { deltaX = (deltaX / distance) * maxDistance; deltaY = (deltaY / distance) * maxDistance; } joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; joystick.dx = deltaX / maxDistance; joystick.dy = deltaY / maxDistance; }
+        function handleJoystickEnd(e) { if (!joystick.active || e.pointerId !== joystick.touchId) return; joystick.active = false; joystick.touchId = null; joystick.stick.style.transform = 'translate(0px, 0px)'; joystick.container.style.display = 'none'; joystick.dx = 0; joystick.dy = 0; canvas.removeEventListener('pointermove', handleJoystickMove); canvas.removeEventListener('pointerup', handleJoystickEnd); canvas.removeEventListener('pointercancel', handleJoystickEnd); }
+        
+        function startGame() { 
+            hideAllPopups();
+            pauseButton.style.display = 'flex';
+            
+            gemsThisRun = 0; enemiesKilled = 0; score = 0; enemiesKilledSinceBoss = 0; totalElapsedTime = 0; 
+            player.level = 1; 
+            player.xp = 0; player.xpNext = 8; 
+            player.powerUpTimers = { invincibility: 0, damageBoost: 0 }; 
+            player.x = world.width / 2; player.y = world.height / 2; 
+            enemies = []; projectiles = []; xpOrbs = []; particles = []; effects = []; chests = []; 
+            droppedItems = []; notifications = []; gemOrbs = []; bosses = []; enemyProjectiles = []; fireTrails = []; 
+
+            gameRunning = true; gamePaused = false; 
+            lastFrameTime = Date.now(); 
+            nextChestSpawnTime = totalElapsedTime + 20; 
+            nextMapXpSpawnTime = 5; // Inizia a generare sfere dopo 5 secondi
+            resetSpells(); 
+            applyPermanentUpgrades(); 
+            if (gameLoopId) cancelAnimationFrame(gameLoopId); 
+            gameLoopId = requestAnimationFrame(gameLoop); 
+        }
+        function restartGame() { startGame(); }
+        function restartFromPause() { hideAllPopups(); startGame(); }
+        
+        function togglePause() { 
+            if (!gameRunning || Array.from(popups).some(p => p.style.display === 'flex' && p.id !== 'pauseMenu')) return;
+            
+            const pauseMenu = document.getElementById('pauseMenu');
+            if (pauseMenu.style.display === 'flex') {
+                hideAllPopups();
+            } else {
+                populateStatsMenu();
+                showPopup('pauseMenu');
+            }
+        }
+        
+        function populateStatsMenu() {
+            const playerCol = document.getElementById('playerStatsColumn');
+            const weaponsCol = document.getElementById('weaponsStatsColumn');
+
+            let playerHTML = `<div class="stats-section"><div class="stats-section-title">Statistiche Giocatore</div>`;
+            playerHTML += `<div class="stat-item">${statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(player.hp)} / ${player.maxHp}</span></div>`;
+            playerHTML += `<div class="stat-item">${statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${player.speed.toFixed(1)}</span></div>`;
+            playerHTML += `</div>`;
+
+            playerHTML += `<div class="stats-section"><div class="stats-section-title">Modificatori</div>`;
+            playerHTML += `<div class="stat-item">${statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">+${Math.round((player.powerMod - 1) * 100)}%</span></div>`;
+            playerHTML += `<div class="stat-item">${statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">+${Math.round((1 - player.frequencyMod) * 100)}%</span></div>`;
+            playerHTML += `<div class="stat-item">${statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">+${Math.round((player.areaMod - 1) * 100)}%</span></div>`;
+            playerHTML += `<div class="stat-item">${statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">+${Math.round((player.xpGainMod - 1) * 100)}%</span></div>`;
+            playerHTML += `<div class="stat-item">${statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">+${Math.round(player.luck * 100)}%</span></div>`;
+            playerHTML += `</div>`;
+            playerCol.innerHTML = playerHTML;
+
+            let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`;
+            let hasWeapons = false;
+            for (const key in spells) {
+                const s = spells[key];
+                if (s.level > 0) {
+                    hasWeapons = true;
+                    weaponsHTML += `<div class="stat-item-title">${s.name} (Liv. ${s.level})</div>`;
+                    let details = '';
+                    if (s.damage) details += `Danno: ${Math.round(s.damage * player.powerMod)}, `;
+                    if (s.cooldown) details += `Ricarica: ${(s.cooldown * player.frequencyMod / 1000).toFixed(2)}s, `;
+                    if (s.area) details += `Area: ${Math.round(s.area * player.areaMod)}, `;
+                    if (s.count) details += `Proiettili: ${s.count}, `;
+                    if (s.chains) details += `Rimbalzi: ${s.chains}, `;
+                    if (s.penetration && s.penetration < 999) details += `Perforazione: ${s.penetration}, `;
+                    weaponsHTML += `<div class="weapon-stat-details">${details.slice(0, -2) || 'Statistiche base'}</div>`;
+                }
+            }
+            if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`;
+            weaponsHTML += `</div>`;
+            weaponsCol.innerHTML = weaponsHTML;
+        }
+        
+        function gameOver() { 
+            gameRunning = false; 
+            if (gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; } 
+            totalGems += gemsThisRun; 
+            saveGame(); 
+            document.getElementById('gemsEarned').textContent = gemsThisRun; 
+            pauseButton.style.display = 'none'; 
+            hideAllPopups();
+            document.getElementById('survivalTime').textContent = Math.floor(totalElapsedTime); 
+            document.getElementById('enemiesKilled').textContent = enemiesKilled; 
+            document.getElementById('finalScore').textContent = score; 
+            showPopup('gameOver'); 
+        }
+        function getDistance(obj1, obj2) { const dx = obj1.x - obj2.x; const dy = obj1.y - obj2.y; return Math.sqrt(dx * dx + dy * dy); }
+        function updatePlayer() { let kDx = 0, kDy = 0; if (keys['KeyW'] || keys['ArrowUp']) kDy -= 1; if (keys['KeyS'] || keys['ArrowDown']) kDy += 1; if (keys['KeyA'] || keys['ArrowLeft']) kDx -= 1; if (keys['KeyD'] || keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } player.x += fDx * player.speed; player.y += fDy * player.speed; player.x = Math.max(player.radius, Math.min(world.width - player.radius, player.x)); player.y = Math.max(player.radius, Math.min(world.height - player.radius, player.y)); }
+        function updateCamera() { camera.x = player.x - camera.width / 2; camera.y = player.y - camera.height / 2; camera.x = Math.max(0, Math.min(camera.x, world.width - camera.width)); camera.y = Math.max(0, Math.min(camera.y, world.height - camera.height)); }
+        
+        function spawnEnemies() { 
+            const maxEnemies = 50 + Math.floor(totalElapsedTime / 15); 
+            if (enemies.length >= maxEnemies) return; 
+            const side = Math.floor(Math.random() * 4); 
+            let x, y; 
+            const buffer = 50; 
+            switch (side) { 
+                case 0: x = camera.x + Math.random() * camera.width; y = camera.y - buffer; break; 
+                case 1: x = camera.x + camera.width + buffer; y = camera.y + Math.random() * camera.height; break; 
+                case 2: x = camera.x + Math.random() * camera.width; y = camera.y + camera.height + buffer; break; 
+                case 3: x = camera.x - buffer; y = camera.y + Math.random() * camera.height; break; 
+            } 
+            const timeFactor = totalElapsedTime / 9; 
+            const hp = 15 + Math.floor(timeFactor) * 6; 
+            const speed = (0.8 + Math.random() * 0.4) + timeFactor * 0.03; 
+            const damage = 6 + Math.floor(timeFactor) * 2; 
+            enemies.push({ x, y, hp: hp, maxHp: hp, speed: speed, radius: 12, damage: damage, slowTimer: 0, stunTimer: 0, slowAmount: 0, color: `hsl(${Math.random() * 60}, 70%, 50%)` }); 
+        }
+        
+        // Nuova funzione per generare sfere di XP sulla mappa
+        function spawnMapXpOrbs() {
+            const MAX_TOTAL_XP_ORBS = 300;
+            const SPAWN_INTERVAL = 4; // Genera ogni 4 secondi
+            const SPAWN_BATCH_SIZE = 15; // Genera 15 sfere alla volta
+
+            if (totalElapsedTime > nextMapXpSpawnTime) {
+                if (xpOrbs.length < MAX_TOTAL_XP_ORBS - SPAWN_BATCH_SIZE) { // Controlla se c'è spazio per l'intero gruppo
+                    // Scegli un centro per il cluster
+                    const clusterCenterX = Math.random() * world.width;
+                    const clusterCenterY = Math.random() * world.height;
+                    
+                    for (let i = 0; i < SPAWN_BATCH_SIZE; i++) {
+                        const offsetX = (Math.random() - 0.5) * 400; // genera in un'area di 400x400
+                        const offsetY = (Math.random() - 0.5) * 400;
+
+                        const x = clusterCenterX + offsetX;
+                        const y = clusterCenterY + offsetY;
+                        
+                        const finalX = Math.max(0, Math.min(world.width -1, x));
+                        const finalY = Math.max(0, Math.min(world.height -1, y));
+
+                        const value = 5 * player.xpGainMod; // Valore statico per queste sfere
+                        xpOrbs.push({ x: finalX, y: finalY, value: value });
+                    }
+                }
+                nextMapXpSpawnTime = totalElapsedTime + SPAWN_INTERVAL;
+            }
+        }
+
+
+        function updateEnemies() { for (let i = enemies.length - 1; i >= 0; i--) { const e = enemies[i]; if (e.stunTimer > 0) { e.stunTimer--; continue; } if(e.slowTimer > 0) e.slowTimer--; const angle = Math.atan2(player.y - e.y, player.x - e.x); const speed = e.speed * (e.slowTimer > 0 ? (1 - e.slowAmount) : 1); e.x += Math.cos(angle) * speed; e.y += Math.sin(angle) * speed; if (getDistance(e, player) < e.radius + player.radius) { if (!spells.shield.active && player.powerUpTimers.invincibility <= 0) { player.hp -= e.damage; if (player.hp <= 0) { gameOver(); return; } } const kAngle = Math.atan2(e.y - player.y, e.x - player.x); e.x += Math.cos(kAngle) * 20; e.y += Math.sin(kAngle) * 20; } if (e.hp <= 0) { enemiesKilled++; enemiesKilledSinceBoss++; score += Math.floor(e.maxHp); xpOrbs.push({ x: e.x, y: e.y, value: (2 + Math.floor(Math.random() * 3)) * player.xpGainMod }); if(Math.random() < 0.1 + player.luck) { gemOrbs.push({x: e.x, y: e.y, value: 1 + (Math.random() < player.luck ? 1 : 0)}) } for (let j = 0; j < 8; j++) particles.push({ x: e.x, y: e.y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: e.color }); enemies.splice(i, 1); } } }
+        function updateProjectiles() { for (let i = projectiles.length - 1; i >= 0; i--) { const p = projectiles[i]; if (!p) continue; p.x += p.vx; p.y += p.vy; p.life--; if(p.leavesTrail && p.life % 4 === 0){ fireTrails.push({x:p.x, y:p.y, radius:p.size*0.7, life: 60, initialLife: 60, damage: p.burnDamage / 60 }); } if(p.type === 'meteor' && p.y >= p.targetY){ createExplosion(p.x, p.y, p.explosionRadius, p.damage); projectiles.splice(i,1); continue; } let removed = false; for (let j = enemies.length - 1; j >= 0; j--) { const e = enemies[j]; if (getDistance(p, e) < e.radius + p.size) { e.hp -= p.damage; if (p.slow) { e.slowAmount = p.slow; e.slowTimer = p.slowDuration; } if (p.burnDuration) { e.burnTimer = p.burnDuration; e.dps = p.burnDamage; } p.penetrated++; if (p.penetrated >= p.penetration) { if (p.type === 'fireball') createExplosion(p.x, p.y, p.explosionRadius, p.damage / 2); if(p.type !== 'great_fireball') projectiles.splice(i, 1); removed = true; break; } } } if (!removed) { for (let j = bosses.length - 1; j >= 0; j--) { const b = bosses[j]; if (getDistance(p,b) < b.radius + p.size) { b.hp -= p.damage; p.penetrated++; if(p.penetrated >= p.penetration) { if(p.type !== 'great_fireball') projectiles.splice(i,1); removed = true; break; } } } } if (removed && p.type !== 'great_fireball') continue; if (p.life <= 0 || p.x < 0 || p.x > world.width || p.y < 0 || p.y > world.height) { projectiles.splice(i, 1); } } }
+        function updateFireTrails() { for (let i = fireTrails.length - 1; i >= 0; i--) { const trail = fireTrails[i]; trail.life--; if (trail.life <= 0) { fireTrails.splice(i, 1); continue; } [...enemies, ...bosses].forEach(enemy => { if (getDistance(enemy, trail) < enemy.radius + trail.radius) { enemy.hp -= trail.damage; } }); } }
+        
+        function updateXPOrbs() {
+            // Il raggio del magnete scala con i potenziamenti all'area
+            const pickupRadius = 100 * (1 + (player.areaMod - 1) * 0.5);
+            for (let i = xpOrbs.length - 1; i >= 0; i--) {
+                const orb = xpOrbs[i];
+                const dist = getDistance(orb, player);
+                if (dist < pickupRadius) { // Effetto magnete
+                    const angle = Math.atan2(player.y - orb.y, player.x - orb.x);
+                    // Più la sfera è vicina, più si muove velocemente verso il giocatore
+                    const speed = Math.max(4, (pickupRadius - dist) * 0.1);
+                    orb.x += Math.cos(angle) * speed;
+                    orb.y += Math.sin(angle) * speed;
+                }
+                if (dist < 20) { // Raggio di raccolta
+                    player.xp += orb.value;
+                    if (player.xp >= player.xpNext) levelUp();
+                    xpOrbs.splice(i, 1);
+                }
+            }
+        }
+
+        function updateGemOrbs() { for (let i = gemOrbs.length - 1; i >= 0; i--) { const orb = gemOrbs[i]; const dist = getDistance(orb, player); if (dist < 120) { const angle = Math.atan2(player.y - orb.y, player.x - orb.x); orb.x += Math.cos(angle) * 5; orb.y += Math.sin(angle) * 5; } if (dist < 20) { gemsThisRun += orb.value; gemOrbs.splice(i, 1); } } }
+        function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) particles.splice(i, 1); } }
+        function updateEffects() { for (let i = effects.length - 1; i >= 0; i--) { effects[i].life--; if (effects[i].life <= 0) effects.splice(i, 1); } }
+        function updatePowerUps() { for (const key in player.powerUpTimers) { if (player.powerUpTimers[key] > 0) { player.powerUpTimers[key]--; } } }
+        function updateNotifications() { for (let i = notifications.length - 1; i >= 0; i--) { notifications[i].life--; if (notifications[i].life <= 0) { notifications.splice(i, 1); } } }
+        function spawnChests() { if (chests.length === 0 && totalElapsedTime > nextChestSpawnTime) { const buffer = 200; let x, y, dist; do { x = Math.random() * (world.width - buffer * 2) + buffer; y = Math.random() * (world.height - buffer * 2) + buffer; dist = getDistance({x,y}, player); } while (dist < camera.width); chests.push({ x, y, size: 25 }); nextChestSpawnTime = totalElapsedTime + 30; } }
+        function updateChests() { for (let i = chests.length - 1; i >= 0; i--) { const chest = chests[i]; const dist = getDistance(player, {x: chest.x + chest.size/2, y: chest.y + chest.size/2}); if (dist < player.radius + chest.size) { const itemKeys = Object.keys(itemTypes).filter(k => k !== 'LEGENDARY_ORB'); const randomType = itemKeys[Math.floor(Math.random() * itemKeys.length)]; droppedItems.push({ x: chest.x + chest.size / 2, y: chest.y - 10, type: randomType, life: 600 }); if(Math.random() < 0.5 + player.luck) { let gemsFound = 5 + Math.floor(Math.random() * 6 * (1 + player.luck)); gemsThisRun += gemsFound; } chests.splice(i, 1); } } }
+        function updateDroppedItems() { for (let i = droppedItems.length - 1; i >= 0; i--) { const item = droppedItems[i]; item.life--; if (item.life <= 0) { droppedItems.splice(i, 1); continue; } const dist = getDistance(player, item); if (dist < player.radius + 10) { applyItemEffect(item, player); droppedItems.splice(i, 1); } } }
+        function applyItemEffect(item, player) { const itemInfo = itemTypes[item.type]; notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.5); for(let i=0; i<15; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*5 - 2, life: 40, color: itemTypes.HEAL_POTION.color }); break; case 'XP_BOMB': player.xp += player.xpNext; if (player.xp >= player.xpNext) levelUp(); for(let i=0; i<20; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4, life: 30, color: itemTypes.XP_BOMB.color }); break; case 'INVINCIBILITY': player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': player.powerUpTimers.damageBoost = 3600; player.powerUpTimers.invincibility = 3600; break; } }
+        function findNearestEnemy(from = player, range = 9999) { let nearest = null; let minDist = range; [...enemies, ...bosses].forEach(enemy => { const dist = getDistance(from, enemy); if (dist < minDist) { minDist = dist; nearest = enemy; }}); return nearest; }
+        function castSpells() { const now = Date.now(); if (spells.magicMissile.level > 0 && now - spells.magicMissile.lastCast > spells.magicMissile.cooldown * player.frequencyMod) castMagicMissile(now); if (spells.fireball.level > 0 && now - spells.fireball.lastCast > spells.fireball.cooldown * player.frequencyMod) { switch (spells.fireball.evolution) { case 'none': castFireball(now); break; case 'giant': castGreatFireball(now); break; case 'meteor': castMeteorShower(now); break; } } if (spells.shotgun.level > 0 && now - spells.shotgun.lastCast > spells.shotgun.cooldown * player.frequencyMod) castShotgun(now); if (spells.shockwave.level > 0 && now - spells.shockwave.lastCast > spells.shockwave.cooldown * player.frequencyMod) castShockwave(now); if (spells.lightning.level > 0 && now - spells.lightning.lastCast > spells.lightning.cooldown * player.frequencyMod) castLightning(now); if (spells.frostbolt.level > 0 && now - spells.frostbolt.lastCast > spells.frostbolt.cooldown * player.frequencyMod) castFrostbolt(now); if (spells.heal.level > 0 && player.hp < player.maxHp && now - spells.heal.lastCast > spells.heal.cooldown * player.frequencyMod) { player.hp = Math.min(player.maxHp, player.hp + spells.heal.amount); for(let i=0; i<10; i++) particles.push({ x: player.x, y: player.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00' }); spells.heal.lastCast = now; } if (spells.shield.level > 0 && !spells.shield.active && now - spells.shield.lastCast > spells.shield.cooldown * player.frequencyMod) { spells.shield.active = true; spells.shield.lastCast = now; setTimeout(() => { spells.shield.active = false; }, spells.shield.duration); } }
+        function castMagicMissile(now) { const nearest = findNearestEnemy(); if (!nearest) return; const s = spells.magicMissile; const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: damage, type: 'magic_missile', life: 80, size: s.size * player.areaMod, penetration: 1, penetrated: 0, color: '#9d75ff' }); s.lastCast = now; }
+        function castFireball(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.fireball; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: damage, type: 'fireball', life: 100, size: s.size * player.areaMod, penetration: 1, penetrated: 0, explosionRadius: s.explosionRadius * player.areaMod }); s.lastCast = now; }
+        function castGreatFireball(now) { const nearest = findNearestEnemy(); if (!nearest) return; const s = spells.fireball; const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: damage, type: 'great_fireball', life: 200, size: s.size * player.areaMod, penetration: 999, penetrated: 0, leavesTrail: true, burnDamage: s.burnDamage * player.powerMod, burnDuration: s.burnDuration }); s.lastCast = now; }
+        function castMeteorShower(now) { const s = spells.fireball; const visibleEnemies = [...enemies, ...bosses].filter(e => e.x > camera.x && e.x < camera.x + camera.width && e.y > camera.y && e.y < camera.y + camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: player.x + (Math.random() - 0.5) * 400, y: player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * player.areaMod; effects.push({ type: 'meteor_indicator', x: target.x, y: target.y, radius: explosionRadius, life: 45, initialLife: 45 }); setTimeout(() => { createExplosion(target.x, target.y, explosionRadius, s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod); for(let k=0; k<10; k++) particles.push({ x: target.x, y: target.y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 30, color: '#ffaa00' }); }, 750); } s.lastCast = now; }
+        function castFrostbolt(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angle = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.frostbolt; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * s.speed, vy: Math.sin(angle) * s.speed, damage: damage, type: 'frostbolt', life: 100, slow: s.slow, slowDuration: s.slowDuration, size: s.size * player.areaMod, penetration: s.penetration, penetrated: 0 }); s.lastCast = now; }
+        function castLightning(now) { const s = spells.lightning; const nearest = findNearestEnemy(player, s.range); if (!nearest) return; s.lastCast = now; let lastTarget = player; let chainedEnemies = []; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; for (let c = 0; c < s.chains; c++) { let nextTarget = findNearestChainingEnemy(lastTarget, chainedEnemies); if (nextTarget) { nextTarget.hp -= damage; effects.push({ type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 }); lastTarget = nextTarget; chainedEnemies.push(nextTarget); } else break; } }
+        function castShotgun(now) { const nearest = findNearestEnemy(); if (!nearest) return; const angleBase = Math.atan2(nearest.y - player.y, nearest.x - player.x); const s = spells.shotgun; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; for (let i = 0; i < s.count; i++) { const offset = (i - (s.count-1) / 2) * (s.angleSpread / s.count); const angle = angleBase + offset; projectiles.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, damage: damage, type: 'shotgun', life: 30, color: '#ffaa00', size: 4 * player.areaMod, penetration: 1, penetrated: 0 }); } s.lastCast = now; }
+        function castShockwave(now) { const s = spells.shockwave; const damage = s.damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; const radius = s.radius * player.areaMod; for (let enemy of [...enemies, ...bosses]) { if (getDistance(player, enemy) <= radius) { enemy.hp -= damage; const kAngle = Math.atan2(enemy.y - player.y, enemy.x - player.x); enemy.x += Math.cos(kAngle) * s.knockback; enemy.y += Math.sin(kAngle) * s.knockback; } } effects.push({ type: 'emp_wave', x: player.x, y: player.y, maxRadius: radius, life: 30, initialLife: 30, color: '#88aaff' }); s.lastCast = now; }
+        function findNearestChainingEnemy(fromObj, excludeList) { let nearest = null; let minDist = 200; for (let enemy of [...enemies, ...bosses]) { if (excludeList.some(e => e === enemy)) continue; const dist = getDistance(fromObj, enemy); if (dist < minDist) { minDist = dist; nearest = enemy; } } return nearest; }
+        function createExplosion(x, y, radius, damage) { const finalDamage = damage * (player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * player.powerMod; effects.push({ type: 'explosion', x, y, maxRadius: radius, life: 20, initialLife: 20 }); for (let enemy of [...enemies, ...bosses]) { if (getDistance({x,y}, enemy) <= radius) enemy.hp -= finalDamage; } }
+        
+        function levelUp() {
+            player.level++;
+            player.hp = player.maxHp;
+            player.xp -= player.xpNext;
+            player.xpNext = Math.floor(player.xpNext * (1.15 + 10 / (player.level + 5)));
+            player.powerUpTimers.invincibility = 120;
+            effects.push({ type: 'level_up_burst', x: player.x, y: player.y, maxRadius: 60, life: 30, initialLife: 30 });
+            notifications.push({ text: "Scudo temporaneo attivato!", life: 120 });
+            showUpgradeMenu();
+        }
+
+        function showUpgradeMenu() {
+            const options = document.getElementById('upgradeOptions');
+            options.innerHTML = '';
+            let choices = [];
+            const fireball = spells.fireball;
+
+            // Special case for Fireball evolution
+            if (fireball.level === upgradeTree.fireball.maxLevel && fireball.evolution === 'none') {
+                choices.push(upgradeTree.fireball_evolve_giant, upgradeTree.fireball_evolve_meteor);
+            }
+
+            let newSkillsPool = [];
+            let otherUpgradesPool = [];
+
+            Object.keys(upgradeTree).forEach(id => {
+                const upgrade = upgradeTree[id];
+                if (id === 'magicMissile' || upgrade.type === 'evolution') return;
+
+                const baseId = upgrade.id.split('_')[0];
+                const spell = spells[baseId];
+
+                if (upgrade.type === 'passive') {
+                    if (!passives[id] || passives[id].level < upgrade.maxLevel) {
+                        otherUpgradesPool.push(upgrade);
+                    }
+                }
+                else if (spell && spell.level === 0 && !id.includes('mastery')) {
+                    newSkillsPool.push(upgrade);
+                }
+                else if (spell && spell.level > 0) {
+                    if (upgrade.id === baseId && spell.level < upgradeTree[baseId].maxLevel && spell.evolution === 'none') {
+                        otherUpgradesPool.push(upgrade);
+                    }
+                    else if (spell.evolution === 'giant' && upgrade.id === 'fireball_giant_mastery') {
+                        otherUpgradesPool.push(upgrade);
+                    } else if (spell.evolution === 'meteor' && upgrade.id === 'fireball_meteor_mastery') {
+                        otherUpgradesPool.push(upgrade);
+                    }
+                }
+            });
+
+            newSkillsPool = [...new Set(newSkillsPool)];
+            otherUpgradesPool = [...new Set(otherUpgradesPool)];
+
+            if (choices.length < 3 && newSkillsPool.length > 0) {
+                const randomIndex = Math.floor(Math.random() * newSkillsPool.length);
+                choices.push(newSkillsPool.splice(randomIndex, 1)[0]);
+            }
+
+            const combinedPool = [...newSkillsPool, ...otherUpgradesPool];
+
+            while (choices.length < 3 && combinedPool.length > 0) {
+                const randomIndex = Math.floor(Math.random() * combinedPool.length);
+                choices.push(combinedPool.splice(randomIndex, 1)[0]);
+            }
+
+            choices.forEach(upgrade => {
+                if (!upgrade) return;
+                const div = document.createElement('div');
+                div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '');
+                let baseId = upgrade.id.split('_')[0];
+                let s = upgrade.type === 'passive' ? passives[upgrade.id] : spells[baseId];
+                let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`;
+                if (upgrade.type === 'evolution' || upgrade.id.includes('mastery')) levelText = '';
+                div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`;
+                div.onclick = () => {
+                    applyUpgrade(upgrade.id);
+                    hideAllPopups();
+                };
+                options.appendChild(div);
+            });
+            showPopup('upgradeMenu');
+        }
+
+
+        function applyUpgrade(upgradeId) { const upgrade = upgradeTree[upgradeId]; if(!upgrade) return; let target; let baseId = upgrade.id.split('_')[0]; if (upgrade.type === 'passive') { if(!passives[upgrade.id]) passives[upgrade.id] = {level: 0}; target = passives[upgrade.id]; } else { if(!spells[baseId]) spells[baseId] = {level: 0, id: baseId, evolution: 'none', damage:0, cooldown:0, area:0}; target = spells[baseId]; } if (upgradeId.includes('evolve')) target.evolution = upgradeId.includes('giant') ? 'giant' : 'meteor'; target.level++; if (upgrade.id === 'fireball') { target.damage = (target.damage || 15) + 5; target.explosionRadius = (target.explosionRadius || 20) + 5; target.area = target.explosionRadius; } else if (upgrade.id === 'fireball_evolve_giant') { target.damage = 60; target.size = 35; target.speed = 2; target.cooldown = 2500; target.area = target.size; } else if (upgrade.id === 'fireball_evolve_meteor') { target.cooldown = 2000; target.damage = 25; } else if (upgrade.id === 'fireball_giant_mastery') { target.damage += 30; target.burnDamage = (target.burnDamage || 5) + 5; } else if (upgrade.id === 'fireball_meteor_mastery') { target.meteorCount = (target.meteorCount || 3) + 1; target.explosionRadius += 10; target.area = target.explosionRadius; } else if (upgrade.id === 'lightning') { target.damage = (target.damage || 10) + 4; target.chains = (target.chains || 2) + 1; } else if (upgrade.id === 'frostbolt') { target.damage = (target.damage || 12) + 3; target.penetration = (target.penetration || 1) + 1; } else if (upgrade.id === 'shotgun') { target.damage = (target.damage || 8) + 2; target.count = (target.count || 5) + 2; } else if (upgrade.id === 'shockwave') { target.damage = (target.damage || 20) + 10; target.radius = (target.radius || 100) + 15; target.knockback = (target.knockback || 15) + 5; target.area = target.radius; } else if (upgrade.id === 'heal') { target.amount = (target.amount || 20) + 10; target.cooldown = Math.max(4000, (target.cooldown || 10000) - 1000); } else if (upgrade.id === 'shield') { target.duration = (target.duration || 3000) + 1000; target.cooldown = Math.max(5000, (target.cooldown || 12000) - 1500); } else if (upgrade.id === 'health') { player.maxHp += 25; player.hp += 25; } else if (upgrade.id === 'speed') { player.speed += 0.4; } else if (upgrade.id === 'attack_speed') { player.frequencyMod *= 0.92; } }
+        function spawnBoss() { const side = Math.floor(Math.random() * 4); let x, y; const buffer = 100; switch (side) { case 0: x = camera.x + Math.random() * camera.width; y = camera.y - buffer; break; case 1: x = camera.x + camera.width + buffer; y = camera.y + Math.random() * camera.height; break; case 2: x = camera.x + Math.random() * camera.width; y = camera.y + camera.height + buffer; break; case 3: x = camera.x - buffer; y = camera.y + Math.random() * camera.height; break; } const timeFactor = totalElapsedTime / 60; bosses.push({ x, y, hp: 1000 + timeFactor * 500, maxHp: 1000 + timeFactor * 500, speed: 1.5, radius: 40, damage: 25, attackCooldown: 2000, lastAttack: 0, color: '#8e44ad' }); notifications.push({ text: "!!! UN BOSS È APPARSO !!!", life: 300 }); }
+        function updateBosses() { for (let i = bosses.length - 1; i >= 0; i--) { const b = bosses[i]; const angle = Math.atan2(player.y - b.y, player.x - b.x); b.x += Math.cos(angle) * b.speed; b.y += Math.sin(angle) * b.speed; if(Date.now() - b.lastAttack > b.attackCooldown) { const angleToPlayer = Math.atan2(player.y - b.y, player.x - b.x); enemyProjectiles.push({ x: b.x, y: b.y, vx: Math.cos(angleToPlayer) * 4, vy: Math.sin(angleToPlayer) * 4, damage: b.damage, radius: 8, life: 300 }); b.lastAttack = Date.now(); } if (b.hp <= 0) { for (let j = 0; j < 50; j++) particles.push({ x: b.x, y: b.y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 40, color: b.color }); droppedItems.push({ x: b.x, y: b.y, type: 'LEGENDARY_ORB', life: 1200 }); gemsThisRun += 50; bosses.splice(i, 1); } } }
+        function updateEnemyProjectiles() { for (let i = enemyProjectiles.length - 1; i >= 0; i--) { const p = enemyProjectiles[i]; p.x += p.vx; p.y += p.vy; p.life--; if(getDistance(p, player) < player.radius + p.radius) { if (!spells.shield.active && player.powerUpTimers.invincibility <= 0) { player.hp -= p.damage; if(player.hp <= 0) gameOver(); } enemyProjectiles.splice(i,1); } else if (p.life <= 0) { enemyProjectiles.splice(i,1); } } }
+        function draw() { ctx.fillStyle = 'black'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.save(); ctx.translate(-camera.x, -camera.y); ctx.fillStyle = '#16213e'; ctx.fillRect(0, 0, world.width, world.height); ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2; for (let x = 0; x < world.width; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, world.height); ctx.stroke(); } for (let y = 0; y < world.height; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(world.width, y); ctx.stroke(); } drawFireTrails(); drawMerchant(); particles.forEach(p => { ctx.globalAlpha = p.life / 30; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1; xpOrbs.forEach(orb => { ctx.fillStyle = '#00ff88'; ctx.beginPath(); ctx.arc(orb.x, orb.y, 6, 0, Math.PI * 2); ctx.fill(); }); drawGemOrbs(); drawChests(); drawDroppedItems(); enemies.forEach(e => { drawEnemy(e); }); drawBosses(); drawEnemyProjectiles(); projectiles.forEach(p => { if(p.type === 'great_fireball') drawGreatFireball(p); else if(p.type === 'fireball') drawFireball(p); else if(p.type === 'frostbolt') drawFrostbolt(p); else { ctx.fillStyle = p.color || '#ffaa00'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } }); drawEffects(); drawPlayer(); ctx.restore(); drawOffscreenIndicators(); drawNotifications(); }
+        function drawGreatFireball(p) { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); if (Math.random() > 0.2) { particles.push({ x: p.x + (Math.random() - 0.5) * p.size, y: p.y + (Math.random() - 0.5) * p.size, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, life: 20, color: ['#ffaa00', '#ff4500', '#ffdd00'][Math.floor(Math.random()*3)] }); } }
+        function drawFireTrails() { fireTrails.forEach(trail => { ctx.globalAlpha = (trail.life / trail.initialLife) * 0.7; const g = ctx.createRadialGradient(trail.x, trail.y, 1, trail.x, trail.y, trail.radius); g.addColorStop(0, 'rgba(255, 150, 0, 0.8)'); g.addColorStop(1, 'rgba(255, 50, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(trail.x, trail.y, trail.radius, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1; }
+        function drawPolygon(x, y, radius, sides, angle = 0, color = 'red') { ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x + radius * Math.cos(angle), y + radius * Math.sin(angle)); for (let i = 1; i <= sides; i++) { ctx.lineTo(x + radius * Math.cos(angle + i * 2 * Math.PI / sides), y + radius * Math.sin(angle + i * 2 * Math.PI / sides)); } ctx.closePath(); ctx.fill(); }
+        function drawPlayer() { const pulse = Math.sin(Date.now() / 200) * 2; ctx.strokeStyle = '#4488ff'; ctx.fillStyle = `rgba(68, 136, 255, 0.2)`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(player.x, player.y, player.radius + pulse, 0, Math.PI * 2); ctx.stroke(); ctx.fill(); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(player.x, player.y, player.radius - 4, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(player.x, player.y, 3, 0, Math.PI * 2); ctx.fill(); if (spells.shield.active || player.powerUpTimers.invincibility > 0) { const shieldRadius = player.radius + 8 + Math.sin(Date.now() / 200) * 3; const alpha = player.powerUpTimers.invincibility > 0 ? (player.powerUpTimers.invincibility % 60 < 30 ? 0.9 : 0.5) : 0.8; ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`; ctx.fillStyle = `rgba(255, 255, 0, ${alpha/4})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(player.x, player.y, shieldRadius, 0, Math.PI * 2); ctx.stroke(); ctx.fill(); } }
+        function drawEnemy(e) { const angle = Math.atan2(player.y - e.y, player.x - e.x); ctx.fillStyle = e.stunTimer > 0 ? '#ffffff' : (e.slowTimer > 0 ? '#66b2ff' : e.color); ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(angle + Math.PI / 2); ctx.beginPath(); ctx.moveTo(0, -e.radius); ctx.lineTo(-e.radius * 0.8, e.radius * 0.8); ctx.lineTo(e.radius * 0.8, e.radius * 0.8); ctx.closePath(); ctx.fill(); ctx.restore(); if(e.hp < e.maxHp){ const barW = e.radius*2, barH=4, x=e.x-barW/2, y=e.y-e.radius-8; ctx.fillStyle='rgba(255,0,0,0.7)'; ctx.fillRect(x,y,barW,barH); ctx.fillStyle='rgba(0,255,0,0.7)'; ctx.fillRect(x,y,barW*(e.hp/e.maxHp),barH); } }
+        function drawBosses() { bosses.forEach(b => { ctx.fillStyle = b.color; ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 4; drawPolygon(b.x, b.y, b.radius, 6, Date.now() / 1000); ctx.stroke(); drawPolygon(b.x, b.y, b.radius*0.7, 6, -Date.now() / 800, 'rgba(255,255,255,0.5)'); const barW = b.radius*2, barH=8, x=b.x-barW/2, y=b.y-b.radius-15; ctx.fillStyle='#ff0000'; ctx.fillRect(x,y,barW,barH); ctx.fillStyle='#00ff00'; ctx.fillRect(x,y,barW*(b.hp/b.maxHp),barH); }); }
+        function drawFireball(p) { const g = ctx.createRadialGradient(p.x,p.y,p.size/2, p.x,p.y, p.size*1.5); g.addColorStop(0,'rgba(255,200,0,1)'); g.addColorStop(0.5,'rgba(255,100,0,0.8)'); g.addColorStop(1,'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x,p.y,p.size*1.5,0,Math.PI*2); ctx.fill(); if(Math.random()>0.5) particles.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*1,vy:(Math.random()-0.5)*1,life:15,color:'#ffaa00'}); }
+        function drawFrostbolt(p) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6; const outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        function drawEffects() { effects.forEach(e => { const opacity = e.life / e.initialLife; if (e.type === 'emp_wave' || e.type === 'explosion' || e.type === 'level_up_burst') { const currentRadius = e.maxRadius * (1 - opacity); let color = '136,170,255'; if (e.type === 'explosion') color = '255,150,0'; if (e.type === 'level_up_burst') color = '255,215,0'; ctx.strokeStyle=`rgba(${color},${opacity})`; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(e.x,e.y,currentRadius,0,Math.PI*2); ctx.stroke(); } if (e.type === 'lightning_chain') { ctx.strokeStyle = `rgba(255,255,0,${opacity})`; ctx.lineWidth=Math.random()*3+2; drawJaggedLine(ctx, e.from.x, e.from.y, e.to.x, e.to.y, 10); } if (e.type === 'meteor_indicator') { ctx.strokeStyle=`rgba(255,100,0,${1 - opacity})`; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(e.x,e.y,e.radius,0,Math.PI*2); ctx.stroke(); } }); }
+        function drawJaggedLine(ctx,x1,y1,x2,y2,segments){ctx.beginPath();ctx.moveTo(x1,y1);const dx=x2-x1,dy=y2-y1,dist=Math.sqrt(dx*dx+dy*dy);for(let i=1;i<segments;i++){const t=i/segments,tx=x1+dx*t,ty=y1+dy*t,offset=(Math.random()-0.5)*(dist/segments)*2;ctx.lineTo(tx-dy/dist*offset,ty+dx/dist*offset);}ctx.lineTo(x2,y2);ctx.stroke();}
+        function drawChests() { chests.forEach(chest => { ctx.fillStyle = '#8B4513'; ctx.fillRect(chest.x, chest.y, chest.size, chest.size); ctx.fillStyle = '#FFD700'; ctx.fillRect(chest.x + chest.size * 0.3, chest.y - chest.size * 0.2, chest.size * 0.4, chest.size*0.4); ctx.fillRect(chest.x + chest.size * 0.4, chest.y + chest.size * 0.4, chest.size*0.2, chest.size*0.3); }); }
+        function drawDroppedItems() { droppedItems.forEach(item => { const itemInfo = itemTypes[item.type]; ctx.save(); ctx.globalAlpha = item.life > 60 ? 1.0 : Math.max(0, item.life / 60); const bob = Math.sin(Date.now()/200 + item.x) * 3; ctx.fillStyle = itemInfo.color; ctx.beginPath(); ctx.arc(item.x, item.y + bob, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore(); }); }
+        function drawGemOrbs() { gemOrbs.forEach(orb => { ctx.save(); ctx.translate(orb.x, orb.y); ctx.rotate(Date.now()/500); ctx.fillStyle = '#72f5f5'; ctx.strokeStyle = 'white'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(7, 0); ctx.lineTo(0, 7); ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }); }
+        function drawOffscreenIndicator(target, color, shape) { const screenX = target.x - camera.x; const screenY = target.y - camera.y; if (screenX > 0 && screenX < canvas.width && screenY > 0 && screenY < canvas.height) return; const playerScreenX = player.x - camera.x; const playerScreenY = player.y - camera.y; const angle = Math.atan2(screenY - playerScreenY, screenX - playerScreenX); const padding = 30; let arrowX = playerScreenX + Math.cos(angle) * (Math.min(canvas.width, canvas.height) / 2.5); let arrowY = playerScreenY + Math.sin(angle) * (Math.min(canvas.width, canvas.height) / 2.5); arrowX = Math.max(padding, Math.min(canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(canvas.height - padding, arrowY)); ctx.save(); ctx.translate(arrowX, arrowY); ctx.rotate(angle); ctx.fillStyle = color; ctx.strokeStyle = "white"; ctx.lineWidth = 1; ctx.beginPath(); if (shape === 'arrow') { ctx.moveTo(15, 0); ctx.lineTo(-15, -10); ctx.lineTo(-10, 0); ctx.lineTo(-15, 10); } else { ctx.moveTo(0, -10); ctx.lineTo(10, 10); ctx.lineTo(-10, 10); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        function drawOffscreenIndicators() { if (chests.length > 0) drawOffscreenIndicator(chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); drawOffscreenIndicator(merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); }
+        function drawNotifications() { ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold clamp(14px, 2.5vw, 18px) "Courier New", monospace'; notifications.forEach((n, index) => { const opacity = n.life > 30 ? 1.0 : n.life / 30; ctx.fillStyle = `rgba(255, 215, 0, ${opacity})`; ctx.shadowColor = "rgba(0, 0, 0, 0.7)"; ctx.shadowBlur = 5; const yPos = 40 + (index * 25); ctx.fillText(n.text, canvas.width / 2, yPos); }); ctx.restore(); }
+        function drawMerchant() { ctx.fillStyle = '#9b59b6'; ctx.fillRect(merchant.x, merchant.y, merchant.size, merchant.size); ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 3; ctx.strokeRect(merchant.x, merchant.y, merchant.size, merchant.size); const dist = getDistance(player, merchant); if (dist < merchant.interactionRadius) { ctx.font = 'bold 14px "Courier New"'; ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.fillText("[E] / Tocca", merchant.x + merchant.size / 2, merchant.y - 25); ctx.fillText("Negozio", merchant.x + merchant.size / 2, merchant.y - 10); } }
+        function drawEnemyProjectiles() { enemyProjectiles.forEach(p => { ctx.fillStyle = '#ff5555'; ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); }); }
+        function updateUI() { document.getElementById('hp').textContent = `${Math.max(0, Math.floor(player.hp))}/${player.maxHp}`; document.getElementById('level').textContent = player.level; document.getElementById('xp').textContent = Math.floor(player.xp); document.getElementById('xpNext').textContent = player.xpNext; document.getElementById('enemies').textContent = enemies.length + bosses.length; document.getElementById('time').textContent = Math.floor(totalElapsedTime); document.getElementById('score').textContent = score; document.getElementById('totalGemsUI').textContent = totalGems; document.getElementById('runGemsUI').textContent = gemsThisRun; }
+
+        function gameLoop() {
+            if (!gameRunning) { gameLoopId = requestAnimationFrame(gameLoop); return; };
+            const now = Date.now();
+            const deltaTime = (now - lastFrameTime) / 1000;
+            lastFrameTime = now;
+            if (!gamePaused) {
+                if (menuCooldown > 0) menuCooldown--; 
+
+                totalElapsedTime += deltaTime;
+                updatePlayer(); updateCamera(); updatePowerUps(); updateNotifications();
+                updateFireTrails(); castSpells(); spawnEnemies(); spawnMapXpOrbs();
+                if (bosses.length === 0 && enemiesKilledSinceBoss >= 150) { spawnBoss(); enemiesKilledSinceBoss = 0; }
+                spawnChests(); updateEnemies(); updateBosses(); updateProjectiles(); updateEnemyProjectiles(); updateXPOrbs(); updateGemOrbs();
+                updateParticles(); updateEffects(); updateChests(); updateDroppedItems();
+            }
+            draw();
+            updateUI();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function init() {
+            menuOverlay.addEventListener('click', hideAllPopups);
+            popups.forEach(popup => {
+                popup.addEventListener('click', e => e.stopPropagation());
+            });
+            pauseButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePause();
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+            loadGame();
+            applyPermanentUpgrades();
+            resizeCanvas();
+            updateUI(); 
+            pauseButton.style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+        }
+        
+        function resizeCanvas() { const containerRect = gameContainer.getBoundingClientRect(); canvas.width = containerRect.width; canvas.height = containerRect.height; camera.width = canvas.width; camera.height = canvas.height; if (gameRunning && !gamePaused) { draw(); } }
+        
+        init();
+
+    </script>
+</body>
+</html>

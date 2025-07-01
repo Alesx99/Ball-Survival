@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball Survival</title>
+    <style>
+        /* Stili CSS per il layout e l'aspetto del gioco */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+
+        #gameContainer {
+            position: relative;
+            background: #16213e;
+            border: 3px solid #0f3460;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(45deg, #0f3460, #16213e);
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #upgradeMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+            z-index: 200;
+            min-width: 300px;
+        }
+
+        .upgrade-option {
+            background: #2c3e50;
+            border: 1px solid #4a90e2;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upgrade-option:hover {
+            background: #34495e;
+            border-color: #5dade2;
+            transform: scale(1.02);
+        }
+
+        .upgrade-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5dade2;
+        }
+
+        .upgrade-desc {
+            font-size: 12px;
+            color: #bdc3c7;
+            margin-top: 5px;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            padding: 30px;
+            display: none;
+            z-index: 200;
+            text-align: center;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 30px;
+            z-index: 200;
+            text-align: center;
+        }
+
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5dade2;
+        }
+
+        .controls {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="ui">
+            <div>HP: <span id="hp">100</span>/100</div>
+            <div>Livello: <span id="level">1</span></div>
+            <div>XP: <span id="xp">0</span>/<span id="xpNext">10</span></div>
+            <div>Nemici: <span id="enemies">0</span></div>
+            <div>Tempo: <span id="time">0</span>s</div>
+        </div>
+
+        <div id="startScreen">
+            <h2>⚽ Ball Survival</h2>
+            <p>Sopravvivi alle ondate di nemici usando sfere magiche!</p>
+            <button onclick="startGame()">Inizia Partita</button>
+            <div class="controls">
+                <p><strong>Comandi:</strong></p>
+                <p>WASD o Frecce - Movimento</p>
+                <p>Mouse - Mirare (automatico)</p>
+                <p>Raccogli XP per fare upgrade!</p>
+            </div>
+        </div>
+
+        <div id="upgradeMenu">
+            <h3>Scegli un Upgrade!</h3>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Hai sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
+            <button onclick="restartGame()">Riprova</button>
+        </div>
+    </div>
+
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Stato del gioco
+        let gameRunning = false;
+        let gamePaused = false;
+        let startTime = 0;
+        let enemiesKilled = 0;
+        let gameLoopId; // ID per la funzione requestAnimationFrame, per fermare il loop correttamente
+
+        // Oggetto del giocatore
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 15,
+            hp: 100,
+            maxHp: 100,
+            speed: 3,
+            level: 1,
+            xp: 0,
+            xpNext: 10
+        };
+
+        // Input da tastiera e mouse
+        const keys = {};
+        const mouse = { x: 0, y: 0 }; // Non usato direttamente per il mirino automatico, ma buona pratica
+
+        // Oggetti di gioco
+        let enemies = [];
+        let projectiles = [];
+        let xpOrbs = [];
+        let particles = [];
+
+        // Abilità del giocatore con sistema unificato
+        const spells = {
+            
+    shotgun: {
+        level: 0,
+        damage: 6,
+        count: 5,
+        angleSpread: Math.PI / 3,
+        cooldown: 1500,
+        lastCast: 0
+    },
+    areaBlast: {
+        level: 0,
+        damage: 30,
+        radius: 120,
+        cooldown: 8000,
+        lastCast: 0
+    },
+fireball: {
+                level: 1,
+                damage: 10,
+                cooldown: 800,
+                lastCast: 0,
+                range: 180, 
+                size: 6,
+                penetration: 0,
+                speed: 7
+            },
+            lightning: {
+                level: 0,
+                damage: 15,
+                cooldown: 800,
+                lastCast: 0,
+                range: 150, 
+                size: 8,
+                penetration: 0
+            },
+            frostbolt: {
+                level: 0,
+                damage: 12,
+                cooldown: 1200,
+                lastCast: 0,
+                range: 180,
+                slow: true,
+                size: 6,
+                penetration: 0,
+                speed: 6
+            },
+            heal: { level: 0, amount: 20, cooldown: 5000, lastCast: 0 },
+            shield: { level: 0, duration: 3000, cooldown: 8000, lastCast: 0, active: false }
+        };
+
+        // Sistema di upgrade potenziato
+        const upgrades = [
+            
+            {
+                id: 'shotgun',
+                name: 'Shotgun',
+                desc: 'Spara più proiettili a ventaglio.',
+                effect: () => spells.shotgun.level++
+            },
+            {
+                id: 'areaBlast',
+                name: 'EMP',
+                desc: 'Esplosione ad area che rallenta e danneggia.',
+                effect: () => spells.areaBlast.level++
+            },
+{
+                id: 'fireball',
+                name: 'Sfera di Fuoco',
+                desc: 'Lancia sfere di fuoco. Livelli alti aumentano dimensioni e penetrazione.',
+                effect: () => {
+                    spells.fireball.level++;
+                    if (spells.fireball.level % 3 === 0) {
+                        spells.fireball.size += 2;
+                        spells.fireball.penetration++;
+                    }
+                    if (spells.fireball.level % 2 === 0) {
+                        spells.fireball.damage += 5;
+                    }
+                }
+            },
+            {
+                id: 'lightning',
+                name: 'Fulmine',
+                desc: 'Colpisce con fulmini devastanti. Livelli alti aumentano potenza.',
+                effect: () => {
+                    spells.lightning.level++;
+                    if (spells.lightning.level % 3 === 0) {
+                        spells.lightning.size += 2;
+                        spells.lightning.penetration++;
+                    }
+                    if (spells.lightning.level % 2 === 0) {
+                        spells.lightning.damage += 8;
+                    }
+                }
+            },
+            {
+                id: 'frostbolt',
+                name: 'Sfera di Ghiaccio',
+                desc: 'Rallenta e danneggia i nemici. Livelli alti aumentano effetto.',
+                effect: () => {
+                    spells.frostbolt.level++;
+                    if (spells.frostbolt.level % 3 === 0) {
+                        spells.frostbolt.size += 2;
+                        spells.frostbolt.penetration++;
+                    }
+                    if (spells.frostbolt.level % 2 === 0) {
+                        spells.frostbolt.damage += 6;
+                    }
+                }
+            },
+            {
+                id: 'heal',
+                name: 'Cura',
+                desc: 'Ripristina HP nel tempo',
+                effect: () => spells.heal.level++
+            },
+            {
+                id: 'shield',
+                name: 'Scudo Magico',
+                desc: 'Protezione temporanea',
+                effect: () => spells.shield.level++
+            },
+            {
+                id: 'health',
+                name: 'Vitalità',
+                desc: 'Aumenta HP massimi',
+                effect: () => {
+                    player.maxHp += 20;
+                    player.hp = Math.min(player.hp + 20, player.maxHp); 
+                }
+            },
+            {
+                id: 'speed',
+                name: 'Velocità',
+                desc: 'Movimento più rapido',
+                effect: () => player.speed += 0.5
+            },
+            {
+                id: 'fireball_speed',
+                name: 'Velocità Sfere',
+                desc: 'Aumenta la velocità delle sfere di fuoco',
+                effect: () => spells.fireball.speed += 1
+            },
+            {
+                id: 'attack_speed',
+                name: 'Velocità Attacco',
+                desc: 'Riduce il tempo di ricarica degli attacchi',
+                effect: () => {
+                    spells.fireball.cooldown = Math.max(200, spells.fireball.cooldown - 100);
+                    spells.lightning.cooldown = Math.max(300, spells.lightning.cooldown - 100);
+                    spells.frostbolt.cooldown = Math.max(400, spells.frostbolt.cooldown - 150);
+                }
+            }
+        ];
+
+        // Listener per gli eventi (tastiera e mouse)
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+
+        /**
+         * Funzione per iniziare il gioco. Nasconde la schermata iniziale e avvia il game loop.
+         */
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            gameRunning = true;
+            gamePaused = false;
+            startTime = Date.now();
+            // Avvia il loop di gioco per la prima volta
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        /**
+         * Funzione per riavviare il gioco. Resetta lo stato e avvia un nuovo game loop.
+         */
+        function restartGame() {
+            // Ferma qualsiasi loop di gioco precedente per evitare sovrapposizioni
+            if (gameLoopId) {
+                cancelAnimationFrame(gameLoopId);
+            }
+
+            // Resetta lo stato del gioco ai valori iniziali
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.hp = 100;
+            player.maxHp = 100;
+            player.speed = 3;
+            player.level = 1;
+            player.xp = 0;
+            player.xpNext = 10;
+            
+            enemies = [];
+            projectiles = [];
+            xpOrbs = [];
+            particles = [];
+            enemiesKilled = 0;
+            
+            // Resetta le abilità allo stato iniziale (livello 0 o 1)
+            spells.fireball = { level: 1, damage: 10, cooldown: 800, lastCast: 0, range: 180, size: 6, penetration: 0, speed: 7 };
+            spells.lightning = { level: 0, damage: 15, cooldown: 800, lastCast: 0, range: 150, size: 8, penetration: 0 };
+            spells.frostbolt = { level: 0, damage: 12, cooldown: 1200, lastCast: 0, range: 180, slow: true, size: 6, penetration: 0, speed: 6 };
+            spells.heal = { level: 0, amount: 20, cooldown: 5000, lastCast: 0 };
+            spells.shield = { level: 0, duration: 3000, cooldown: 8000, lastCast: 0, active: false };
+            
+            document.getElementById('gameOver').style.display = 'none';
+            startGame(); // Ri-avvia il gioco con lo stato resettato
+        }
+
+        /**
+         * Aggiorna la posizione del giocatore in base all'input.
+         */
+        function updatePlayer() {
+            let dx = 0, dy = 0;
+            
+            if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+            
+            // Normalizza il movimento diagonale per mantenere una velocità costante
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.707;
+                dy *= 0.707;
+            }
+            
+            player.x += dx * player.speed;
+            player.y += dy * player.speed;
+            
+            // Mantiene il giocatore all'interno dei limiti del canvas
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+        }
+
+        /**
+         * Gestisce il lancio delle abilità (spell) da parte del giocatore.
+         */
+        function castSpells() {
+            const now = Date.now();
+            
+            
+            if (spells.shotgun.level > 0) castShotgun();
+			if (spells.areaBlast.level > 0) castEMP();
+// Auto-lancio Fireball
+            if (spells.fireball.level > 0 && now - spells.fireball.lastCast > spells.fireball.cooldown) {
+                castFireball();
+                spells.fireball.lastCast = now;
+            }
+            
+            // Auto-lancio Fulmine (se sbloccato)
+            if (spells.lightning.level > 0 && now - spells.lightning.lastCast > spells.lightning.cooldown) {
+                castLightning();
+                spells.lightning.lastCast = now;
+            }
+            
+            // Auto-lancio Sfera di Ghiaccio (se sbloccato)
+            if (spells.frostbolt.level > 0 && now - spells.frostbolt.lastCast > spells.frostbolt.cooldown) {
+                castFrostbolt();
+                spells.frostbolt.lastCast = now;
+            }
+            
+            // Gestione Cura (se sbloccata e non a HP massimi)
+            if (spells.heal.level > 0 && player.hp < player.maxHp && now - spells.heal.lastCast > spells.heal.cooldown) {
+                player.hp = Math.min(player.hp + spells.heal.amount * spells.heal.level, player.maxHp);
+                spells.heal.lastCast = now;
+                
+                // Particelle di cura
+                for (let i = 0; i < 5; i++) {
+                    particles.push({
+                        x: player.x + (Math.random() - 0.5) * 30,
+                        y: player.y + (Math.random() - 0.5) * 30,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        life: 30,
+                        color: '#00ff00'
+                    });
+                }
+            }
+
+            // Gestione dello scudo (se sbloccato e non attivo)
+            if (spells.shield.level > 0 && !spells.shield.active && now - spells.shield.lastCast > spells.shield.cooldown) {
+                spells.shield.active = true;
+                spells.shield.lastCast = now;
+                setTimeout(() => {
+                    spells.shield.active = false;
+                }, spells.shield.duration);
+
+                // Particelle scudo
+                for (let i = 0; i < 10; i++) {
+                    particles.push({
+                        x: player.x + (Math.random() - 0.5) * player.radius * 2,
+                        y: player.y + (Math.random() - 0.5) * player.radius * 2,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: (Math.random() - 0.5) * 3,
+                        life: 40,
+                        color: '#00ffff'
+                    });
+                }
+            }
+        }
+
+        /**
+         * Lancia una palla di fuoco verso il nemico più vicino.
+         */
+        function castFireball() {
+            const nearestEnemy = findNearestEnemy();
+            if (!nearestEnemy) return; // Non lanciare se non ci sono nemici
+            
+            const angle = Math.atan2(nearestEnemy.y - player.y, nearestEnemy.x - player.x);
+            
+            projectiles.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * spells.fireball.speed,
+                vy: Math.sin(angle) * spells.fireball.speed,
+                damage: spells.fireball.damage,
+                type: 'fireball',
+                life: 100, // Durata del proiettile
+                color: '#ff4444',
+                size: spells.fireball.size,
+                penetration: spells.fireball.penetration,
+                penetrated: 0 
+            });
+        }
+
+        /**
+         * Lancia un fulmine verso il nemico più vicino entro il raggio.
+         */
+        function castLightning() {
+            const nearestEnemy = findNearestEnemy();
+            if (!nearestEnemy || getDistance(player, nearestEnemy) > spells.lightning.range) return;
+            
+            const angle = Math.atan2(nearestEnemy.y - player.y, nearestEnemy.x - player.x);
+            
+            projectiles.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * 10, 
+                vy: Math.sin(angle) * 10,
+                damage: spells.lightning.damage,
+                type: 'lightning',
+                life: 60, 
+                color: '#ffff00',
+                size: spells.lightning.size,
+                penetration: spells.lightning.penetration,
+                penetrated: 0
+            });
+        }
+
+        /**
+         * Lancia una sfera di ghiaccio verso il nemico più vicino, rallentandolo.
+         */
+        function castFrostbolt() {
+            const nearestEnemy = findNearestEnemy();
+            if (!nearestEnemy) return;
+            
+            const angle = Math.atan2(nearestEnemy.y - player.y, nearestEnemy.x - player.x);
+            
+            projectiles.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * spells.frostbolt.speed,
+                vy: Math.sin(angle) * spells.frostbolt.speed,
+                damage: spells.frostbolt.damage,
+                type: 'frostbolt',
+                life: 100, 
+                color: '#4444ff',
+                slow: true, 
+                size: spells.frostbolt.size,
+                penetration: spells.frostbolt.penetration,
+                penetrated: 0
+            });
+        }
+
+        /**
+         * Trova il nemico più vicino al giocatore.
+         * @returns {object|null} Il nemico più vicino o null se non ci sono nemici.
+         */
+        
+
+        /**
+         * Lancia una raffica tipo shotgun verso i nemici.
+         */
+        function castShotgun() {
+            const now = Date.now();
+            if (spells.shotgun.level === 0 || now - spells.shotgun.lastCast < spells.shotgun.cooldown) return;
+
+            const nearest = findNearestEnemy();
+            if (!nearest) return;
+            const angleBase = Math.atan2(nearest.y - player.y, nearest.x - player.x);
+
+            const total = spells.shotgun.count + (spells.shotgun.level - 1)*2;
+            for (let i = 0; i < total; i++) {
+                const offset = (i - total / 2) * (spells.shotgun.angleSpread / total);
+                const angle = angleBase + offset;
+                projectiles.push({
+                    x: player.x,
+                    y: player.y,
+                    vx: Math.cos(angle) * 6,
+                    vy: Math.sin(angle) * 6,
+                    damage: spells.shotgun.damage + spells.shotgun.level * 2,
+                    type: 'shotgun',
+                    life: 50,
+                    color: '#ffaa00',
+                    size: 5,
+                    penetration: 0,
+                    penetrated: 0
+                });
+            }
+            spells.shotgun.lastCast = now;
+        }
+
+        /**
+         * Lancia un'esplosione EMP ad area attorno al giocatore.
+         */
+        function castEMP() {
+            const now = Date.now();
+            if (spells.areaBlast.level === 0 || now - spells.areaBlast.lastCast < spells.areaBlast.cooldown) return;
+
+            spells.areaBlast.lastCast = now;
+            const damage = spells.areaBlast.damage + (spells.areaBlast.level - 1) * 10;
+            const radius = spells.areaBlast.radius + spells.areaBlast.level * 10;
+
+            for (let enemy of enemies) {
+                const dist = getDistance(player, enemy);
+                if (dist <= radius) {
+                    enemy.hp -= damage;
+                    enemy.slowEffect = Math.min(0.9, enemy.slowEffect + 0.7);
+                }
+            }
+
+            // Effetto visivo EMP
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: player.x,
+                    y: player.y,
+                    vx: Math.cos(i * (Math.PI * 2 / 30)) * 2,
+                    vy: Math.sin(i * (Math.PI * 2 / 30)) * 2,
+                    life: 40,
+                    color: '#00ffff'
+                });
+            }
+        }
+
+function findNearestEnemy() {
+            let nearest = null;
+            let minDist = Infinity;
+            
+            for (let enemy of enemies) {
+                const dist = getDistance(player, enemy);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = enemy;
+                }
+            }
+            return nearest;
+        }
+
+        /**
+         * Genera nuovi nemici, aumentando la difficoltà nel tempo.
+         */
+        function spawnEnemies() {
+            const seconds = (Date.now() - startTime) / 1000;
+            let chaosFactor = Math.floor(seconds / 30);
+            const timeFactor = (Date.now() - startTime) / 9000;
+            const multiplier = 1 + chaosFactor * 0.1; // Aumenta la difficoltà con il tempo
+            const enemyCount = Math.floor(timeFactor) + 1; // Numero base di nemici
+            const maxEnemies = Math.min(60, Math.floor(enemyCount * 3.3)); // Limite massimo di nemici sullo schermo
+            
+            while (enemies.length < maxEnemies) {
+                const side = Math.floor(Math.random() * 4); // 0:top, 1:right, 2:bottom, 3:left
+                let x, y;
+                
+                // Appare il nemico da un lato casuale fuori dallo schermo
+                switch (side) {
+                    case 0: x = Math.random() * canvas.width; y = -20; break;
+                    case 1: x = canvas.width + 20; y = Math.random() * canvas.height; break;
+                    case 2: x = Math.random() * canvas.width; y = canvas.height + 20; break;
+                    case 3: x = -20; y = Math.random() * canvas.height; break;
+                }
+                
+                const hpBonus = Math.floor(timeFactor / 2) * 12; // HP dei nemici aumentano con il tempo
+                
+                enemies.push({
+                    x, y,
+                    hp: 30 + hpBonus,
+                    maxHp: 30 + hpBonus,
+                    speed: 1 + Math.random() * 0.6, 
+                    radius: 12,
+                    damage: 10 + Math.floor(timeFactor / 3) * 3, 
+                    slowEffect: 0, 
+                    color: `hsl(${Math.random() * 60}, 70%, 50%)` 
+                });
+            }
+        }
+
+        /**
+         * Aggiorna lo stato dei nemici (movimento, collisioni, rimozione).
+         */
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+				if (enemy.stunTimer > 0) {
+    enemy.stunTimer--;
+    continue;
+}
+                
+                // Muove il nemico verso il giocatore
+                const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                const speed = enemy.speed * (1 - enemy.slowEffect); 
+                enemy.x += Math.cos(angle) * speed;
+                enemy.y += Math.sin(angle) * speed;
+                
+                // Riduce l'effetto di rallentamento nel tempo
+                enemy.slowEffect = Math.max(0, enemy.slowEffect - 0.02); 
+                
+                // Controllo collisione con il giocatore
+                if (getDistance(enemy, player) < enemy.radius + player.radius) {
+                    if (!spells.shield.active) { 
+                        player.hp -= enemy.damage;
+                        if (player.hp <= 0) {
+                            gameOver();
+                            return; 
+                        }
+                    }
+                    
+                    // Knockback del nemico
+                    const knockAngle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+                    enemy.x += Math.cos(knockAngle) * 20;
+                    enemy.y += Math.sin(knockAngle) * 20;
+                }
+                
+                // Rimuove i nemici morti
+                if (enemy.hp <= 0) {
+                    enemiesKilled++;
+                    
+                    const baseXP = 2 + Math.floor(Math.random() * 3);
+                    const bonusXP = Math.floor((Date.now() - startTime) / 30000); 
+                    xpOrbs.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        value: baseXP + bonusXP
+                    });
+                    
+                    // Particelle di morte del nemico
+                    for (let j = 0; j < 8; j++) {
+                        particles.push({
+                            x: enemy.x,
+                            y: enemy.y,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            life: 20,
+                            color: enemy.color
+                        });
+                    }
+                    enemies.splice(i, 1); 
+                }
+            }
+        }
+
+        /**
+         * Aggiorna lo stato dei proiettili (movimento, collisioni, rimozione).
+         */
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                
+                proj.x += proj.vx;
+                proj.y += proj.vy;
+                proj.life--; 
+                
+                // Controllo collisione con i nemici
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    if (getDistance(proj, enemy) < enemy.radius + proj.size) {
+                        enemy.hp -= proj.damage;
+                        if (proj.type === 'frostbolt') {
+    for (let e2 of enemies) {
+        if (getDistance(proj, e2) <= 40 + spells.frostbolt.level * 10) {
+            e2.slowEffect = 0.9;
+        }
+    }
+}
+if (proj.type === 'lightning') {
+    for (let e2 of enemies) {
+        if (getDistance(proj, e2) <= 50) {
+            e2.stunTimer = 60;
+        }
+    }
+}
+                        if (proj.slow) {
+                            enemy.slowEffect = Math.min(0.8, enemy.slowEffect + 0.5); 
+                        }
+                        
+                        // Particelle di impatto
+                        for (let k = 0; k < 5; k++) {
+                            particles.push({
+                                x: proj.x,
+                                y: proj.y,
+                                vx: (Math.random() - 0.5) * 4,
+                                vy: (Math.random() - 0.5) * 4,
+                                life: 15,
+                                color: proj.color
+                            });
+                        }
+                        
+                        // Gestione penetrazione
+                        proj.penetrated++;
+                        if (proj.penetrated > proj.penetration) {
+                            projectiles.splice(i, 1); 
+                            break; 
+                        }
+                    }
+                }
+                
+                // Rimuove il proiettile se fuori dai limiti o scaduto
+                if (proj.life <= 0 || proj.x < -50 || proj.x > canvas.width + 50 || 
+                    proj.y < -50 || proj.y > canvas.height + 50) {
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        /**
+         * Aggiorna lo stato degli orb di XP (movimento, raccolta).
+         */
+        function updateXPOrbs() {
+            for (let i = xpOrbs.length - 1; i >= 0; i--) {
+                const orb = xpOrbs[i];
+                
+                // Muove l'orb verso il giocatore quando è vicino (magnetismo)
+                const dist = getDistance(orb, player);
+                if (dist < 50) { 
+                    const angle = Math.atan2(player.y - orb.y, player.x - orb.x);
+                    orb.x += Math.cos(angle) * 4;
+                    orb.y += Math.sin(angle) * 4;
+                }
+                
+                // Raccoglie l'orb se il giocatore lo tocca
+                if (dist < 20) { 
+                    player.xp += orb.value;
+                    
+                    // Controlla il level up
+                    if (player.xp >= player.xpNext) {
+                        levelUp();
+                    }
+                    xpOrbs.splice(i, 1); 
+                }
+            }
+        }
+
+        /**
+         * Aggiorna lo stato delle particelle (movimento, durata).
+         */
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--; 
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1); 
+                }
+            }
+        }
+
+        /**
+         * Aumenta il livello del giocatore e mostra il menu di upgrade.
+         */
+        function levelUp() {
+            player.level++;
+            
+            player.maxHp += 5;
+            player.hp = player.maxHp;
+            player.speed += 0.05;
+player.xp -= player.xpNext; 
+            player.xpNext = Math.floor(player.xpNext * 1.65);
+				Object.values(spells).forEach(spell => {
+    if (spell.damage !== undefined) spell.damage += 2;
+    if (spell.size !== undefined) spell.size += 1;
+});
+            
+            showUpgradeMenu(); 
+        }
+
+        /**
+         * Mostra il menu degli upgrade con 3 opzioni casuali.
+         */
+        function showUpgradeMenu() {
+            gamePaused = true; 
+            const menu = document.getElementById('upgradeMenu');
+            const options = document.getElementById('upgradeOptions');
+            
+            // Ottieni 3 upgrade casuali e unici
+            const availableUpgrades = [...upgrades];
+            const selectedUpgrades = [];
+            
+            for (let i = 0; i < 3 && availableUpgrades.length > 0; i++) {
+                const index = Math.floor(Math.random() * availableUpgrades.length);
+                selectedUpgrades.push(availableUpgrades[index]);
+                availableUpgrades.splice(index, 1); 
+            }
+            
+            options.innerHTML = ''; 
+            selectedUpgrades.forEach(upgrade => {
+                const div = document.createElement('div');
+                div.className = 'upgrade-option';
+                div.innerHTML = `
+                    <div class="upgrade-title">${upgrade.name}</div>
+                    <div class="upgrade-desc">${upgrade.desc}</div>
+                `;
+                div.onclick = () => {
+                    upgrade.effect(); 
+                    menu.style.display = 'none'; 
+                    gamePaused = false; 
+                };
+                options.appendChild(div);
+            });
+            menu.style.display = 'block'; 
+        }
+
+        /**
+         * Gestisce la fine del gioco e mostra la schermata di Game Over.
+         */
+        function gameOver() {
+            gameRunning = false;
+            // Ferma il game loop quando il gioco termina
+            if (gameLoopId) {
+                cancelAnimationFrame(gameLoopId);
+            }
+            document.getElementById('survivalTime').textContent = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('enemiesKilled').textContent = enemiesKilled;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        /**
+         * Calcola la distanza tra due oggetti con proprietà x e y.
+         * @param {object} obj1 - Primo oggetto.
+         * @param {object} obj2 - Secondo oggetto.
+         * @returns {number} La distanza euclidea tra i due oggetti.
+         */
+        function getDistance(obj1, obj2) {
+            const dx = obj1.x - obj2.x;
+            const dy = obj1.y - obj2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        /**
+         * Disegna tutti gli elementi di gioco sul canvas.
+         */
+        function draw() {
+            // Svuota il canvas con un effetto di "sfumatura"
+            ctx.fillStyle = 'rgba(15, 52, 96, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Disegna le particelle
+            particles.forEach(particle => {
+                ctx.globalAlpha = particle.life / 30; 
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1; 
+            
+            // Disegna gli orb di XP
+            xpOrbs.forEach(orb => {
+                ctx.fillStyle = '#00ff88';
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#00aa44';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+            
+            // Disegna i nemici
+            enemies.forEach(enemy => {
+                // Corpo del nemico
+                ctx.fillStyle = enemy.slowEffect > 0 ? '#6666ff' : enemy.color; 
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Barra della vita del nemico
+                if (enemy.hp < enemy.maxHp) {
+                    const barWidth = enemy.radius * 2;
+                    const barHeight = 4;
+                    const x = enemy.x - barWidth / 2;
+                    const y = enemy.y - enemy.radius - 8;
+                    
+                    ctx.fillStyle = '#ff0000'; 
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                    
+                    ctx.fillStyle = '#00ff00'; 
+                    ctx.fillRect(x, y, barWidth * (enemy.hp / enemy.maxHp), barHeight);
+                }
+            });
+            
+            // Disegna i proiettili
+            projectiles.forEach(proj => {
+                ctx.fillStyle = proj.color;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, proj.size, 0, Math.PI * 2); 
+                ctx.fill();
+                
+                // Effetto scia
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(proj.x - proj.vx, proj.y - proj.vy, proj.size - 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+            
+            // Disegna il giocatore
+            ctx.fillStyle = spells.shield.active ? '#00ffff' : '#4488ff'; 
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Barra HP del giocatore
+            const hpBarWidth = 60;
+            const hpBarHeight = 6;
+            const hpX = player.x - hpBarWidth / 2;
+            const hpY = player.y - player.radius - 15;
+            
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(hpX, hpY, hpBarWidth, hpBarHeight);
+            
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(hpX, hpY, hpBarWidth * (player.hp / player.maxHp), hpBarHeight);
+        }
+
+        /**
+         * Aggiorna gli elementi dell'interfaccia utente (UI).
+         */
+        function updateUI() {
+            document.getElementById('hp').textContent = Math.max(0, Math.floor(player.hp));
+            document.getElementById('level').textContent = player.level;
+            document.getElementById('xp').textContent = player.xp;
+            document.getElementById('xpNext').textContent = player.xpNext;
+            document.getElementById('enemies').textContent = enemies.length;
+            document.getElementById('time').textContent = Math.floor((Date.now() - startTime) / 1000);
+        }
+
+		function updateEMPAura() {
+    if (spells.areaBlast.level > 0) {
+        const radius = 50 + spells.areaBlast.level * 10;
+        const dps = 3 + spells.areaBlast.level * 3;
+        enemies.forEach(e => {
+            if (getDistance(player, e) <= radius) {
+                e.hp -= dps / 60;
+            }
+        });
+        if (Math.random() < 0.2) {
+            particles.push({
+                x: player.x + (Math.random() - 0.5) * radius * 2,
+                y: player.y + (Math.random() - 0.5) * radius * 2,
+                vx: 0, vy: 0,
+                life: 20,
+                color: '#88ffff'
+            });
+        }
+    }
+}
+        /**
+         * La funzione principale del loop di gioco.
+         * Aggiorna lo stato del gioco e ridisegna il canvas ad ogni frame.
+         */
+        function gameLoop() {
+            // Se il gioco non è in esecuzione, non continuare il loop
+            if (!gameRunning) return;
+            
+            // Aggiorna la logica del gioco solo se non è in pausa
+            if (!gamePaused) {
+				updateEMPAura();
+                updatePlayer();
+                castSpells();
+                spawnEnemies();
+                updateEnemies();
+                updateProjectiles();
+                updateXPOrbs();
+                updateParticles();
+            }
+            
+            // Disegna sempre, anche se in pausa (per mostrare il menu di upgrade)
+            draw();
+            updateUI();
+            
+            // Richiede il prossimo frame dell'animazione e salva il suo ID
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+    </script>
+
+</body>
+</html>
