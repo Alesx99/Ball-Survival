@@ -1805,7 +1805,44 @@ class BallSurvivalGame {
     }
     loadGameData() { this.permanentUpgrades = {}; Object.keys(CONFIG.permanentUpgrades).forEach(key => { this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 }; }); try { const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7'); if (savedData) { const data = JSON.parse(savedData); this.totalGems = data.totalGems || 0; if (data.upgrades) { Object.keys(this.permanentUpgrades).forEach(key => { if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; }); } } else { this.totalGems = 0; } } catch (e) { console.error("Impossibile caricare:", e); this.totalGems = 0; } }
     saveGameData() { try { const saveData = { totalGems: this.totalGems, upgrades: this.permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare:", e); } }
-    populateShop() { this.dom.totalGemsShop.textContent = this.totalGems; const container = this.dom.containers.permanentUpgradeOptions; container.innerHTML = ''; for (const key in this.permanentUpgrades) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); let optionHTML = `<div class="permanent-upgrade-option"><div><div class="upgrade-title">${upg.name}</div><div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div><div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div></div>`; if (upg.level < upg.maxLevel) { optionHTML += `<div><div class="perm-upgrade-cost">Costo: ${cost} 💎</div><button class="buy-button" data-key="${key}" ${this.totalGems < cost ? 'disabled' : ''}>Compra</button></div>`; } else { optionHTML += `<div><span style="color: #2ecc71;">MAX</span></div>`; } optionHTML += `</div>`; container.innerHTML += optionHTML; } container.querySelectorAll('.buy-button').forEach(btn => { btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key); }); }
+    populateShop() { 
+        console.log('Popolando negozio...');
+        this.dom.totalGemsShop.textContent = this.totalGems; 
+        const container = this.dom.containers.permanentUpgradeOptions; 
+        container.innerHTML = ''; 
+        console.log('Potenziamenti disponibili:', Object.keys(this.permanentUpgrades));
+        
+        for (const key in this.permanentUpgrades) { 
+            const upg = this.permanentUpgrades[key]; 
+            const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); 
+            console.log(`Creando opzione per ${key}:`, upg);
+            
+            let optionHTML = `<div class="permanent-upgrade-option">
+                <div>
+                    <div class="upgrade-title">${upg.name}</div>
+                    <div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div>
+                    <div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div>
+                </div>`; 
+            
+            if (upg.level < upg.maxLevel) { 
+                optionHTML += `<div>
+                    <div class="perm-upgrade-cost">Costo: ${cost} 💎</div>
+                    <button class="buy-button" data-key="${key}" ${this.totalGems < cost ? 'disabled' : ''}>Compra</button>
+                </div>`; 
+            } else { 
+                optionHTML += `<div><span style="color: #2ecc71;">MAX</span></div>`; 
+            } 
+            
+            optionHTML += `</div>`; 
+            container.innerHTML += optionHTML; 
+        } 
+        
+        container.querySelectorAll('.buy-button').forEach(btn => { 
+            btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key); 
+        }); 
+        
+        console.log('Negozio popolato, elementi creati:', container.children.length);
+    }
     buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
     updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
