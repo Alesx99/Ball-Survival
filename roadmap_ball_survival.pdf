@@ -1,0 +1,73 @@
+# Ball Survival – Roadmap & Migliorie
+
+---
+
+## Roadmap Migliorie
+
+![Roadmap Diagram](roadmap_diagram.png)
+
+### 1. Modularizzazione Codice
+- Suddividere `game.js` in moduli: classi, utility, rendering, configurazione.
+- Aggiungere commenti e documentazione.
+- Refactoring funzioni lunghe.
+
+### 2. UI/UX e Accessibilità
+- Animazioni UI e feedback visivi.
+- Migliorare la navigazione da tastiera e mobile.
+- Aggiungere un tutorial interattivo.
+- Responsive design: adattare layout e scaling per schermi piccoli.
+
+### 3. Gameplay e Gamedesign
+- Nuove armi e archetipi con sinergie.
+- Eventi randomici e mini-boss.
+- Sistema di obiettivi e leaderboard.
+- Modalità challenge e codici condivisibili.
+
+### 4. Performance
+- Ottimizzare rendering (canvas, draw solo se necessario).
+- Gestione efficiente delle entità (pooling, rimozione smart).
+- Lazy loading delle risorse.
+
+### 5. Mobile & Dispositivi Piccoli
+- UI adattiva: pulsanti grandi, overlay semplificati.
+- Joystick touch migliorato.
+- Scaling automatico del canvas.
+- Modalità "minimal" per performance su telefoni.
+
+---
+
+## Idee di Gamedesign
+- **Evoluzioni sinergiche**: armi che si evolvono solo con certe combinazioni di upgrade/classi.
+- **Eventi a tempo**: ondate speciali, modificatori globali temporanei.
+- **Oggetti rari**: drop unici che cambiano la run.
+- **Progressione account**: bonus sbloccabili a lungo termine.
+
+---
+
+## Ottimizzazione Performance
+- Minimizzare i calcoli nel ciclo di gioco.
+- Usare requestAnimationFrame in modo efficiente.
+- Pooling per proiettili/entità temporanee.
+- Disegnare solo ciò che è visibile (culling).
+- Ridurre la complessità delle collisioni.
+
+---
+
+## Soluzioni per Mobile
+- **UI responsive**: layout a colonne su desktop, a blocchi su mobile.
+- **Joystick touch**: area touch più grande, feedback visivo.
+- **Scaling canvas**: adattare la risoluzione al device.
+- **Modalità prestazioni**: meno effetti, meno particelle.
+- **Test su dispositivi reali**: assicurarsi che tutto sia leggibile e giocabile.
+
+---
+
+## Screenshot suggeriti
+- [ ] Schermata di gioco desktop
+- [ ] Schermata di gioco mobile (simulata)
+- [ ] Selezione personaggi
+- [ ] Editor salvataggi
+
+---
+
+*Questo documento è una bozza. Per la versione finale, convertire in PDF e aggiungere screenshot reali e il diagramma roadmap.* 
