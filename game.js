@@ -360,26 +360,26 @@ class Player extends Entity {
             CONFIG.characterArchetypes.standard.draw(ctx, this);
         }
 
-        // MODIFICA: Aggiunta della barra HP sopra il giocatore
-        const barWidth = this.stats.radius * 2.5;
-        const barHeight = 6;
-        const offsetY = this.stats.radius + 15;
+        // MODIFICA: Barra HP più visibile e sempre dentro il canvas
+        const barWidth = this.stats.radius * 2.7;
+        const barHeight = 8;
+        const offsetY = this.stats.radius + 22; // Più in basso
         const barX = this.x - barWidth / 2;
-        const barY = this.y - offsetY;
+        const barY = Math.max(8, this.y - offsetY); // Mai sopra il bordo canvas
 
         // Sfondo della barra
-        ctx.fillStyle = 'rgba(50, 50, 50, 0.7)';
+        ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
         ctx.fillRect(barX, barY, barWidth, barHeight);
 
         // Barra della salute effettiva
         const healthPercentage = Math.max(0, this.hp / this.stats.maxHp);
         const healthBarWidth = barWidth * healthPercentage;
-        ctx.fillStyle = `rgba(100, 255, 100, 0.9)`;
+        ctx.fillStyle = `rgba(80, 255, 80, 1)`;
         ctx.fillRect(barX, barY, healthBarWidth, barHeight);
 
         // Bordo della barra
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
         ctx.strokeRect(barX, barY, barWidth, barHeight);
         // FINE MODIFICA
 
