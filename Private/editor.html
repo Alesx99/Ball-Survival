@@ -35,8 +35,28 @@
         <input type="number" id="gems" min="0" value="0">
         <label>Archetipi sbloccati:</label>
         <div class="archetypes-list" id="archetypesList"></div>
-        <label for="permUpgrades">Upgrades permanenti (JSON):</label>
-        <textarea id="permUpgrades"></textarea>
+        <label>Stats base giocatore:</label>
+        <div class="row">
+            <div><label>HP</label><input type="number" id="stat_hp" min="1"></div>
+            <div><label>Speed</label><input type="number" id="stat_speed" step="0.01" min="0.1"></div>
+            <div><label>DR</label><input type="number" id="stat_dr" step="0.01" min="0"></div>
+        </div>
+        <div class="row">
+            <div><label>XP Base</label><input type="number" id="stat_xpbase" min="1"></div>
+            <div><label>XP Growth</label><input type="number" id="stat_xpgrowth" step="0.01" min="1"></div>
+            <div><label>Level Factor</label><input type="number" id="stat_lvlfactor" min="0"></div>
+        </div>
+        <div class="row">
+            <div><label>Power</label><input type="number" id="stat_power" step="0.01" min="0"></div>
+            <div><label>Frequency</label><input type="number" id="stat_frequency" step="0.01" min="0"></div>
+            <div><label>Area</label><input type="number" id="stat_area" step="0.01" min="0"></div>
+        </div>
+        <div class="row">
+            <div><label>XP Gain</label><input type="number" id="stat_xpgain" step="0.01" min="0"></div>
+            <div><label>Luck</label><input type="number" id="stat_luck" step="0.01" min="0"></div>
+        </div>
+        <label>Upgrades permanenti:</label>
+        <div id="permUpgradesFields"></div>
         <button onclick="encodeSave()">Genera nuovo codice</button>
         <div id="encodeError" class="error"></div>
         <div id="encodeSuccess" class="success"></div>
@@ -70,8 +90,28 @@ function decodeSave() {
         // Archetipi
         let unlocked = Array.isArray(data.unlocked_archetypes) ? data.unlocked_archetypes : ['standard'];
         renderArchetypes(unlocked);
+        // Stats
+        document.getElementById('stat_hp').value = data.stat_hp || 1;
+        document.getElementById('stat_speed').value = data.stat_speed || 0.1;
+        document.getElementById('stat_dr').value = data.stat_dr || 0;
+        document.getElementById('stat_xpbase').value = data.stat_xpbase || 1;
+        document.getElementById('stat_xpgrowth').value = data.stat_xpgrowth || 1;
+        document.getElementById('stat_lvlfactor').value = data.stat_lvlfactor || 0;
+        document.getElementById('stat_power').value = data.stat_power || 0;
+        document.getElementById('stat_frequency').value = data.stat_frequency || 0;
+        document.getElementById('stat_area').value = data.stat_area || 0;
+        document.getElementById('stat_xpgain').value = data.stat_xpgain || 0;
+        document.getElementById('stat_luck').value = data.stat_luck || 0;
         // Upgrades
-        document.getElementById('permUpgrades').value = JSON.stringify(data.perm_upgrades || {}, null, 2);
+        document.getElementById('permUpgradesFields').innerHTML = '';
+        Object.entries(data.perm_upgrades || {}).forEach(([key, value]) => {
+            const field = document.createElement('div');
+            field.innerHTML = `
+                <label>${key}:</label>
+                <input type="number" id="${key}" value="${value}" step="0.01">
+            `;
+            document.getElementById('permUpgradesFields').appendChild(field);
+        });
         document.getElementById('editSection').style.display = '';
     } catch (e) {
         document.getElementById('decodeError').textContent = 'Codice non valido o corrotto.';
@@ -103,10 +143,35 @@ function encodeSave() {
     document.getElementById('encodeSuccess').textContent = '';
     if (!currentSave) return;
     try {
-        currentSave.gems = parseInt(document.getElementById('gems').value) || 0;
-        currentSave.unlocked_archetypes = JSON.parse(document.getElementById('archetypesList').dataset.unlocked);
-        currentSave.perm_upgrades = JSON.parse(document.getElementById('permUpgrades').value);
-        let json = JSON.stringify(currentSave);
+        // Ricostruisco un nuovo oggetto di salvataggio
+        let save = {};
+        save.v = currentSave.v || "4.7-menus";
+        save.gems = parseInt(document.getElementById('gems').value) || 0;
+        save.unlocked_archetypes = JSON.parse(document.getElementById('archetypesList').dataset.unlocked);
+        save.stat_hp = parseFloat(document.getElementById('stat_hp').value) || 1;
+        save.stat_speed = parseFloat(document.getElementById('stat_speed').value) || 0.1;
+        save.stat_dr = parseFloat(document.getElementById('stat_dr').value) || 0;
+        save.stat_xpbase = parseInt(document.getElementById('stat_xpbase').value) || 1;
+        save.stat_xpgrowth = parseFloat(document.getElementById('stat_xpgrowth').value) || 1;
+        save.stat_lvlfactor = parseInt(document.getElementById('stat_lvlfactor').value) || 0;
+        save.stat_power = parseFloat(document.getElementById('stat_power').value) || 0;
+        save.stat_frequency = parseFloat(document.getElementById('stat_frequency').value) || 0;
+        save.stat_area = parseFloat(document.getElementById('stat_area').value) || 0;
+        save.stat_xpgain = parseFloat(document.getElementById('stat_xpgain').value) || 0;
+        save.stat_luck = parseFloat(document.getElementById('stat_luck').value) || 0;
+        // Upgrades permanenti
+        save.perm_upgrades = {};
+        document.getElementById('permUpgradesFields').childNodes.forEach(field => {
+            const label = field.querySelector('label');
+            const input = field.querySelector('input');
+            if (label && input) {
+                const key = label.textContent.replace(':','').trim();
+                save.perm_upgrades[key] = parseFloat(input.value) || 0;
+            }
+        });
+        // Eventuali altri campi del salvataggio originale
+        // (aggiungi qui se servono campi custom)
+        let json = JSON.stringify(save);
         let code = btoa(json);
         document.getElementById('saveOutput').value = code;
         document.getElementById('encodeSuccess').textContent = 'Nuovo codice generato!';
