@@ -1785,8 +1785,11 @@ class BallSurvivalGame {
     updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
     resizeCanvas() {
         const rect = this.dom.gameContainer.getBoundingClientRect();
-        let width = Math.min(rect.width, CONFIG.world.width);
-        let height = Math.min(rect.height, CONFIG.world.height);
+        // Limiti massimi desktop
+        const maxW = window.innerWidth <= 700 ? CONFIG.world.width : Math.min(CONFIG.world.width, 1200);
+        const maxH = window.innerWidth <= 700 ? CONFIG.world.height : Math.min(CONFIG.world.height, 900);
+        let width = Math.min(rect.width, maxW);
+        let height = Math.min(rect.height, maxH);
         this.canvas.width = width;
         this.canvas.height = height;
         this.camera.width = width;
