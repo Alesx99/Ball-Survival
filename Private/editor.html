@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor Salvataggi Ball Survival</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Courier New', monospace; background: #181c24; color: #f1f1f1; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: #23293a; border-radius: 10px; padding: 32px 24px; box-shadow: 0 4px 24px #0008; }
+        h1 { text-align: center; color: #4a90e2; }
+        label { display: block; margin-top: 18px; font-weight: bold; }
+        input, select, textarea { width: 100%; margin-top: 6px; padding: 8px; border-radius: 5px; border: none; font-size: 1em; background: #181c24; color: #f1f1f1; }
+        textarea { min-height: 60px; resize: vertical; }
+        .row { display: flex; gap: 10px; }
+        .row > * { flex: 1; }
+        button { margin-top: 18px; padding: 10px 24px; background: #4a90e2; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 1em; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #357ab8; }
+        .note { color: #f1c40f; font-size: 0.95em; margin-top: 8px; }
+        .error { color: #e74c3c; margin-top: 8px; }
+        .success { color: #2ecc71; margin-top: 8px; }
+        .archetypes-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .archetype-chip { background: #333b4d; border-radius: 5px; padding: 4px 10px; cursor: pointer; border: 2px solid transparent; }
+        .archetype-chip.selected { border-color: #4a90e2; background: #223; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Editor Salvataggi<br>Ball Survival</h1>
+    <label for="saveInput">Codice di salvataggio (incolla qui):</label>
+    <textarea id="saveInput" placeholder="Incolla qui il codice..."></textarea>
+    <button onclick="decodeSave()">Decodifica</button>
+    <div id="decodeError" class="error"></div>
+    <div id="editSection" style="display:none;">
+        <label for="gems">Gemme totali:</label>
+        <input type="number" id="gems" min="0" value="0">
+        <label>Archetipi sbloccati:</label>
+        <div class="archetypes-list" id="archetypesList"></div>
+        <label for="permUpgrades">Upgrades permanenti (JSON):</label>
+        <textarea id="permUpgrades"></textarea>
+        <button onclick="encodeSave()">Genera nuovo codice</button>
+        <div id="encodeError" class="error"></div>
+        <div id="encodeSuccess" class="success"></div>
+        <label for="saveOutput">Nuovo codice:</label>
+        <textarea id="saveOutput" readonly></textarea>
+        <button onclick="copyOutput()">Copia codice</button>
+    </div>
+    <div class="note">Attenzione: modifica solo se sai cosa stai facendo!<br>Non condividere i tuoi salvataggi pubblicamente.</div>
+</div>
+<script>
+const archetypes = [
+    { id: 'standard', name: 'Sfera Standard' },
+    { id: 'steel', name: "Palla d'Acciaio" },
+    { id: 'magma', name: 'Nucleo Magmatico' },
+    { id: 'frost', name: 'Cristallo di Gelo' },
+    { id: 'shadow', name: "Sfera d'Ombra" },
+    { id: 'tech', name: 'Giroscopio Tecnologico' }
+];
+let currentSave = null;
+function decodeSave() {
+    document.getElementById('decodeError').textContent = '';
+    document.getElementById('encodeError').textContent = '';
+    document.getElementById('encodeSuccess').textContent = '';
+    let code = document.getElementById('saveInput').value.trim();
+    if (!code) return;
+    try {
+        let json = atob(code);
+        let data = JSON.parse(json);
+        currentSave = data;
+        document.getElementById('gems').value = data.gems || 0;
+        // Archetipi
+        let unlocked = Array.isArray(data.unlocked_archetypes) ? data.unlocked_archetypes : ['standard'];
+        renderArchetypes(unlocked);
+        // Upgrades
+        document.getElementById('permUpgrades').value = JSON.stringify(data.perm_upgrades || {}, null, 2);
+        document.getElementById('editSection').style.display = '';
+    } catch (e) {
+        document.getElementById('decodeError').textContent = 'Codice non valido o corrotto.';
+        document.getElementById('editSection').style.display = 'none';
+    }
+}
+function renderArchetypes(unlocked) {
+    const list = document.getElementById('archetypesList');
+    list.innerHTML = '';
+    archetypes.forEach(a => {
+        const chip = document.createElement('div');
+        chip.className = 'archetype-chip' + (unlocked.includes(a.id) ? ' selected' : '');
+        chip.textContent = a.name;
+        chip.onclick = () => {
+            if (a.id === 'standard') return;
+            if (unlocked.includes(a.id)) {
+                unlocked = unlocked.filter(x => x !== a.id);
+            } else {
+                unlocked.push(a.id);
+            }
+            renderArchetypes(unlocked);
+        };
+        list.appendChild(chip);
+    });
+    list.dataset.unlocked = JSON.stringify(unlocked);
+}
+function encodeSave() {
+    document.getElementById('encodeError').textContent = '';
+    document.getElementById('encodeSuccess').textContent = '';
+    if (!currentSave) return;
+    try {
+        currentSave.gems = parseInt(document.getElementById('gems').value) || 0;
+        currentSave.unlocked_archetypes = JSON.parse(document.getElementById('archetypesList').dataset.unlocked);
+        currentSave.perm_upgrades = JSON.parse(document.getElementById('permUpgrades').value);
+        let json = JSON.stringify(currentSave);
+        let code = btoa(json);
+        document.getElementById('saveOutput').value = code;
+        document.getElementById('encodeSuccess').textContent = 'Nuovo codice generato!';
+    } catch (e) {
+        document.getElementById('encodeError').textContent = 'Errore nella generazione del codice. Controlla i dati.';
+    }
+}
+function copyOutput() {
+    let out = document.getElementById('saveOutput');
+    out.select();
+    out.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    document.getElementById('encodeSuccess').textContent = 'Codice copiato!';
+}
+</script>
+</body>
+</html> 
