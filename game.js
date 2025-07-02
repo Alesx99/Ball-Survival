@@ -298,7 +298,7 @@ class Player extends Entity {
         if (this.archetype) {
             switch(this.archetype.id) {
                 case 'steel':
-                    this.stats.dr += 0.08;
+                    this.stats.dr += 0.5;
                     this.stats.speed *= 0.95;
                     break;
                 case 'magma':
@@ -1821,26 +1821,25 @@ class BallSurvivalGame {
             const upg = this.permanentUpgrades[key]; 
             const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
             
+            let costColor = this.totalGems < cost ? '#e74c3c' : '#fff';
             let optionHTML = `<div class="permanent-upgrade-option">
                 <div>
                     <div class="upgrade-title">${upg.name}</div>
                     <div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div>
                     <div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div>
-                </div>`; 
-            
-            if (upg.level < upg.maxLevel) { 
+                </div>`;
+            if (upg.level < upg.maxLevel) {
                 optionHTML += `<div>
-                    <div class="perm-upgrade-cost">Costo: ${cost} 💎</div>
+                    <div class="perm-upgrade-cost" style="color:${costColor}">Costo: ${cost} 💎</div>
                     <button class="buy-button" data-key="${key}" ${this.totalGems < cost ? 'disabled' : ''}>
                         ${this.totalGems < cost ? 'Cristalli Insufficienti' : 'Compra'}
                     </button>
-                </div>`; 
-            } else { 
-                optionHTML += `<div class="max-level-indicator">MAX</div>`; 
-            } 
-            
-            optionHTML += `</div>`; 
-            container.innerHTML += optionHTML; 
+                </div>`;
+            } else {
+                optionHTML += `<div class="max-level-indicator">MAX</div>`;
+            }
+            optionHTML += `</div>`;
+            container.innerHTML += optionHTML;
         } 
         
         container.querySelectorAll('.buy-button').forEach(btn => { 
