@@ -145,13 +145,13 @@ const CONFIG = {
             timeFactor: 10, 
             hpPerFactor: 8, 
             speedPerFactor: 0.03, 
-            damagePerFactor: 1.5, // più dolce nei primi minuti
+            damagePerFactor: 1.0, // ancora più dolce
             xpPerFactor: 1,
             xpPowerFactor: 1.05, 
             levelFactorMultiplier: 0.7,
             drPerFactor: 0.0007
         },
-        base: { hp: 15, speed: 0.8, radius: 12, damage: 6, xp: 2, dr: 0 }
+        base: { hp: 15, speed: 0.8, radius: 12, damage: 3, xp: 2, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.15, speed: 0.1, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" }, // 5 min
