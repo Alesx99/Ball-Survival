@@ -1,7 +1,7 @@
 const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
-        base: { hp: 100, speed: 3, radius: 15, dr: 0 },
+        base: { hp: 120, speed: 3, radius: 15, dr: 0 },
         xpCurve: { base: 8, growth: 1.15, levelFactor: 10, power: 1.0 }
     },
     characterArchetypes: {
@@ -145,7 +145,7 @@ const CONFIG = {
             timeFactor: 10, 
             hpPerFactor: 8, 
             speedPerFactor: 0.03, 
-            damagePerFactor: 3,
+            damagePerFactor: 1.5, // più dolce nei primi minuti
             xpPerFactor: 1,
             xpPowerFactor: 1.05, 
             levelFactorMultiplier: 0.7,
@@ -168,7 +168,7 @@ const CONFIG = {
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
     xpOrbs: { mapSpawn: { interval: 4, batch: 15, max: 300, value: 5 }, pickupRadius: 100 },
     upgradeTree: {
-        'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 25.', maxLevel: 10, type: 'passive' },
+        'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 40.', maxLevel: 10, type: 'passive' },
         'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
         'armor': { id: 'armor', name: 'Armatura', desc: 'Aumenta la Riduzione Danno del 2%.', maxLevel: 10, type: 'passive' },
         'attack_speed': { id: 'attack_speed', name: 'Velocità d\'attacco', desc: 'Riduce la ricarica di tutte le abilità del 8%.', maxLevel: 5, type: 'passive' },
@@ -210,14 +210,14 @@ const CONFIG = {
         'shield_mastery_orbital': { id: 'shield_mastery_orbital', name: 'Maestria: Singolarità', desc: 'Aggiunge un secondo globo orbitale.', type: 'mastery' },
     },
     permanentUpgrades: {
-        health:    { name: "Salute Base",       maxLevel: 10, baseCost: 10, costGrowth: 1.4, effect: (lvl) => `+${lvl * 10} HP` },
-        defense:   { name: "Difesa Base",       maxLevel: 10, baseCost: 15, costGrowth: 1.6, effect: (lvl) => `+${lvl * 1}% DR` },
-        power:     { name: "Potenza Globale",   maxLevel: 10, baseCost: 15, costGrowth: 1.6, effect: (lvl) => `+${lvl * 5}% Danni` },
-        frequency: { name: "Frequenza Globale", maxLevel: 10, baseCost: 20, costGrowth: 1.7, effect: (lvl) => `-${lvl * 3}% Ricarica` },
-        area:      { name: "Area d'Effetto",    maxLevel: 10, baseCost: 15, costGrowth: 1.6, effect: (lvl) => `+${lvl * 4}% Area` },
-        speed:     { name: "Velocità Base",     maxLevel: 5,  baseCost: 20, costGrowth: 1.8, effect: (lvl) => `+${(lvl * 0.1).toFixed(1)} Vel.` },
-        xpGain:    { name: "Guadagno XP",       maxLevel: 10, baseCost: 15, costGrowth: 1.5, effect: (lvl) => `+${lvl * 5}% XP` },
-        luck:      { name: "Fortuna",           maxLevel: 10, baseCost: 25, costGrowth: 1.7, effect: (lvl) => `+${lvl * 2}% Drop` }
+        health: { name: 'Salute', baseCost: 15, costGrowth: 1.35, maxLevel: 10 },
+        speed: { name: 'Velocità', baseCost: 15, costGrowth: 1.5, maxLevel: 5 },
+        defense: { name: 'Difesa', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
+        xpGain: { name: 'XP', baseCost: 10, costGrowth: 1.4, maxLevel: 10 },
+        luck: { name: 'Fortuna', baseCost: 10, costGrowth: 1.4, maxLevel: 10 },
+        power: { name: 'Potenza', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
+        frequency: { name: 'Frequenza', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
+        area: { name: 'Area', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
     },
     itemTypes: {
         'HEAL_POTION': { name: "Pozione di Cura", color: '#ff69b4', desc: "Ripristina il 50% della salute massima." },
@@ -343,6 +343,10 @@ class Player extends Entity {
         if ((shieldSpell && shieldSpell.active && shieldSpell.evolution !== 'reflect') || this.powerUpTimers.invincibility > 0) return;
         
         let damageReduction = this.stats.dr;
+        // Penetrazione DR del 10% da elite e boss
+        if (sourceEnemy && (sourceEnemy.stats.isElite || sourceEnemy instanceof Boss)) {
+            damageReduction = Math.max(0, damageReduction - 0.10);
+        }
         if (shieldSpell && shieldSpell.active && shieldSpell.evolution === 'reflect') {
             damageReduction += shieldSpell.dr;
             if(sourceEnemy) { sourceEnemy.takeDamage(amount * shieldSpell.reflectDamage, game); }
@@ -500,8 +504,13 @@ class Boss extends Enemy {
         }
     }
     onDeath(game) {
-        super.onDeath(game); game.addEntity('droppedItems', new DroppedItem(this.x, this.y, 'LEGENDARY_ORB'));
+        super.onDeath(game);
+        // Cura il giocatore del 50% HP max
+        game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);
+        // Bonus gemme
         game.gemsThisRun += 50;
+        // Mostra popup scelta upgrade passivo extra (overcap)
+        game.showBossUpgradePopup();
     }
     draw(ctx) {
         ctx.save();
@@ -1504,7 +1513,7 @@ class BallSurvivalGame {
         else if (upgrade.id === 'shield') { target.duration += 1000; target.cooldown = Math.max(5000, target.cooldown - 1500); }
         else if (upgrade.id === 'health') { this.player.stats.maxHp += 25; this.player.hp += 25; }
         else if (upgrade.id === 'speed') { this.player.stats.speed += 0.4; }
-        else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.02, 0.8); }
+        else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.02, 1.0); }
         else if (upgrade.id === 'attack_speed') { this.player.modifiers.frequency *= 0.92; }
     }
     
@@ -1771,7 +1780,7 @@ class BallSurvivalGame {
 
                 this.player.stats.maxHp += (this.passives.health.level * 25);
                 this.player.stats.speed += (this.passives.speed.level * 0.4);
-                this.player.stats.dr = Math.min(this.player.stats.dr + (this.passives.armor.level * 0.02), 0.8);
+                this.player.stats.dr = Math.min(this.player.stats.dr + (this.passives.armor.level * 0.02), 1.0);
                 this.player.modifiers.frequency *= Math.pow(0.92, this.passives.attack_speed.level);
 
 
@@ -1906,6 +1915,62 @@ class BallSurvivalGame {
         if (xpBarMobile) {
             xpBarMobile.style.display = 'none';
         }
+    }
+
+    showBossUpgradePopup() {
+        // Mostra popup con scelta upgrade passivo extra (overcap)
+        this.state = 'paused';
+        this.dom.menuOverlay.style.display = 'block';
+        Object.values(this.dom.popups).forEach(p => p.style.display = 'none');
+        this.dom.popups['upgrade'].style.display = 'flex';
+        this.populateBossUpgradeMenu();
+    }
+
+    populateBossUpgradeMenu() {
+        const container = this.dom.containers.upgradeOptions;
+        container.innerHTML = '';
+        const choices = this.getBossUpgradeChoices();
+        choices.forEach(upgrade => {
+            if (!upgrade) return;
+            const div = document.createElement('div');
+            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '');
+            let s;
+            if (upgrade.type === 'passive') {
+                s = this.passives[upgrade.id];
+            } else {
+                const baseId = upgrade.id.split('_')[0];
+                s = this.spells[baseId];
+            }
+            let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`;
+            if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery') levelText = '';
+            div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`;
+            div.onclick = () => { this.applyBossUpgrade(upgrade.id); this.hideAllPopups(); };
+            container.appendChild(div);
+        });
+    }
+
+    getBossUpgradeChoices() {
+        // Permettiamo l'overcap: includi tutti i passivi, anche se già maxati
+        const upgradeTree = CONFIG.upgradeTree;
+        const passives = Object.values(upgradeTree).filter(u => u.type === 'passive');
+        // Scegli 3 a caso
+        const shuffled = passives.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 3);
+    }
+
+    applyBossUpgrade(upgradeId) {
+        const upgrade = CONFIG.upgradeTree[upgradeId];
+        if (!upgrade) return;
+        let target;
+        if (upgrade.type === 'passive') {
+            target = this.passives[upgrade.id];
+        } else {
+            const baseId = upgrade.id.split('_')[0];
+            target = this.spells[baseId];
+        }
+        if (!target) return;
+        target.level++;
+        this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
     }
 }
 
