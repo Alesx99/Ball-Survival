@@ -1541,6 +1541,10 @@ class BallSurvivalGame {
                         this.populateCharacterSelection();
                         this.notifications.push({ text: `${archetype.name} sbloccato!`, life: 120 });
                         this.dom.totalGemsShop.textContent = this.totalGems;
+                    } else {
+                        this.notifications.push({ text: `Non hai abbastanza gemme!`, life: 120 });
+                        buyBtn.disabled = true;
+                        setTimeout(() => { buyBtn.disabled = this.totalGems < archetype.cost; }, 1000);
                     }
                 };
             }
