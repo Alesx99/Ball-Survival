@@ -29,8 +29,8 @@ const CONFIG = {
             name: "Palla d'Acciaio",
             desc: "Lenta ma incredibilmente resistente. Ideale per chi ama la mischia.",
             startingWeapon: 'shockwave',
-            bonus: "+8% Riduzione Danno (DR) base. Shockwave: +20% danno, +30% knockback.",
-            malus: "-5% Velocità di movimento.",
+            bonus: "+70% Riduzione Danno (DR) base. Shockwave: +20% danno, +30% knockback.",
+            malus: "-25% Velocità di movimento.",
             color: '#bdc3c7',
             cost: 200,
             weaponBonuses: {
@@ -298,8 +298,8 @@ class Player extends Entity {
         if (this.archetype) {
             switch(this.archetype.id) {
                 case 'steel':
-                    this.stats.dr += 0.5;
-                    this.stats.speed *= 0.95;
+                    this.stats.dr += 0.7;
+                    this.stats.speed *= 0.75;
                     break;
                 case 'magma':
                     this.modifiers.contactBurn = true;
