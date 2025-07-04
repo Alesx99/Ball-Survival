@@ -158,6 +158,98 @@ const CONFIG = {
         '2': { time: 600, dr: 0.30, speed: 0.2, championChance: 0.05, message: "ALLARME: Campioni nemici individuati!" }, // 10 min
         '3': { time: 900, dr: 0.50, speed: 0.3, eliteChanceMultiplier: 2, message: "ALLARME ROSSO: Convergenza Planare!" } // 15 min
     },
+    stages: {
+        '1': { 
+            name: "Pianura Eterna", 
+            time: 0, 
+            unlocked: true, // Sempre sbloccato
+            unlockRequirement: null,
+            background: { 
+                color: '#16213e', 
+                gridColor: 'rgba(255, 255, 255, 0.05)',
+                pattern: 'grid'
+            },
+            enemies: {
+                baseColor: '#e74c3c',
+                eliteColor: '#c0392b',
+                shape: 'circle'
+            },
+            difficulty: { dr: 0, speed: 0, eliteChance: 0.05 },
+            message: "Benvenuto nella Pianura Eterna!"
+        },
+        '2': { 
+            name: "Foresta Oscura", 
+            time: 300, 
+            unlocked: false,
+            unlockRequirement: { type: 'survival', stage: 1, time: 300 }, // 5 minuti in stage 1
+            background: { 
+                color: '#1a472a', 
+                gridColor: 'rgba(34, 139, 34, 0.1)',
+                pattern: 'forest'
+            },
+            enemies: {
+                baseColor: '#27ae60',
+                eliteColor: '#229954',
+                shape: 'triangle'
+            },
+            difficulty: { dr: 0.15, speed: 0.1, eliteChance: 0.08 },
+            message: "Entri nella Foresta Oscura..."
+        },
+        '3': { 
+            name: "Deserto Infuocato", 
+            time: 600, 
+            unlocked: false,
+            unlockRequirement: { type: 'boss_kill', stage: 2, count: 1 }, // 1 boss in stage 2
+            background: { 
+                color: '#8b4513', 
+                gridColor: 'rgba(255, 165, 0, 0.1)',
+                pattern: 'desert'
+            },
+            enemies: {
+                baseColor: '#f39c12',
+                eliteColor: '#e67e22',
+                shape: 'square'
+            },
+            difficulty: { dr: 0.30, speed: 0.2, eliteChance: 0.12 },
+            message: "Il Deserto Infuocato ti attende!"
+        },
+        '4': { 
+            name: "Ghiacciaio Perduto", 
+            time: 900, 
+            unlocked: false,
+            unlockRequirement: { type: 'level', stage: 3, level: 10 }, // Livello 10 in stage 3
+            background: { 
+                color: '#4682b4', 
+                gridColor: 'rgba(173, 216, 230, 0.15)',
+                pattern: 'ice'
+            },
+            enemies: {
+                baseColor: '#87ceeb',
+                eliteColor: '#00bfff',
+                shape: 'diamond'
+            },
+            difficulty: { dr: 0.45, speed: 0.3, eliteChance: 0.15 },
+            message: "Il Ghiacciaio Perduto ti congela!"
+        },
+        '5': { 
+            name: "Abisso Cosmico", 
+            time: 1200, 
+            unlocked: false,
+            unlockRequirement: { type: 'total_time', time: 900 }, // 15 minuti totali
+            background: { 
+                color: '#2c1810', 
+                gridColor: 'rgba(138, 43, 226, 0.2)',
+                pattern: 'cosmic'
+            },
+            enemies: {
+                baseColor: '#8a2be2',
+                eliteColor: '#9932cc',
+                shape: 'star'
+            },
+            difficulty: { dr: 0.60, speed: 0.4, eliteChance: 0.20 },
+            message: "L'Abisso Cosmico ti risucchia!"
+        }
+    },
     boss: {
         spawnThreshold: 150,
         base: { hp: 1000, speed: 1.5, radius: 40, damage: 25 },
@@ -455,15 +547,58 @@ class Enemy extends Entity {
         }
 
         const angle = Math.atan2(game.player.y - this.y, game.player.x - this.x);
-        ctx.fillStyle = this.stats.isElite ? '#ff4500' : (this.stunTimer > 0 ? '#ffffff' : (this.slowTimer > 0 ? '#66b2ff' : this.color));
+        
+        // Ottieni i colori dello stage corrente
+        const stageInfo = CONFIG.stages[game.currentStage];
+        let baseColor = this.color;
+        let eliteColor = '#ff4500';
+        
+        if (stageInfo && stageInfo.enemies) {
+            baseColor = this.stats.isElite ? stageInfo.enemies.eliteColor : stageInfo.enemies.baseColor;
+            eliteColor = stageInfo.enemies.eliteColor;
+        }
+        
+        ctx.fillStyle = this.stats.isElite ? eliteColor : (this.stunTimer > 0 ? '#ffffff' : (this.slowTimer > 0 ? '#66b2ff' : baseColor));
         
         ctx.translate(this.x, this.y);
         ctx.rotate(angle + Math.PI / 2);
         
+        // Disegna la forma in base allo stage
+        const shape = stageInfo && stageInfo.enemies ? stageInfo.enemies.shape : 'triangle';
+        
         ctx.beginPath();
-        ctx.moveTo(0, -this.stats.radius);
-        ctx.lineTo(-this.stats.radius * 0.8, this.stats.radius * 0.8);
-        ctx.lineTo(this.stats.radius * 0.8, this.stats.radius * 0.8);
+        switch (shape) {
+            case 'circle':
+                ctx.arc(0, 0, this.stats.radius, 0, Math.PI * 2);
+                break;
+            case 'square':
+                ctx.rect(-this.stats.radius, -this.stats.radius, this.stats.radius * 2, this.stats.radius * 2);
+                break;
+            case 'diamond':
+                ctx.moveTo(0, -this.stats.radius);
+                ctx.lineTo(this.stats.radius, 0);
+                ctx.lineTo(0, this.stats.radius);
+                ctx.lineTo(-this.stats.radius, 0);
+                break;
+            case 'star':
+                const spikes = 5;
+                const outerRadius = this.stats.radius;
+                const innerRadius = this.stats.radius * 0.5;
+                for (let i = 0; i < spikes * 2; i++) {
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const angle = (i * Math.PI) / spikes;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                break;
+            default: // triangle
+                ctx.moveTo(0, -this.stats.radius);
+                ctx.lineTo(-this.stats.radius * 0.8, this.stats.radius * 0.8);
+                ctx.lineTo(this.stats.radius * 0.8, this.stats.radius * 0.8);
+                break;
+        }
         ctx.closePath();
         ctx.fill();
         
@@ -505,6 +640,8 @@ class Boss extends Enemy {
     }
     onDeath(game) {
         super.onDeath(game);
+        // Incrementa il contatore dei boss uccisi nello stage corrente
+        game.bossesKilledThisStage++;
         // Cura il giocatore del 50% HP max
         game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);
         // Bonus gemme
@@ -759,13 +896,16 @@ class BallSurvivalGame {
         this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
+        this.selectedStage = 1; // Stage selezionato dal giocatore
         this.lastFrameTime = 0; 
         this.totalElapsedTime = 0; 
         this.menuCooldown = 0;
         this.loadGameData(); 
+        this.loadStageProgress(); // Carica la progressione degli stage
         this.resetRunState(); 
         this.resizeCanvas();
         this.populateCharacterSelection();
+        this.populateStageSelection();
         this.showPopup('start');
     }
 
@@ -778,6 +918,7 @@ class BallSurvivalGame {
             containers: { 
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
                 characterSelectionContainer: document.getElementById('characterSelectionContainer'),
+                stageSelectionContainer: document.getElementById('stageSelectionContainer'),
                 permanentUpgradeOptions: document.getElementById('permanentUpgradeOptions'),
                 upgradeOptions: document.getElementById('upgradeOptions'),
                 pauseStatsContainer: document.getElementById('pauseStatsContainer'),
@@ -845,6 +986,7 @@ class BallSurvivalGame {
     startGame(isLoadedRun = false) {
         if (!isLoadedRun) {
             this.resetRunState();
+            this.currentStage = this.selectedStage; // Inizia con lo stage selezionato
             this.player.resetForNewRun(this.permanentUpgrades, this.selectedArchetype);
 
             const archetype = CONFIG.characterArchetypes[this.selectedArchetype];
@@ -884,6 +1026,9 @@ class BallSurvivalGame {
         this.nextChestSpawnTime = CONFIG.chest.spawnTime; this.nextMapXpSpawnTime = 5;
         this.lastEnemySpawnTime = 0; 
         this.difficultyTier = 0;
+        this.currentStage = 1;
+        this.stageStartTime = 0; // Tempo di inizio dello stage corrente
+        this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
         this.resetSpells();
     }
     gameLoop() {
@@ -902,7 +1047,7 @@ class BallSurvivalGame {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
         this.player.update(this, this.joystick); 
         this.updateCamera();
-        this.checkDifficultyTier();
+        this.checkStage();
         for (const type in this.entities) {
             for (let i = this.entities[type].length - 1; i >= 0; i--) {
                 const entity = this.entities[type][i];
@@ -951,22 +1096,174 @@ class BallSurvivalGame {
     }
     
     drawBackground() {
-        this.ctx.fillStyle = '#16213e'; this.ctx.fillRect(0, 0, CONFIG.world.width, CONFIG.world.height);
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; this.ctx.lineWidth = 2;
-        for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
-            this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, CONFIG.world.height); this.ctx.stroke();
-        }
-        for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
-            this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(CONFIG.world.width, y); this.ctx.stroke();
+        const stageInfo = CONFIG.stages[this.currentStage];
+        if (!stageInfo) return;
+        
+        // Sfondo base
+        this.ctx.fillStyle = stageInfo.background.color;
+        this.ctx.fillRect(0, 0, CONFIG.world.width, CONFIG.world.height);
+        
+        // Griglia o pattern specifico dello stage
+        this.ctx.strokeStyle = stageInfo.background.gridColor;
+        this.ctx.lineWidth = 2;
+        
+        switch (stageInfo.background.pattern) {
+            case 'grid':
+                // Griglia standard
+                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
+                    this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, CONFIG.world.height); this.ctx.stroke();
+                }
+                for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
+                    this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(CONFIG.world.width, y); this.ctx.stroke();
+                }
+                break;
+            case 'forest':
+                // Pattern foresta - alberi stilizzati
+                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize * 2) {
+                    for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize * 2) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, y + 20);
+                        this.ctx.lineTo(x - 10, y);
+                        this.ctx.lineTo(x + 10, y);
+                        this.ctx.closePath();
+                        this.ctx.stroke();
+                    }
+                }
+                break;
+            case 'desert':
+                // Pattern deserto - dune
+                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, CONFIG.world.height);
+                    this.ctx.quadraticCurveTo(x + 50, CONFIG.world.height - 30, x + 100, CONFIG.world.height);
+                    this.ctx.stroke();
+                }
+                break;
+            case 'ice':
+                // Pattern ghiaccio - cristalli
+                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
+                    for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, y);
+                        this.ctx.lineTo(x + 5, y - 10);
+                        this.ctx.lineTo(x + 10, y);
+                        this.ctx.lineTo(x + 5, y + 10);
+                        this.ctx.closePath();
+                        this.ctx.stroke();
+                    }
+                }
+                break;
+            case 'cosmic':
+                // Pattern cosmico - stelle
+                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
+                    for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
+                        if (Math.random() < 0.3) {
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + Math.random() * 20, y + Math.random() * 20, 1, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                    }
+                }
+                break;
         }
     }
     addEntity(type, entity) { if (this.entities[type]) this.entities[type].push(entity); }
     
-    checkDifficultyTier() {
-        const nextTier = this.difficultyTier + 1;
-        if (CONFIG.difficultyTiers[nextTier] && this.totalElapsedTime >= CONFIG.difficultyTiers[nextTier].time) {
-            this.difficultyTier = nextTier;
-            this.notifications.push({ text: CONFIG.difficultyTiers[nextTier].message, life: 300 });
+    checkStage() {
+        // Controlla se è il momento di cambiare stage automaticamente
+        const nextStage = this.currentStage + 1;
+        if (CONFIG.stages[nextStage] && this.totalElapsedTime >= CONFIG.stages[nextStage].time) {
+            this.changeStage(nextStage);
+        }
+        
+        // Controlla se gli stage possono essere sbloccati
+        this.checkStageUnlocks();
+    }
+    
+    changeStage(newStage) {
+        this.currentStage = newStage;
+        this.stageStartTime = this.totalElapsedTime;
+        this.bossesKilledThisStage = 0;
+        
+        const stageInfo = CONFIG.stages[newStage];
+        this.notifications.push({ text: `STAGE ${newStage}: ${stageInfo.message}`, life: 400 });
+        
+        // Effetto visivo di transizione
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                this.addEntity('particles', new Particle(
+                    Math.random() * CONFIG.world.width, 
+                    Math.random() * CONFIG.world.height, 
+                    { vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 60, color: stageInfo.background.color }
+                ));
+            }, i * 50);
+        }
+    }
+    
+    checkStageUnlocks() {
+        Object.keys(CONFIG.stages).forEach(stageId => {
+            const stage = CONFIG.stages[stageId];
+            if (!stage.unlocked && stage.unlockRequirement) {
+                if (this.checkUnlockRequirement(stage.unlockRequirement)) {
+                    stage.unlocked = true;
+                    this.notifications.push({ 
+                        text: `🎉 NUOVO STAGE SBLOCCATO: ${stage.name}!`, 
+                        life: 500 
+                    });
+                    this.saveStageProgress();
+                }
+            }
+        });
+    }
+    
+    checkUnlockRequirement(requirement) {
+        switch (requirement.type) {
+            case 'survival':
+                // Sopravvivi X secondi in uno stage specifico
+                return this.totalElapsedTime >= requirement.time;
+                
+            case 'boss_kill':
+                // Uccidi X boss in uno stage specifico
+                return this.bossesKilledThisStage >= requirement.count;
+                
+            case 'level':
+                // Raggiungi livello X in uno stage specifico
+                return this.player.level >= requirement.level;
+                
+            case 'total_time':
+                // Tempo totale di gioco
+                return this.totalElapsedTime >= requirement.time;
+                
+            default:
+                return false;
+        }
+    }
+    
+    saveStageProgress() {
+        try {
+            const stageProgress = {};
+            Object.keys(CONFIG.stages).forEach(stageId => {
+                stageProgress[stageId] = CONFIG.stages[stageId].unlocked;
+            });
+            localStorage.setItem('ballSurvivalStageProgress', JSON.stringify(stageProgress));
+        } catch (e) {
+            console.error("Impossibile salvare la progressione degli stage:", e);
+        }
+    }
+    
+    loadStageProgress() {
+        try {
+            const savedProgress = localStorage.getItem('ballSurvivalStageProgress');
+            if (savedProgress) {
+                const stageProgress = JSON.parse(savedProgress);
+                Object.keys(stageProgress).forEach(stageId => {
+                    if (CONFIG.stages[stageId]) {
+                        CONFIG.stages[stageId].unlocked = stageProgress[stageId];
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Impossibile caricare la progressione degli stage:", e);
         }
     }
 
@@ -1006,15 +1303,16 @@ class BallSurvivalGame {
                 dr: Math.min(0.75, combinedFactor * scaling.drPerFactor)
             };
             
-            const tierInfo = CONFIG.difficultyTiers[this.difficultyTier];
-            if (tierInfo) {
-                finalStats.dr += tierInfo.dr;
-                finalStats.speed *= (1 + tierInfo.speed);
+            // Applica le proprietà dello stage corrente
+            const stageInfo = CONFIG.stages[this.currentStage];
+            if (stageInfo && stageInfo.difficulty) {
+                finalStats.dr += stageInfo.difficulty.dr;
+                finalStats.speed *= (1 + stageInfo.difficulty.speed);
             }
             
             let eliteChance = 0.05 + Math.min(0.20, this.totalElapsedTime / 600); 
-            if (tierInfo && tierInfo.eliteChanceMultiplier) {
-                eliteChance *= tierInfo.eliteChanceMultiplier;
+            if (stageInfo && stageInfo.difficulty && stageInfo.difficulty.eliteChance) {
+                eliteChance = stageInfo.difficulty.eliteChance;
             }
 
             if (this.totalElapsedTime > 60 && Math.random() < eliteChance) {
@@ -1574,12 +1872,78 @@ class BallSurvivalGame {
         }
     }
     
+    populateStageSelection() {
+        const container = this.dom.containers.stageSelectionContainer;
+        container.innerHTML = '';
+        
+        Object.keys(CONFIG.stages).forEach(stageId => {
+            const stage = CONFIG.stages[stageId];
+            const stageDiv = document.createElement('div');
+            stageDiv.className = 'character-option';
+            stageDiv.style.cssText = `
+                display: inline-block;
+                margin: 5px;
+                padding: 10px;
+                border: 2px solid ${stage.unlocked ? '#4a90e2' : '#666'};
+                border-radius: 8px;
+                cursor: ${stage.unlocked ? 'pointer' : 'not-allowed'};
+                background: ${stage.unlocked ? 'rgba(74, 144, 226, 0.1)' : 'rgba(100, 100, 100, 0.3)'};
+                color: ${stage.unlocked ? '#fff' : '#666'};
+                text-align: center;
+                min-width: 120px;
+                position: relative;
+            `;
+            
+            if (this.selectedStage == stageId) {
+                stageDiv.style.borderColor = '#f39c12';
+                stageDiv.style.background = 'rgba(243, 156, 18, 0.2)';
+            }
+            
+            stageDiv.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">${stage.name}</div>
+                <div style="font-size: 12px; opacity: 0.8;">
+                    ${stage.unlocked ? 'Disponibile' : this.getUnlockRequirementText(stage.unlockRequirement)}
+                </div>
+                ${!stage.unlocked ? '<div style="position: absolute; top: 5px; right: 5px; font-size: 16px;">🔒</div>' : ''}
+            `;
+            
+            if (stage.unlocked) {
+                stageDiv.onclick = () => this.selectStage(stageId);
+            }
+            
+            container.appendChild(stageDiv);
+        });
+    }
+    
+    selectStage(stageId) {
+        this.selectedStage = parseInt(stageId);
+        this.populateStageSelection();
+    }
+    
+    getUnlockRequirementText(requirement) {
+        if (!requirement) return 'Sempre disponibile';
+        
+        switch (requirement.type) {
+            case 'survival':
+                return `Sopravvivi ${Math.floor(requirement.time / 60)} min in Stage ${requirement.stage}`;
+            case 'boss_kill':
+                return `Uccidi ${requirement.count} boss in Stage ${requirement.stage}`;
+            case 'level':
+                return `Raggiungi livello ${requirement.level} in Stage ${requirement.stage}`;
+            case 'total_time':
+                return `Gioca ${Math.floor(requirement.time / 60)} min totali`;
+            default:
+                return 'Sconosciuto';
+        }
+    }
+    
     returnToStartScreen() {
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'none';
         this.dom.buttons.pause.style.display = 'none';
         this.state = 'startScreen';
         this.populateCharacterSelection(); 
+        this.populateStageSelection(); // Ricarica anche la selezione stage
         this.showPopup('start');
         if (this.gameLoopId) {
             cancelAnimationFrame(this.gameLoopId);

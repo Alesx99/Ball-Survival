@@ -257,6 +257,66 @@ body, html {
 .character-bonus { color: #2ecc71; }
 .character-malus { color: #e74c3c; }
 .character-option.selected { border-color: var(--highlight-color); background: #34495e; box-shadow: 0 0 15px rgba(241, 196, 15, 0.5); }
+
+/* Stili per il menu di selezione stage */
+#stageSelectionContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+}
+
+#stageSelectionContainer .character-option {
+    min-width: 140px;
+    max-width: 180px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#stageSelectionContainer .character-option:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
+}
+
+#stageSelectionContainer .character-option.selected {
+    border-color: #f39c12;
+    background: rgba(243, 156, 18, 0.2);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+}
+
+#stageSelectionContainer .character-option:not(.unlocked) {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(100, 100, 100, 0.3);
+    border-color: #666;
+}
+
+#stageSelectionContainer .character-option:not(.unlocked):hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.stage-lock-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 16px;
+    color: #666;
+}
+
+.stage-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.stage-status {
+    font-size: 12px;
+    opacity: 0.8;
+    line-height: 1.2;
+}
 .stat-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: clamp(12px, 2vw, 14px); }
 .stat-item .icon { width: 20px; height: 20px; fill: var(--highlight-color); flex-shrink: 0; }
 .stat-item-label { color: var(--text-color); }
