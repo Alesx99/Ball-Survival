@@ -295,11 +295,11 @@ const CONFIG = {
         'heal_evolve_lifesteal': { id: 'heal_evolve_lifesteal', name: 'EVO: Sacrificio Vitale', desc: 'Conferisce rubavita su tutti i danni per un breve periodo.', type: 'evolution' },
         'heal_mastery_sanctuary': { id: 'heal_mastery_sanctuary', name: 'Maestria: Santuario', desc: 'Il santuario fornisce anche un leggero aumento della velocità d\'attacco.', type: 'mastery' },
         'heal_mastery_lifesteal': { id: 'heal_mastery_lifesteal', name: 'Maestria: Sacrificio', desc: 'Aumenta la percentuale di rubavita e la durata dell\'effetto.', type: 'mastery' },
-        'shield': { id: 'shield', name: 'Scudo Magico', desc: 'Crea una barriera protettiva temporanea.', details: "+1s Durata, -1.5s Ricarica", maxLevel: 5 },
+        'shield': { id: 'shield', name: 'Scudo Magico', desc: 'Crea una barriera protettiva temporanea.', details: "+0.5s Durata, -1s Ricarica", maxLevel: 5 },
         'shield_evolve_reflect': { id: 'shield_evolve_reflect', name: 'EVO: Barriera Riflettente', desc: 'Riduce i danni e riflette una parte ai nemici.', type: 'evolution' },
         'shield_evolve_orbital': { id: 'shield_evolve_orbital', name: 'EVO: Singolarità Protettiva', desc: 'Evoca un globo orbitale che blocca proiettili e danneggia.', type: 'evolution' },
         'shield_mastery_reflect': { id: 'shield_mastery_reflect', name: 'Maestria: Riflesso', desc: 'Aumenta la percentuale di danni riflessi.', type: 'mastery' },
-        'shield_mastery_orbital': { id: 'shield_mastery_orbital', name: 'Maestria: Singolarità', desc: 'Aggiunge un secondo globo orbitale.', type: 'mastery' },
+        'shield_mastery_orbital': { id: 'shield_mastery_orbital', name: 'Maestria: Singolarità', desc: 'Aggiunge un secondo globo orbitale.', type: 'mastery' }
     },
     permanentUpgrades: {
         health: { name: 'Salute', baseCost: 15, costGrowth: 1.35, maxLevel: 10 },
@@ -1375,7 +1375,7 @@ class BallSurvivalGame {
             shotgun:      { id: 'shotgun',     name: "Fucile Arcano",     level: 0, evolution: 'none', mastered: false, damage: 8,  count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0, spinningDuration: 300, spinningRate: 5 },
             shockwave:    { id: 'shockwave',   name: "Onda d'Urto",       level: 0, evolution: 'none', mastered: false, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15, resonantCount: 3, resonantDelay: 15 },
             heal:         { id: 'heal',        name: "Cura",              level: 0, evolution: 'none', mastered: false, amount: 20, cooldown: 10000, lastCast: 0, sanctuaryDuration: 300, sanctuaryHps: 10, lifestealDuration: 300, lifestealPercent: 0.05 },
-            shield:       { id: 'shield',      name: "Scudo Magico",      level: 0, evolution: 'none', mastered: false, duration: 3000, cooldown: 12000, lastCast: 0, active: false, dr: 0.8, reflectDamage: 0.5, orbitalCount: 1, orbitalRadius: 10, orbitalDistance: 60 }
+            shield:       { id: 'shield',      name: "Scudo Magico",      level: 0, evolution: 'none', mastered: false, duration: 2000, cooldown: 15000, lastCast: 0, active: false, dr: 0.7, reflectDamage: 0.5, orbitalCount: 1, orbitalRadius: 10, orbitalDistance: 60 }
         };
         Object.values(this.spells).forEach(s => s.level = 0);
         this.passives = { health: { level: 0 }, speed: { level: 0 }, armor: { level: 0}, attack_speed: { level: 0 } };
@@ -1633,9 +1633,17 @@ class BallSurvivalGame {
         this.notifications.push({ text: "Sacrificio Vitale Attivato!", life: 120 });
         return true;
     }
-    castShield(now) { const s = this.spells.shield; s.active = true; setTimeout(() => { s.active = false; }, s.duration); return true; }
+    castShield(now) { 
+        const s = this.spells.shield; 
+        s.active = true; 
+        s.lastCast = now + s.duration; // Il cooldown inizia alla fine dell'abilità
+        setTimeout(() => { s.active = false; }, s.duration); 
+        return true; 
+    }
     castReflect(now) {
-        const s = this.spells.shield; s.active = true;
+        const s = this.spells.shield; 
+        s.active = true;
+        s.lastCast = now + s.duration; // Il cooldown inizia alla fine dell'abilità
         setTimeout(() => { s.active = false; }, s.duration);
         return true;
     }
@@ -1808,7 +1816,7 @@ class BallSurvivalGame {
         else if (upgrade.id === 'shotgun') { target.damage += 2; target.count += 2; }
         else if (upgrade.id === 'shockwave') { target.damage += 10; target.radius += 15; target.knockback += 5; }
         else if (upgrade.id === 'heal') { target.amount += 10; target.cooldown = Math.max(4000, target.cooldown - 1000); }
-        else if (upgrade.id === 'shield') { target.duration += 1000; target.cooldown = Math.max(5000, target.cooldown - 1500); }
+        else if (upgrade.id === 'shield') { target.duration += 500; target.cooldown = Math.max(10000, target.cooldown - 1000); }
         else if (upgrade.id === 'health') { this.player.stats.maxHp += 25; this.player.hp += 25; }
         else if (upgrade.id === 'speed') { this.player.stats.speed += 0.4; }
         else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.02, 1.0); }

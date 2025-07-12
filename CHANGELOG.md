@@ -1,5 +1,32 @@
 # Ball Survival - Changelog
 
+## Versione 4.9 - Bilanciamento Scudo Magico
+
+### ⚖️ Bilanciamento Abilità
+
+#### Scudo Magico - Correzione Meccanica
+- **Cooldown corretto**: Il cooldown ora inizia alla fine dell'abilità invece che all'inizio
+- **Riduzione valori base**:
+  - Durata: da 3s a 2s
+  - Cooldown: da 12s a 15s  
+  - Riduzione danno: da 80% a 70%
+- **Progressione ridotta**:
+  - Bonus durata: da +1s a +0.5s per livello
+  - Bonus cooldown: da -1.5s a -1s per livello
+  - Cooldown minimo: da 5s a 10s
+
+#### Risultato del Bilanciamento
+- **Livello 1**: 2.5s durata, 14s cooldown (18% uptime)
+- **Livello 2**: 3s durata, 13s cooldown (23% uptime)  
+- **Livello 3**: 3.5s durata, 12s cooldown (29% uptime)
+- **Livello 4**: 4s durata, 11s cooldown (36% uptime)
+- **Livello 5**: 4.5s durata, 10s cooldown (45% uptime)
+
+### 🐛 Correzioni
+- **Meccanica cooldown**: Risolto il problema del cooldown che iniziava all'attivazione invece che alla fine
+- **Uptime eccessivo**: Ridotto l'uptime da 64% a 45% al livello massimo
+- **Potenza sproporzionata**: Ridotta la riduzione danno per bilanciare la difesa
+
 ## Versione 4.8 - Sistema di Progressione degli Stage
 
 ### 🎮 Nuove Funzionalità
