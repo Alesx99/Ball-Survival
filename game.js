@@ -2,7 +2,7 @@ const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
         base: { hp: 120, speed: 3, radius: 15, dr: 0 },
-        xpCurve: { base: 8, growth: 1.15, levelFactor: 10, power: 1.0 }
+        xpCurve: { base: 10, growth: 1.12, levelFactor: 8, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
@@ -685,8 +685,13 @@ class Entity { constructor(x, y) { this.x = x; this.y = y; this.toRemove = false
 class Player extends Entity {
     constructor() { super(CONFIG.world.width / 2, CONFIG.world.height / 2); this.baseStats = { ...CONFIG.player.base }; this.keys = {}; this.initStats(); }
     initStats() {
-        this.level = 1; this.xp = 0;
+        this.level = 1; 
+        this.xp = 0;
         this.xpNext = CONFIG.player.xpCurve.base;
+        
+        // Controllo di sicurezza per xpNext
+        if (this.xpNext <= 0) this.xpNext = 1;
+        
         this.powerUpTimers = { invincibility: 0, damageBoost: 0, lifesteal: 0 };
         this.stats = { ...this.baseStats };
         this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false };
@@ -694,7 +699,8 @@ class Player extends Entity {
         this.archetype = CONFIG.characterArchetypes.standard; // Default
     }
     resetForNewRun(permUpgrades, archetypeId) {
-        this.x = CONFIG.world.width / 2; this.y = CONFIG.world.height / 2;
+        this.x = CONFIG.world.width / 2; 
+        this.y = CONFIG.world.height / 2;
         this.initStats();
         this.archetype = CONFIG.characterArchetypes[archetypeId];
         
@@ -726,6 +732,13 @@ class Player extends Entity {
         }
         
         this.hp = this.stats.maxHp;
+        
+        // Controlli di sicurezza finali per XP
+        if (this.xp < 0) this.xp = 0;
+        if (this.xpNext <= 0) this.xpNext = 1;
+        if (this.level < 1) this.level = 1;
+        
+        console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
     }
     applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr = (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
     update(game, joystick) { let kDx = 0, kDy = 0; if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } this.x += fDx * this.stats.speed; this.y += fDy * this.stats.speed; this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); for (const key in this.powerUpTimers) { if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; } }
@@ -738,7 +751,15 @@ class Player extends Entity {
         this.level++;
         this.xp -= this.xpNext;
         const c = CONFIG.player.xpCurve;
-        this.xpNext = Math.floor(c.base * Math.pow(c.growth, this.level - 1) + c.levelFactor * this.level);
+        // Calcolo più robusto per xpNext con controlli di sicurezza
+        const baseXP = c.base * Math.pow(c.growth, this.level - 1);
+        const levelXP = c.levelFactor * this.level;
+        this.xpNext = Math.max(1, Math.floor(baseXP + levelXP));
+        
+        // Controllo di sicurezza per evitare valori negativi
+        if (this.xp < 0) this.xp = 0;
+        if (this.xpNext <= 0) this.xpNext = 1;
+        
         this.hp = this.stats.maxHp;
         this.powerUpTimers.invincibility = 120;
     }
@@ -1942,8 +1963,19 @@ class BallSurvivalGame {
     }
     checkForLevelUp() {
         if (this.state !== 'running') return;
-        while (this.player.xp >= this.player.xpNext && this.player.xpNext > 0) {
+        
+        // Controlli di sicurezza per evitare loop infiniti
+        let levelUpCount = 0;
+        const maxLevelUpsPerFrame = 10; // Limite di sicurezza
+        
+        while (this.player.xp >= this.player.xpNext && this.player.xpNext > 0 && levelUpCount < maxLevelUpsPerFrame) {
             this.handleLevelUp();
+            levelUpCount++;
+        }
+        
+        // Se abbiamo raggiunto il limite, log per debug
+        if (levelUpCount >= maxLevelUpsPerFrame) {
+            console.warn(`Troppi level up in un frame! XP: ${this.player.xp}, XP necessario: ${this.player.xpNext}`);
         }
     }
     handleLevelUp() {
