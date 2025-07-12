@@ -1,5 +1,32 @@
 # Ball Survival - Changelog
 
+## Versione 5.1 - Roadmap e Pianificazione
+
+### 📋 **Documentazione e Pianificazione**
+- **Roadmap Completa**: Creata roadmap dettagliata per sviluppo futuro
+- **Idee Innovative**: Documento con 20+ idee innovative per il gioco
+- **Pianificazione Strategica**: Definizione obiettivi a lungo termine
+- **Priorità di Sviluppo**: Classificazione idee per priorità e fattibilità
+
+### 🎯 **Roadmap di Sviluppo**
+- **Fase 1 (5.1-5.5)**: Espansione contenuti (armi, abilità, nemici)
+- **Fase 2 (6.0-6.5)**: Espansione gameplay (dungeon, social, eventi)
+- **Fase 3 (7.0-7.5)**: Espansione tecnica (multiplayer, AI, analytics)
+- **Fase 4 (8.0+)**: Espansione piattaforma (mobile, console, VR)
+
+### 💡 **Idee Innovative Documentate**
+- **Sistema Armi Dinamiche**: Armi che si evolvono durante la run
+- **Nemici Intelligenti**: AI che si adatta alle strategie del giocatore
+- **Ambiente Interattivo**: Distruttibilità e trappole ambientali
+- **Realtà Aumentata**: Integrazione con il mondo reale
+- **Sistema Blockchain**: NFT e economia decentralizzata
+
+### 📊 **Metriche e Obiettivi**
+- **Metriche di Engagement**: Tempo sessione, retention, completion rate
+- **Metriche di Performance**: FPS, caricamento, crash rate
+- **Metriche di Business**: Revenue, conversion, lifetime value
+- **Obiettivi Strategici**: Espandere gameplay, costruire community, innovare
+
 ## Versione 5.0 - Sprite Nemici Dettagliati
 
 ### 🎨 Nuovi Sprite Nemici
