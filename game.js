@@ -302,14 +302,62 @@ const CONFIG = {
         'shield_mastery_orbital': { id: 'shield_mastery_orbital', name: 'Maestria: Singolarità', desc: 'Aggiunge un secondo globo orbitale.', type: 'mastery' }
     },
     permanentUpgrades: {
-        health: { name: 'Salute', baseCost: 15, costGrowth: 1.35, maxLevel: 10 },
-        speed: { name: 'Velocità', baseCost: 15, costGrowth: 1.5, maxLevel: 5 },
-        defense: { name: 'Difesa', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
-        xpGain: { name: 'XP', baseCost: 10, costGrowth: 1.4, maxLevel: 10 },
-        luck: { name: 'Fortuna', baseCost: 10, costGrowth: 1.4, maxLevel: 10 },
-        power: { name: 'Potenza', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
-        frequency: { name: 'Frequenza', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
-        area: { name: 'Area', baseCost: 20, costGrowth: 1.5, maxLevel: 10 },
+        health: { 
+            name: 'Salute', 
+            baseCost: 15, 
+            costGrowth: 1.35, 
+            maxLevel: 10,
+            effect: (level) => `+${level * 10} HP massimi`
+        },
+        speed: { 
+            name: 'Velocità', 
+            baseCost: 15, 
+            costGrowth: 1.5, 
+            maxLevel: 5,
+            effect: (level) => `+${level * 0.1} Velocità`
+        },
+        defense: { 
+            name: 'Difesa', 
+            baseCost: 20, 
+            costGrowth: 1.5, 
+            maxLevel: 10,
+            effect: (level) => `+${level * 1}% Riduzione Danno`
+        },
+        xpGain: { 
+            name: 'XP', 
+            baseCost: 10, 
+            costGrowth: 1.4, 
+            maxLevel: 10,
+            effect: (level) => `+${level * 5}% Guadagno XP`
+        },
+        luck: { 
+            name: 'Fortuna', 
+            baseCost: 10, 
+            costGrowth: 1.4, 
+            maxLevel: 10,
+            effect: (level) => `+${level * 2}% Fortuna`
+        },
+        power: { 
+            name: 'Potenza', 
+            baseCost: 20, 
+            costGrowth: 1.5, 
+            maxLevel: 10,
+            effect: (level) => `+${level * 5}% Danno`
+        },
+        frequency: { 
+            name: 'Frequenza', 
+            baseCost: 20, 
+            costGrowth: 1.5, 
+            maxLevel: 10,
+            effect: (level) => `-${level * 3}% Tempo di Ricarica`
+        },
+        area: { 
+            name: 'Area', 
+            baseCost: 20, 
+            costGrowth: 1.5, 
+            maxLevel: 10,
+            effect: (level) => `+${level * 4}% Area d'Effetto`
+        },
     },
     itemTypes: {
         'HEAL_POTION': { name: "Pozione di Cura", color: '#ff69b4', desc: "Ripristina il 50% della salute massima." },
