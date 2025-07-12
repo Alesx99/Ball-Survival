@@ -362,6 +362,319 @@ const Utils = {
         }
         ctx.closePath(); ctx.fill();
         ctx.restore();
+    },
+    
+    // Funzioni per disegnare sprite nemici dettagliati
+    drawEnemySprite: (ctx, x, y, radius, type, color, isElite = false) => {
+        ctx.save();
+        
+        switch(type) {
+            case 'circle':
+                Utils.drawSlimeSprite(ctx, x, y, radius, color, isElite);
+                break;
+            case 'triangle':
+                Utils.drawGoblinSprite(ctx, x, y, radius, color, isElite);
+                break;
+            case 'square':
+                Utils.drawGolemSprite(ctx, x, y, radius, color, isElite);
+                break;
+            case 'diamond':
+                Utils.drawIceSprite(ctx, x, y, radius, color, isElite);
+                break;
+            case 'star':
+                Utils.drawDemonSprite(ctx, x, y, radius, color, isElite);
+                break;
+            default:
+                Utils.drawSlimeSprite(ctx, x, y, radius, color, isElite);
+        }
+        
+        ctx.restore();
+    },
+    
+    drawSlimeSprite: (ctx, x, y, radius, color, isElite) => {
+        // Corpo principale
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bordo
+        ctx.strokeStyle = isElite ? '#ffffff' : '#000000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Occhi
+        const eyeSize = radius * 0.3;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, eyeSize, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Pupille
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, eyeSize * 0.5, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, eyeSize * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bocca
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y + radius * 0.3, radius * 0.4, 0, Math.PI);
+        ctx.stroke();
+        
+        // Effetti elite
+        if (isElite) {
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    },
+    
+    drawGoblinSprite: (ctx, x, y, radius, color, isElite) => {
+        // Corpo
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y - radius);
+        ctx.lineTo(x - radius * 0.8, y + radius * 0.5);
+        ctx.lineTo(x + radius * 0.8, y + radius * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Bordo
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Occhi
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.1, radius * 0.2, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Pupille
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.1, radius * 0.1, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bocca con zanne
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y + radius * 0.2, radius * 0.3, 0, Math.PI);
+        ctx.fill();
+        
+        // Zanne
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(x - radius * 0.2, y + radius * 0.1);
+        ctx.lineTo(x - radius * 0.1, y + radius * 0.3);
+        ctx.lineTo(x - radius * 0.3, y + radius * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(x + radius * 0.2, y + radius * 0.1);
+        ctx.lineTo(x + radius * 0.1, y + radius * 0.3);
+        ctx.lineTo(x + radius * 0.3, y + radius * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        
+        if (isElite) {
+            ctx.strokeStyle = '#ff6600';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y - radius - 3);
+            ctx.lineTo(x - radius * 0.8, y + radius * 0.5 + 3);
+            ctx.lineTo(x + radius * 0.8, y + radius * 0.5 + 3);
+            ctx.closePath();
+            ctx.stroke();
+        }
+    },
+    
+    drawGolemSprite: (ctx, x, y, radius, color, isElite) => {
+        // Corpo principale
+        ctx.fillStyle = color;
+        ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+        
+        // Bordo
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - radius, y - radius, radius * 2, radius * 2);
+        
+        // Occhi
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(x - radius * 0.4, y - radius * 0.3, radius * 0.3, radius * 0.3);
+        ctx.fillRect(x + radius * 0.1, y - radius * 0.3, radius * 0.3, radius * 0.3);
+        
+        // Pupille
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x - radius * 0.3, y - radius * 0.2, radius * 0.1, radius * 0.1);
+        ctx.fillRect(x + radius * 0.2, y - radius * 0.2, radius * 0.1, radius * 0.1);
+        
+        // Bocca
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x - radius * 0.3, y + radius * 0.2, radius * 0.6, radius * 0.1);
+        
+        // Dettagli pietra
+        ctx.strokeStyle = '#666666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x - radius * 0.5, y);
+        ctx.lineTo(x + radius * 0.5, y);
+        ctx.moveTo(x, y - radius * 0.5);
+        ctx.lineTo(x, y + radius * 0.5);
+        ctx.stroke();
+        
+        if (isElite) {
+            ctx.strokeStyle = '#ff6600';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x - radius - 2, y - radius - 2, radius * 2 + 4, radius * 2 + 4);
+        }
+    },
+    
+    drawIceSprite: (ctx, x, y, radius, color, isElite) => {
+        // Corpo principale (diamante)
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y - radius);
+        ctx.lineTo(x + radius * 0.7, y - radius * 0.3);
+        ctx.lineTo(x + radius * 0.7, y + radius * 0.3);
+        ctx.lineTo(x, y + radius);
+        ctx.lineTo(x - radius * 0.7, y + radius * 0.3);
+        ctx.lineTo(x - radius * 0.7, y - radius * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Bordo
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Occhi di ghiaccio
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.2, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Pupille
+        ctx.fillStyle = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.1, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Cristalli di ghiaccio
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+            const angle = (i * Math.PI * 2) / 3;
+            const cx = x + Math.cos(angle) * radius * 0.8;
+            const cy = y + Math.sin(angle) * radius * 0.8;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(angle) * radius * 0.3, cy + Math.sin(angle) * radius * 0.3);
+            ctx.stroke();
+        }
+        
+        if (isElite) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y - radius - 3);
+            ctx.lineTo(x + radius * 0.7, y - radius * 0.3);
+            ctx.lineTo(x + radius * 0.7, y + radius * 0.3);
+            ctx.lineTo(x, y + radius + 3);
+            ctx.lineTo(x - radius * 0.7, y + radius * 0.3);
+            ctx.lineTo(x - radius * 0.7, y - radius * 0.3);
+            ctx.closePath();
+            ctx.stroke();
+        }
+    },
+    
+    drawDemonSprite: (ctx, x, y, radius, color, isElite) => {
+        // Corpo principale (stella)
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+            const outerRadius = radius;
+            const innerRadius = radius * 0.5;
+            
+            if (i === 0) {
+                ctx.moveTo(x + Math.cos(angle) * outerRadius, y + Math.sin(angle) * outerRadius);
+            } else {
+                ctx.lineTo(x + Math.cos(angle) * outerRadius, y + Math.sin(angle) * outerRadius);
+            }
+            
+            const nextAngle = ((i + 0.5) * Math.PI * 2) / 5 - Math.PI / 2;
+            ctx.lineTo(x + Math.cos(nextAngle) * innerRadius, y + Math.sin(nextAngle) * innerRadius);
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        // Bordo
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Occhi demoniaci
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.25, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Pupille
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Fiamme
+        ctx.fillStyle = '#ff6600';
+        for (let i = 0; i < 3; i++) {
+            const angle = (i * Math.PI * 2) / 3;
+            const fx = x + Math.cos(angle) * radius * 0.8;
+            const fy = y + Math.sin(angle) * radius * 0.8;
+            
+            ctx.beginPath();
+            ctx.moveTo(fx, fy);
+            ctx.lineTo(fx + Math.cos(angle - 0.3) * radius * 0.4, fy + Math.sin(angle - 0.3) * radius * 0.4);
+            ctx.lineTo(fx + Math.cos(angle + 0.3) * radius * 0.4, fy + Math.sin(angle + 0.3) * radius * 0.4);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        if (isElite) {
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+                const outerRadius = radius + 3;
+                const innerRadius = (radius + 3) * 0.5;
+                
+                if (i === 0) {
+                    ctx.moveTo(x + Math.cos(angle) * outerRadius, y + Math.sin(angle) * outerRadius);
+                } else {
+                    ctx.lineTo(x + Math.cos(angle) * outerRadius, y + Math.sin(angle) * outerRadius);
+                }
+                
+                const nextAngle = ((i + 0.5) * Math.PI * 2) / 5 - Math.PI / 2;
+                ctx.lineTo(x + Math.cos(nextAngle) * innerRadius, y + Math.sin(nextAngle) * innerRadius);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
     }
 };
 
@@ -546,8 +859,6 @@ class Enemy extends Entity {
             ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 50) * 0.2;
         }
 
-        const angle = Math.atan2(game.player.y - this.y, game.player.x - this.x);
-        
         // Ottieni i colori dello stage corrente
         const stageInfo = CONFIG.stages[game.currentStage];
         let baseColor = this.color;
@@ -558,58 +869,18 @@ class Enemy extends Entity {
             eliteColor = stageInfo.enemies.eliteColor;
         }
         
-        ctx.fillStyle = this.stats.isElite ? eliteColor : (this.stunTimer > 0 ? '#ffffff' : (this.slowTimer > 0 ? '#66b2ff' : baseColor));
+        // Determina il colore finale
+        let finalColor = this.stats.isElite ? eliteColor : (this.stunTimer > 0 ? '#ffffff' : (this.slowTimer > 0 ? '#66b2ff' : baseColor));
         
-        ctx.translate(this.x, this.y);
-        ctx.rotate(angle + Math.PI / 2);
-        
-        // Disegna la forma in base allo stage
+        // Determina la forma/tipo di nemico
         const shape = stageInfo && stageInfo.enemies ? stageInfo.enemies.shape : 'triangle';
         
-        ctx.beginPath();
-        switch (shape) {
-            case 'circle':
-                ctx.arc(0, 0, this.stats.radius, 0, Math.PI * 2);
-                break;
-            case 'square':
-                ctx.rect(-this.stats.radius, -this.stats.radius, this.stats.radius * 2, this.stats.radius * 2);
-                break;
-            case 'diamond':
-                ctx.moveTo(0, -this.stats.radius);
-                ctx.lineTo(this.stats.radius, 0);
-                ctx.lineTo(0, this.stats.radius);
-                ctx.lineTo(-this.stats.radius, 0);
-                break;
-            case 'star':
-                const spikes = 5;
-                const outerRadius = this.stats.radius;
-                const innerRadius = this.stats.radius * 0.5;
-                for (let i = 0; i < spikes * 2; i++) {
-                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                    const angle = (i * Math.PI) / spikes;
-                    const x = Math.cos(angle) * radius;
-                    const y = Math.sin(angle) * radius;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                break;
-            default: // triangle
-                ctx.moveTo(0, -this.stats.radius);
-                ctx.lineTo(-this.stats.radius * 0.8, this.stats.radius * 0.8);
-                ctx.lineTo(this.stats.radius * 0.8, this.stats.radius * 0.8);
-                break;
-        }
-        ctx.closePath();
-        ctx.fill();
-        
-        if (this.stats.isElite) {
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
+        // Usa i nuovi sprite dettagliati
+        Utils.drawEnemySprite(ctx, this.x, this.y, this.stats.radius, shape, finalColor, this.stats.isElite);
         
         ctx.restore();
 
+        // Barra HP
         if (this.hp < this.stats.maxHp) {
             const barW = this.stats.radius * 2;
             const barH = 4;
