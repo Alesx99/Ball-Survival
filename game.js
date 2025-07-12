@@ -392,192 +392,289 @@ const Utils = {
     },
     
     drawSlimeSprite: (ctx, x, y, radius, color, isElite) => {
-        // Corpo principale
+        // Corpo principale - forma più irregolare e minacciosa
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Bordo
-        ctx.strokeStyle = isElite ? '#ffffff' : '#000000';
-        ctx.lineWidth = 2;
+        // Bordo scuro e minaccioso
+        ctx.strokeStyle = isElite ? '#ff0000' : '#1a1a1a';
+        ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Occhi
-        const eyeSize = radius * 0.3;
-        ctx.fillStyle = '#ffffff';
+        // Occhi demoniaci rossi
+        const eyeSize = radius * 0.25;
+        ctx.fillStyle = '#ff0000';
         ctx.beginPath();
         ctx.arc(x - radius * 0.3, y - radius * 0.2, eyeSize, 0, Math.PI * 2);
         ctx.arc(x + radius * 0.3, y - radius * 0.2, eyeSize, 0, Math.PI * 2);
         ctx.fill();
         
-        // Pupille
+        // Pupille nere e vuote
         ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.2, eyeSize * 0.5, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.2, eyeSize * 0.5, 0, Math.PI * 2);
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, eyeSize * 0.6, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, eyeSize * 0.6, 0, Math.PI * 2);
         ctx.fill();
         
-        // Bocca
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+        // Bocca con denti affilati
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
         ctx.arc(x, y + radius * 0.3, radius * 0.4, 0, Math.PI);
-        ctx.stroke();
+        ctx.fill();
         
-        // Effetti elite
-        if (isElite) {
-            ctx.strokeStyle = '#ffff00';
-            ctx.lineWidth = 3;
+        // Denti affilati
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 3; i++) {
+            const toothX = x - radius * 0.2 + i * radius * 0.2;
             ctx.beginPath();
-            ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
+            ctx.moveTo(toothX, y + radius * 0.3);
+            ctx.lineTo(toothX - 2, y + radius * 0.5);
+            ctx.lineTo(toothX + 2, y + radius * 0.5);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Effetti elite - aura demoniaca
+        if (isElite) {
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
             ctx.stroke();
+            
+            // Fiamme demoniache
+            ctx.fillStyle = '#ff6600';
+            for (let i = 0; i < 4; i++) {
+                const angle = (i * Math.PI * 2) / 4;
+                const fx = x + Math.cos(angle) * (radius + 6);
+                const fy = y + Math.sin(angle) * (radius + 6);
+                
+                ctx.beginPath();
+                ctx.moveTo(fx, fy);
+                ctx.lineTo(fx + Math.cos(angle - 0.2) * 8, fy + Math.sin(angle - 0.2) * 8);
+                ctx.lineTo(fx + Math.cos(angle + 0.2) * 8, fy + Math.sin(angle + 0.2) * 8);
+                ctx.closePath();
+                ctx.fill();
+            }
         }
     },
     
     drawGoblinSprite: (ctx, x, y, radius, color, isElite) => {
-        // Corpo
+        // Corpo - forma più spigolosa e minacciosa
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(x, y - radius);
-        ctx.lineTo(x - radius * 0.8, y + radius * 0.5);
-        ctx.lineTo(x + radius * 0.8, y + radius * 0.5);
+        ctx.lineTo(x - radius * 0.9, y + radius * 0.6);
+        ctx.lineTo(x + radius * 0.9, y + radius * 0.6);
         ctx.closePath();
         ctx.fill();
         
-        // Bordo
+        // Bordo scuro
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Occhi
-        ctx.fillStyle = '#ff0000';
+        // Occhi demoniaci arancioni
+        ctx.fillStyle = '#ff6600';
         ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.1, radius * 0.2, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.2, 0, Math.PI * 2);
+        ctx.arc(x - radius * 0.3, y - radius * 0.1, radius * 0.25, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.25, 0, Math.PI * 2);
         ctx.fill();
         
-        // Pupille
+        // Pupille nere
         ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.1, radius * 0.1, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.1, 0, Math.PI * 2);
+        ctx.arc(x - radius * 0.3, y - radius * 0.1, radius * 0.15, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.1, radius * 0.15, 0, Math.PI * 2);
         ctx.fill();
         
-        // Bocca con zanne
-        ctx.fillStyle = '#ffffff';
+        // Bocca con zanne più grandi e affilate
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(x, y + radius * 0.2, radius * 0.3, 0, Math.PI);
+        ctx.arc(x, y + radius * 0.2, radius * 0.4, 0, Math.PI);
         ctx.fill();
         
-        // Zanne
+        // Zanne più grandi e minacciose
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.moveTo(x - radius * 0.2, y + radius * 0.1);
-        ctx.lineTo(x - radius * 0.1, y + radius * 0.3);
-        ctx.lineTo(x - radius * 0.3, y + radius * 0.3);
+        ctx.moveTo(x - radius * 0.25, y + radius * 0.1);
+        ctx.lineTo(x - radius * 0.15, y + radius * 0.4);
+        ctx.lineTo(x - radius * 0.35, y + radius * 0.4);
         ctx.closePath();
         ctx.fill();
         
         ctx.beginPath();
-        ctx.moveTo(x + radius * 0.2, y + radius * 0.1);
-        ctx.lineTo(x + radius * 0.1, y + radius * 0.3);
-        ctx.lineTo(x + radius * 0.3, y + radius * 0.3);
+        ctx.moveTo(x + radius * 0.25, y + radius * 0.1);
+        ctx.lineTo(x + radius * 0.15, y + radius * 0.4);
+        ctx.lineTo(x + radius * 0.35, y + radius * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Zanna centrale
+        ctx.beginPath();
+        ctx.moveTo(x, y + radius * 0.1);
+        ctx.lineTo(x - 3, y + radius * 0.35);
+        ctx.lineTo(x + 3, y + radius * 0.35);
         ctx.closePath();
         ctx.fill();
         
         if (isElite) {
+            // Aura demoniaca
             ctx.strokeStyle = '#ff6600';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(x, y - radius - 3);
-            ctx.lineTo(x - radius * 0.8, y + radius * 0.5 + 3);
-            ctx.lineTo(x + radius * 0.8, y + radius * 0.5 + 3);
+            ctx.moveTo(x, y - radius - 4);
+            ctx.lineTo(x - radius * 0.9, y + radius * 0.6 + 4);
+            ctx.lineTo(x + radius * 0.9, y + radius * 0.6 + 4);
             ctx.closePath();
             ctx.stroke();
+            
+            // Fiamme
+            ctx.fillStyle = '#ff6600';
+            for (let i = 0; i < 3; i++) {
+                const angle = (i * Math.PI * 2) / 3;
+                const fx = x + Math.cos(angle) * (radius + 5);
+                const fy = y + Math.sin(angle) * (radius + 5);
+                
+                ctx.beginPath();
+                ctx.moveTo(fx, fy);
+                ctx.lineTo(fx + Math.cos(angle - 0.3) * 10, fy + Math.sin(angle - 0.3) * 10);
+                ctx.lineTo(fx + Math.cos(angle + 0.3) * 10, fy + Math.sin(angle + 0.3) * 10);
+                ctx.closePath();
+                ctx.fill();
+            }
         }
     },
     
     drawGolemSprite: (ctx, x, y, radius, color, isElite) => {
-        // Corpo principale
+        // Corpo principale - più squadrato e minaccioso
         ctx.fillStyle = color;
         ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
         
-        // Bordo
+        // Bordo scuro
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.strokeRect(x - radius, y - radius, radius * 2, radius * 2);
         
-        // Occhi
+        // Occhi rossi e minacciosi
         ctx.fillStyle = '#ff0000';
-        ctx.fillRect(x - radius * 0.4, y - radius * 0.3, radius * 0.3, radius * 0.3);
-        ctx.fillRect(x + radius * 0.1, y - radius * 0.3, radius * 0.3, radius * 0.3);
+        ctx.fillRect(x - radius * 0.4, y - radius * 0.3, radius * 0.35, radius * 0.35);
+        ctx.fillRect(x + radius * 0.05, y - radius * 0.3, radius * 0.35, radius * 0.35);
         
-        // Pupille
+        // Pupille nere
         ctx.fillStyle = '#000000';
-        ctx.fillRect(x - radius * 0.3, y - radius * 0.2, radius * 0.1, radius * 0.1);
-        ctx.fillRect(x + radius * 0.2, y - radius * 0.2, radius * 0.1, radius * 0.1);
+        ctx.fillRect(x - radius * 0.3, y - radius * 0.2, radius * 0.15, radius * 0.15);
+        ctx.fillRect(x + radius * 0.15, y - radius * 0.2, radius * 0.15, radius * 0.15);
         
-        // Bocca
+        // Bocca con denti
         ctx.fillStyle = '#000000';
-        ctx.fillRect(x - radius * 0.3, y + radius * 0.2, radius * 0.6, radius * 0.1);
+        ctx.fillRect(x - radius * 0.4, y + radius * 0.2, radius * 0.8, radius * 0.15);
         
-        // Dettagli pietra
-        ctx.strokeStyle = '#666666';
+        // Denti
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 4; i++) {
+            const toothX = x - radius * 0.3 + i * radius * 0.2;
+            ctx.fillRect(toothX, y + radius * 0.2, 4, 8);
+        }
+        
+        // Dettagli pietra - più scuri e minacciosi
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - radius * 0.6, y);
+        ctx.lineTo(x + radius * 0.6, y);
+        ctx.moveTo(x, y - radius * 0.6);
+        ctx.lineTo(x, y + radius * 0.6);
+        ctx.stroke();
+        
+        // Fessure minacciose
+        ctx.strokeStyle = '#1a1a1a';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(x - radius * 0.5, y);
-        ctx.lineTo(x + radius * 0.5, y);
-        ctx.moveTo(x, y - radius * 0.5);
-        ctx.lineTo(x, y + radius * 0.5);
+        ctx.moveTo(x - radius * 0.4, y - radius * 0.1);
+        ctx.lineTo(x + radius * 0.4, y - radius * 0.1);
+        ctx.moveTo(x - radius * 0.4, y + radius * 0.1);
+        ctx.lineTo(x + radius * 0.4, y + radius * 0.1);
         ctx.stroke();
         
         if (isElite) {
+            // Aura di pietra demoniaca
             ctx.strokeStyle = '#ff6600';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(x - radius - 2, y - radius - 2, radius * 2 + 4, radius * 2 + 4);
+            ctx.lineWidth = 5;
+            ctx.strokeRect(x - radius - 3, y - radius - 3, radius * 2 + 6, radius * 2 + 6);
+            
+            // Cristalli di energia
+            ctx.fillStyle = '#ff6600';
+            for (let i = 0; i < 4; i++) {
+                const angle = (i * Math.PI * 2) / 4;
+                const cx = x + Math.cos(angle) * (radius + 8);
+                const cy = y + Math.sin(angle) * (radius + 8);
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - 4);
+                ctx.lineTo(cx + 4, cy);
+                ctx.lineTo(cx, cy + 4);
+                ctx.lineTo(cx - 4, cy);
+                ctx.closePath();
+                ctx.fill();
+            }
         }
     },
     
     drawIceSprite: (ctx, x, y, radius, color, isElite) => {
-        // Corpo principale (diamante)
+        // Corpo principale - diamante più affilato
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(x, y - radius);
-        ctx.lineTo(x + radius * 0.7, y - radius * 0.3);
-        ctx.lineTo(x + radius * 0.7, y + radius * 0.3);
+        ctx.lineTo(x + radius * 0.8, y - radius * 0.4);
+        ctx.lineTo(x + radius * 0.8, y + radius * 0.4);
         ctx.lineTo(x, y + radius);
-        ctx.lineTo(x - radius * 0.7, y + radius * 0.3);
-        ctx.lineTo(x - radius * 0.7, y - radius * 0.3);
+        ctx.lineTo(x - radius * 0.8, y + radius * 0.4);
+        ctx.lineTo(x - radius * 0.8, y - radius * 0.4);
         ctx.closePath();
         ctx.fill();
         
-        // Bordo
+        // Bordo ghiacciato
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Occhi di ghiaccio
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.2, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Pupille
+        // Occhi di ghiaccio - più freddi e minacciosi
         ctx.fillStyle = '#00ffff';
         ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.1, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.1, 0, Math.PI * 2);
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.25, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.25, 0, Math.PI * 2);
         ctx.fill();
         
-        // Cristalli di ghiaccio
+        // Pupille nere
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Cristalli di ghiaccio più affilati
         ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+            const angle = (i * Math.PI * 2) / 4;
+            const cx = x + Math.cos(angle) * radius * 0.9;
+            const cy = y + Math.sin(angle) * radius * 0.9;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(angle) * radius * 0.4, cy + Math.sin(angle) * radius * 0.4);
+            ctx.stroke();
+        }
+        
+        // Cristalli interni
+        ctx.strokeStyle = '#00ffff';
         ctx.lineWidth = 2;
         for (let i = 0; i < 3; i++) {
             const angle = (i * Math.PI * 2) / 3;
-            const cx = x + Math.cos(angle) * radius * 0.8;
-            const cy = y + Math.sin(angle) * radius * 0.8;
+            const cx = x + Math.cos(angle) * radius * 0.5;
+            const cy = y + Math.sin(angle) * radius * 0.5;
             ctx.beginPath();
             ctx.moveTo(cx, cy);
             ctx.lineTo(cx + Math.cos(angle) * radius * 0.3, cy + Math.sin(angle) * radius * 0.3);
@@ -585,28 +682,44 @@ const Utils = {
         }
         
         if (isElite) {
+            // Aura di ghiaccio demoniaco
             ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(x, y - radius - 3);
-            ctx.lineTo(x + radius * 0.7, y - radius * 0.3);
-            ctx.lineTo(x + radius * 0.7, y + radius * 0.3);
-            ctx.lineTo(x, y + radius + 3);
-            ctx.lineTo(x - radius * 0.7, y + radius * 0.3);
-            ctx.lineTo(x - radius * 0.7, y - radius * 0.3);
+            ctx.moveTo(x, y - radius - 4);
+            ctx.lineTo(x + radius * 0.8, y - radius * 0.4);
+            ctx.lineTo(x + radius * 0.8, y + radius * 0.4);
+            ctx.lineTo(x, y + radius + 4);
+            ctx.lineTo(x - radius * 0.8, y + radius * 0.4);
+            ctx.lineTo(x - radius * 0.8, y - radius * 0.4);
             ctx.closePath();
             ctx.stroke();
+            
+            // Tempesta di ghiaccio
+            ctx.fillStyle = '#00ffff';
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI * 2) / 6;
+                const fx = x + Math.cos(angle) * (radius + 6);
+                const fy = y + Math.sin(angle) * (radius + 6);
+                
+                ctx.beginPath();
+                ctx.moveTo(fx, fy);
+                ctx.lineTo(fx + Math.cos(angle - 0.2) * 6, fy + Math.sin(angle - 0.2) * 6);
+                ctx.lineTo(fx + Math.cos(angle + 0.2) * 6, fy + Math.sin(angle + 0.2) * 6);
+                ctx.closePath();
+                ctx.fill();
+            }
         }
     },
     
     drawDemonSprite: (ctx, x, y, radius, color, isElite) => {
-        // Corpo principale (stella)
+        // Corpo principale - stella più affilata e minacciosa
         ctx.fillStyle = color;
         ctx.beginPath();
         for (let i = 0; i < 5; i++) {
             const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
             const outerRadius = radius;
-            const innerRadius = radius * 0.5;
+            const innerRadius = radius * 0.4;
             
             if (i === 0) {
                 ctx.moveTo(x + Math.cos(angle) * outerRadius, y + Math.sin(angle) * outerRadius);
@@ -620,48 +733,64 @@ const Utils = {
         ctx.closePath();
         ctx.fill();
         
-        // Bordo
+        // Bordo demoniaco
         ctx.strokeStyle = '#ff0000';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Occhi demoniaci
+        // Occhi demoniaci - più grandi e minacciosi
         ctx.fillStyle = '#ff0000';
         ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.25, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.25, 0, Math.PI * 2);
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.3, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.3, 0, Math.PI * 2);
         ctx.fill();
         
-        // Pupille
+        // Pupille nere e vuote
         ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2);
-        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.15, 0, Math.PI * 2);
+        ctx.arc(x - radius * 0.3, y - radius * 0.2, radius * 0.2, 0, Math.PI * 2);
+        ctx.arc(x + radius * 0.3, y - radius * 0.2, radius * 0.2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Fiamme
+        // Fiamme demoniache più intense
         ctx.fillStyle = '#ff6600';
-        for (let i = 0; i < 3; i++) {
-            const angle = (i * Math.PI * 2) / 3;
-            const fx = x + Math.cos(angle) * radius * 0.8;
-            const fy = y + Math.sin(angle) * radius * 0.8;
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * Math.PI * 2) / 5;
+            const fx = x + Math.cos(angle) * radius * 0.9;
+            const fy = y + Math.sin(angle) * radius * 0.9;
             
             ctx.beginPath();
             ctx.moveTo(fx, fy);
-            ctx.lineTo(fx + Math.cos(angle - 0.3) * radius * 0.4, fy + Math.sin(angle - 0.3) * radius * 0.4);
-            ctx.lineTo(fx + Math.cos(angle + 0.3) * radius * 0.4, fy + Math.sin(angle + 0.3) * radius * 0.4);
+            ctx.lineTo(fx + Math.cos(angle - 0.4) * radius * 0.5, fy + Math.sin(angle - 0.4) * radius * 0.5);
+            ctx.lineTo(fx + Math.cos(angle + 0.4) * radius * 0.5, fy + Math.sin(angle + 0.4) * radius * 0.5);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Fiamme interne
+        ctx.fillStyle = '#ff0000';
+        for (let i = 0; i < 3; i++) {
+            const angle = (i * Math.PI * 2) / 3;
+            const fx = x + Math.cos(angle) * radius * 0.6;
+            const fy = y + Math.sin(angle) * radius * 0.6;
+            
+            ctx.beginPath();
+            ctx.moveTo(fx, fy);
+            ctx.lineTo(fx + Math.cos(angle - 0.3) * radius * 0.3, fy + Math.sin(angle - 0.3) * radius * 0.3);
+            ctx.lineTo(fx + Math.cos(angle + 0.3) * radius * 0.3, fy + Math.sin(angle + 0.3) * radius * 0.3);
             ctx.closePath();
             ctx.fill();
         }
         
         if (isElite) {
+            // Aura demoniaca intensa
             ctx.strokeStyle = '#ff0000';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 5;
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
                 const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
-                const outerRadius = radius + 3;
-                const innerRadius = (radius + 3) * 0.5;
+                const outerRadius = radius + 4;
+                const innerRadius = (radius + 4) * 0.4;
                 
                 if (i === 0) {
                     ctx.moveTo(x + Math.cos(angle) * outerRadius, y + Math.sin(angle) * outerRadius);
@@ -674,6 +803,21 @@ const Utils = {
             }
             ctx.closePath();
             ctx.stroke();
+            
+            // Tempesta di fuoco
+            ctx.fillStyle = '#ff6600';
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI * 2) / 8;
+                const fx = x + Math.cos(angle) * (radius + 8);
+                const fy = y + Math.sin(angle) * (radius + 8);
+                
+                ctx.beginPath();
+                ctx.moveTo(fx, fy);
+                ctx.lineTo(fx + Math.cos(angle - 0.4) * 12, fy + Math.sin(angle - 0.4) * 12);
+                ctx.lineTo(fx + Math.cos(angle + 0.4) * 12, fy + Math.sin(angle + 0.4) * 12);
+                ctx.closePath();
+                ctx.fill();
+            }
         }
     }
 };
