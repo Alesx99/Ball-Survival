@@ -2484,6 +2484,7 @@ class BallSurvivalGame {
     }
 
     showPopup(popupKey) { 
+        console.log('showPopup chiamata con:', popupKey);
         if (popupKey !== 'upgrade' && popupKey !== 'shop') {
             this.state = (popupKey === 'gameOver' || popupKey === 'start') ? popupKey : 'paused';
         } else if (this.state === 'running') {
@@ -2493,7 +2494,12 @@ class BallSurvivalGame {
         this.dom.menuOverlay.style.display = 'block'; 
         Object.values(this.dom.popups).forEach(p => p.style.display = 'none'); 
         this.dom.popups[popupKey].style.display = 'flex'; 
-        if (popupKey === 'shop') this.populateShop(); 
+        console.log('Popup mostrato:', popupKey, this.dom.popups[popupKey].style.display);
+        
+        if (popupKey === 'shop') {
+            console.log('Chiamando populateShop...');
+            this.populateShop(); 
+        }
         if (popupKey === 'pause') { 
             this.populateStatsMenu(); 
         } 
@@ -2553,7 +2559,23 @@ class BallSurvivalGame {
         this.dom.weaponsStatsColumn.innerHTML = weaponsHTML; 
     }
     handleEscapeKey() { const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { this.hideAllPopups(); } else { this.togglePause(); } }
-    handleInteractionKey() { if (this.menuCooldown > 0 || this.state !== 'running') return; if (Utils.getDistance(this.player, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { this.showPopup('shop'); } }
+    handleInteractionKey() { 
+        console.log('handleInteractionKey chiamata');
+        if (this.menuCooldown > 0 || this.state !== 'running') {
+            console.log('Menu cooldown o stato non running, ritorno');
+            return; 
+        }
+        
+        const distance = Utils.getDistance(this.player, CONFIG.merchant);
+        console.log('Distanza dal merchant:', distance, 'Raggio interazione:', CONFIG.merchant.interactionRadius);
+        
+        if (distance < CONFIG.merchant.interactionRadius) { 
+            console.log('Apertura negozio...');
+            this.showPopup('shop'); 
+        } else {
+            console.log('Troppo lontano dal merchant');
+        }
+    }
     handlePointerDown(e) { if (this.state === 'gameOver' || this.state === 'startScreen') return; const rect = this.canvas.getBoundingClientRect(); const clientX = e.clientX; const clientY = e.clientY; const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { this.showPopup('shop'); return; } if (e.pointerType === 'touch' && !this.joystick.active) { e.preventDefault(); this.joystick.touchId = e.pointerId; this.joystick.active = true; this.joystick.startX = clientX; this.joystick.startY = clientY; this.dom.joystick.container.style.display = 'block'; this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; } }
     handlePointerMove(e) { if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; e.preventDefault(); let deltaX = e.clientX - this.joystick.startX; let deltaY = e.clientY - this.joystick.startY; const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); const maxDistance = this.dom.joystick.radius; if (distance > maxDistance) { deltaX = (deltaX / distance) * maxDistance; deltaY = (deltaY / distance) * maxDistance; } this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; this.joystick.dx = deltaX / maxDistance; this.joystick.dy = deltaY / maxDistance; }
     handlePointerEnd(e) { if (this.joystick.active && e.pointerId === this.joystick.touchId) { this.joystick.active = false; this.joystick.touchId = null; this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; this.dom.joystick.container.style.display = 'none'; this.joystick.dx = 0; this.joystick.dy = 0; } }
@@ -2683,11 +2705,50 @@ class BallSurvivalGame {
             }
         }
     }
-    loadGameData() { this.permanentUpgrades = {}; Object.keys(CONFIG.permanentUpgrades).forEach(key => { this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 }; }); try { const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7'); if (savedData) { const data = JSON.parse(savedData); this.totalGems = data.totalGems || 0; if (data.upgrades) { Object.keys(this.permanentUpgrades).forEach(key => { if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; }); } } else { this.totalGems = 0; } } catch (e) { console.error("Impossibile caricare:", e); this.totalGems = 0; } }
+    loadGameData() { 
+        console.log('loadGameData chiamata');
+        this.permanentUpgrades = {}; 
+        Object.keys(CONFIG.permanentUpgrades).forEach(key => { 
+            this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 }; 
+        }); 
+        console.log('permanentUpgrades inizializzati:', this.permanentUpgrades);
+        
+        try { 
+            const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7'); 
+            console.log('Dati salvati trovati:', savedData);
+            
+            if (savedData) { 
+                const data = JSON.parse(savedData); 
+                this.totalGems = data.totalGems || 0; 
+                console.log('totalGems caricati:', this.totalGems);
+                
+                if (data.upgrades) { 
+                    Object.keys(this.permanentUpgrades).forEach(key => { 
+                        if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; 
+                    }); 
+                    console.log('Upgrade caricati:', data.upgrades);
+                } 
+            } else { 
+                this.totalGems = 0; 
+                console.log('Nessun dato salvato trovato, totalGems impostato a 0');
+            } 
+        } catch (e) { 
+            console.error("Impossibile caricare:", e); 
+            this.totalGems = 0; 
+        } 
+        
+        console.log('Stato finale - totalGems:', this.totalGems, 'permanentUpgrades:', this.permanentUpgrades);
+    }
     saveGameData() { try { const saveData = { totalGems: this.totalGems, upgrades: this.permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare:", e); } }
     populateShop() { 
+        console.log('populateShop chiamata');
+        console.log('totalGems:', this.totalGems);
+        console.log('permanentUpgrades:', this.permanentUpgrades);
+        
         this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
+        console.log('container:', container);
+        
         container.innerHTML = ''; 
         
         // Aggiungi messaggio se non ci sono cristalli
@@ -2695,9 +2756,13 @@ class BallSurvivalGame {
             container.innerHTML = `<div class="zero-gems-message">
                 💎 Non hai ancora cristalli! Completa partite per guadagnarne.
             </div>`;
+            console.log('Messaggio zero cristalli aggiunto');
+            return;
         }
         
+        console.log('Iterando su permanentUpgrades...');
         for (const key in this.permanentUpgrades) { 
+            console.log('Processing upgrade:', key, this.permanentUpgrades[key]);
             const upg = this.permanentUpgrades[key]; 
             const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
             
@@ -2720,7 +2785,10 @@ class BallSurvivalGame {
             }
             optionHTML += `</div>`;
             container.innerHTML += optionHTML;
+            console.log('Upgrade HTML aggiunto per:', key);
         } 
+        
+        console.log('Container HTML finale:', container.innerHTML);
         
         container.querySelectorAll('.buy-button').forEach(btn => { 
             btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key); 
@@ -2838,6 +2906,25 @@ class BallSurvivalGame {
         if (!target) return;
         target.level++;
         this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
+    }
+
+    // Funzione di test per il negozio
+    testShop() {
+        console.log('=== TEST NEGOZIO ===');
+        console.log('DOM elements:');
+        console.log('- totalGemsShop:', this.dom.totalGemsShop);
+        console.log('- permanentUpgradeOptions:', this.dom.containers.permanentUpgradeOptions);
+        console.log('- shop popup:', this.dom.popups.shop);
+        
+        console.log('Dati:');
+        console.log('- totalGems:', this.totalGems);
+        console.log('- permanentUpgrades:', this.permanentUpgrades);
+        
+        // Test diretto del populateShop
+        console.log('Testando populateShop...');
+        this.populateShop();
+        
+        console.log('=== FINE TEST ===');
     }
 }
 
