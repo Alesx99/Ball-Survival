@@ -1094,7 +1094,43 @@ class Player extends Entity {
         console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
     }
     applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr = (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
-    update(game, joystick) { let kDx = 0, kDy = 0; if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } this.x += fDx * this.stats.speed; this.y += fDy * this.stats.speed; this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); for (const key in this.powerUpTimers) { if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; } }
+    update(game, joystick) { 
+        // Controllo di sicurezza per le statistiche
+        if (!this.stats || !this.stats.speed || !this.stats.radius) {
+            console.warn('Player stats non inizializzate correttamente');
+            return;
+        }
+        
+        let kDx = 0, kDy = 0; 
+        if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; 
+        if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; 
+        if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; 
+        if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; 
+        
+        // Controllo di sicurezza per il joystick
+        if (!joystick || typeof joystick.dx === 'undefined' || typeof joystick.dy === 'undefined') {
+            console.warn('Joystick non inizializzato correttamente');
+            return;
+        }
+        
+        let fDx = joystick.dx !== 0 ? joystick.dx : kDx; 
+        let fDy = joystick.dy !== 0 ? joystick.dy : kDy; 
+        
+        const m = Math.sqrt(fDx * fDx + fDy * fDy); 
+        if (m > 1) { 
+            fDx /= m; 
+            fDy /= m; 
+        } 
+        
+        this.x += fDx * this.stats.speed; 
+        this.y += fDy * this.stats.speed; 
+        this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); 
+        this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); 
+        
+        for (const key in this.powerUpTimers) { 
+            if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; 
+        } 
+    }
     
     gainXP(amount) {
         this.xp += amount * this.modifiers.xpGain;
@@ -1787,7 +1823,16 @@ class BallSurvivalGame {
         this.initInputHandlers();
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
-        this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
+        this.joystick = { 
+            dx: 0, 
+            dy: 0, 
+            active: false,
+            touchId: null,
+            startX: 0,
+            startY: 0,
+            radius: 50, // Raggio fisso per il joystick
+            ...this.dom.joystick 
+        };
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
         this.selectedStage = 1; // Stage selezionato dal giocatore
@@ -2023,7 +2068,14 @@ class BallSurvivalGame {
         for (const type in this.entities) {
             for (let i = this.entities[type].length - 1; i >= 0; i--) {
                 const entity = this.entities[type][i];
-                entity.update(this);
+                if (entity && typeof entity.update === 'function') {
+                    entity.update(this);
+                } else {
+                    console.warn(`Entità senza metodo update trovata in ${type}:`, entity);
+                    // Rimuovi entità non valide
+                    this.entities[type].splice(i, 1);
+                    continue;
+                }
                 if (entity.toRemove) this.entities[type].splice(i, 1);
             }
         }
@@ -3311,6 +3363,13 @@ class BallSurvivalGame {
             console.warn('updateCamera: Player non ancora inizializzato');
             return;
         }
+        
+        // Controllo di sicurezza per la camera
+        if (!this.camera || typeof this.camera.width === 'undefined' || typeof this.camera.height === 'undefined') {
+            console.warn('updateCamera: Camera non inizializzata correttamente');
+            return;
+        }
+        
         this.camera.x = this.player.x - this.camera.width / 2; 
         this.camera.y = this.player.y - this.camera.height / 2; 
         this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); 
