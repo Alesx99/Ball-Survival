@@ -2010,6 +2010,13 @@ class BallSurvivalGame {
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
+        
+        // Controllo di sicurezza per il player
+        if (!this.player) {
+            console.warn('update: Player non ancora inizializzato');
+            return;
+        }
+        
         this.player.update(this, this.joystick); 
         this.updateCamera();
         this.checkStage();
@@ -2051,7 +2058,11 @@ class BallSurvivalGame {
         if (this.entities.materialItems) this.entities.materialItems.forEach(e => e.draw(this.ctx)); // Aggiunto disegno materiali
         if (this.entities.enemies) this.entities.enemies.forEach(e => e.draw(this.ctx, this));
         if (this.entities.bosses) this.entities.bosses.forEach(e => e.draw(this.ctx, this));
-        this.player.draw(this.ctx, this);
+        if (this.player) {
+            this.player.draw(this.ctx, this);
+        } else {
+            console.warn('draw: Player non ancora inizializzato');
+        }
         if (this.entities.projectiles) this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
         if (this.entities.enemyProjectiles) this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
         if (this.entities.auras) this.entities.auras.forEach(e => e.draw(this.ctx, this));
@@ -2378,7 +2389,13 @@ class BallSurvivalGame {
         }
     }
 
-    getDamage(baseDamage) { return baseDamage * (this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * this.player.modifiers.power; }
+    getDamage(baseDamage) { 
+        if (!this.player) {
+            console.warn('getDamage: Player non ancora inizializzato');
+            return baseDamage;
+        }
+        return baseDamage * (this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * this.player.modifiers.power; 
+    }
     
     castMagicMissile(now) {
         const s = this.spells.magicMissile;
@@ -3289,7 +3306,16 @@ class BallSurvivalGame {
     }
     buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
-    updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
+    updateCamera() { 
+        if (!this.player) {
+            console.warn('updateCamera: Player non ancora inizializzato');
+            return;
+        }
+        this.camera.x = this.player.x - this.camera.width / 2; 
+        this.camera.y = this.player.y - this.camera.height / 2; 
+        this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); 
+        this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); 
+    }
     resizeCanvas() {
         if (!this.dom || !this.dom.canvas) {
             console.warn('Canvas non disponibile per il resize');
@@ -3309,8 +3335,52 @@ class BallSurvivalGame {
         this.camera.height = height;
         if (this.state !== 'running' && this.entities) this.draw();
     }
-    drawOffscreenIndicators() { if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); }
-    drawOffscreenIndicator(target, color, shape) { const screenX = target.x - this.camera.x; const screenY = target.y - this.camera.y; if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; const pScreenX = this.player.x - this.camera.x; const pScreenY = this.player.y - this.camera.y; const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); const padding = 30; let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); this.ctx.save(); this.ctx.translate(arrowX, arrowY); this.ctx.rotate(angle); this.ctx.fillStyle = color; this.ctx.strokeStyle = "white"; this.ctx.lineWidth = 1; this.ctx.beginPath(); if (shape === 'arrow') { this.ctx.moveTo(15, 0); this.ctx.lineTo(-15, -10); this.ctx.lineTo(-10, 0); this.ctx.lineTo(-15, 10); } else { this.ctx.moveTo(0, -10); this.ctx.lineTo(10, 10); this.ctx.lineTo(-10, 10); } this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke(); this.ctx.restore(); }
+    drawOffscreenIndicators() { 
+        if (!this.player) {
+            console.warn('drawOffscreenIndicators: Player non ancora inizializzato');
+            return;
+        }
+        if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); 
+        this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); 
+    }
+    drawOffscreenIndicator(target, color, shape) { 
+        if (!this.player) {
+            console.warn('drawOffscreenIndicator: Player non ancora inizializzato');
+            return;
+        }
+        const screenX = target.x - this.camera.x; 
+        const screenY = target.y - this.camera.y; 
+        if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; 
+        const pScreenX = this.player.x - this.camera.x; 
+        const pScreenY = this.player.y - this.camera.y; 
+        const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); 
+        const padding = 30; 
+        let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
+        let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
+        arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); 
+        arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); 
+        this.ctx.save(); 
+        this.ctx.translate(arrowX, arrowY); 
+        this.ctx.rotate(angle); 
+        this.ctx.fillStyle = color; 
+        this.ctx.strokeStyle = "white"; 
+        this.ctx.lineWidth = 1; 
+        this.ctx.beginPath(); 
+        if (shape === 'arrow') { 
+            this.ctx.moveTo(15, 0); 
+            this.ctx.lineTo(-15, -10); 
+            this.ctx.lineTo(-10, 0); 
+            this.ctx.lineTo(-15, 10); 
+        } else { 
+            this.ctx.moveTo(0, -10); 
+            this.ctx.lineTo(10, 10); 
+            this.ctx.lineTo(-10, 10); 
+        } 
+        this.ctx.closePath(); 
+        this.ctx.fill(); 
+        this.ctx.stroke(); 
+        this.ctx.restore(); 
+    }
     drawNotifications(ctx) {
         ctx.save();
         ctx.textAlign = 'center';
@@ -3330,7 +3400,21 @@ class BallSurvivalGame {
         
         ctx.restore();
     }
-    drawMerchant() { const m = CONFIG.merchant; this.ctx.fillStyle = '#9b59b6'; this.ctx.fillRect(m.x, m.y, m.size, m.size); this.ctx.strokeStyle = '#f1c40f'; this.ctx.lineWidth = 3; this.ctx.strokeRect(m.x, m.y, m.size, m.size); if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { this.ctx.font = 'bold 14px "Courier New"'; this.ctx.fillStyle = 'white'; this.ctx.textAlign = 'center'; this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); } }
+    drawMerchant() { 
+        const m = CONFIG.merchant; 
+        this.ctx.fillStyle = '#9b59b6'; 
+        this.ctx.fillRect(m.x, m.y, m.size, m.size); 
+        this.ctx.strokeStyle = '#f1c40f'; 
+        this.ctx.lineWidth = 3; 
+        this.ctx.strokeRect(m.x, m.y, m.size, m.size); 
+        if (this.state === 'running' && this.player && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { 
+            this.ctx.font = 'bold 14px "Courier New"'; 
+            this.ctx.fillStyle = 'white'; 
+            this.ctx.textAlign = 'center'; 
+            this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); 
+            this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); 
+        } 
+    }
 
     showInGameUI() {
         this.dom.inGameUI.style.display = 'flex';
