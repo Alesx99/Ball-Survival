@@ -2588,6 +2588,144 @@ class BallSurvivalGame {
             console.error("Impossibile salvare i dati:", e);
         }
     }
+
+    // Metodi mancanti per il funzionamento completo
+    updateInGameUI() {
+        const ui = this.dom.ui;
+        ui.hp.textContent = `${Math.max(0, Math.floor(this.player.hp))}/${this.player.stats.maxHp}`;
+        ui.level.textContent = this.player.level;
+        ui.xp.textContent = Math.floor(this.player.xp);
+        ui.xpNext.textContent = this.player.xpNext;
+        ui.enemies.textContent = this.entities.enemies.length + this.entities.bosses.length;
+        ui.time.textContent = Math.floor(this.totalElapsedTime);
+        ui.score.textContent = this.score;
+        ui.totalGemsUI.textContent = this.totalGems;
+        ui.runGemsUI.textContent = this.gemsThisRun;
+    }
+
+    checkForLevelUp() {
+        if (this.player.xp >= this.player.xpNext) {
+            this.handleLevelUp();
+        }
+    }
+
+    // Metodi per il sistema di spawn
+    spawnEnemies() {
+        if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < CONFIG.enemies.spawnInterval)) return;
+        this.lastEnemySpawnTime = this.totalElapsedTime;
+        const maxEnemies = 50 + Math.floor(this.totalElapsedTime / 15);
+        if (this.entities.enemies.length >= maxEnemies) return;
+        
+        const side = Math.floor(Math.random() * 4);
+        let x, y; const buffer = 50;
+        switch (side) {
+            case 0: x = this.camera.x + Math.random() * this.camera.width; y = this.camera.y - buffer; break;
+            case 1: x = this.camera.x + this.camera.width + buffer; y = this.camera.y + Math.random() * this.camera.height; break;
+            case 2: x = this.camera.x + Math.random() * this.camera.width; y = this.camera.y + this.camera.height + buffer; break;
+            case 3: x = this.camera.x - buffer; y = this.camera.y + Math.random() * this.camera.height; break;
+        }
+        
+        const timeFactor = this.totalElapsedTime / CONFIG.enemies.scaling.timeFactor;
+        const stats = {
+            ...CONFIG.enemies.base,
+            hp: CONFIG.enemies.base.hp + Math.floor(timeFactor) * CONFIG.enemies.scaling.hpPerFactor,
+            speed: (CONFIG.enemies.base.speed + Math.random() * 0.4) + timeFactor * CONFIG.enemies.scaling.speedPerFactor,
+            damage: CONFIG.enemies.base.damage + Math.floor(timeFactor) * CONFIG.enemies.scaling.damagePerFactor,
+        };
+        stats.maxHp = stats.hp;
+        this.addEntity('enemies', new Enemy(x, y, stats));
+    }
+
+    spawnBoss() {
+        if (this.entities.bosses.length === 0 && this.enemiesKilledSinceBoss >= CONFIG.boss.spawnThreshold) {
+            const side = Math.floor(Math.random() * 4);
+            let x, y; const buffer = 100;
+            switch (side) {
+                case 0: x = this.camera.x + Math.random() * this.camera.width; y = this.camera.y - buffer; break;
+                case 1: x = this.camera.x + this.camera.width + buffer; y = this.camera.y + Math.random() * this.camera.height; break;
+                case 2: x = this.camera.x + Math.random() * this.camera.width; y = this.camera.y + this.camera.height + buffer; break;
+                case 3: x = this.camera.x - buffer; y = this.camera.y + Math.random() * this.camera.height; break;
+            }
+            
+            const timeFactor = this.totalElapsedTime / CONFIG.boss.scaling.timeFactor;
+            const stats = {
+                ...CONFIG.boss.base,
+                hp: CONFIG.boss.base.hp + timeFactor * CONFIG.boss.scaling.hpPerFactor,
+            };
+            stats.maxHp = stats.hp;
+            this.addEntity('bosses', new Boss(x, y, stats));
+            this.notifications.push({ text: "!!! UN BOSS È APPARSO !!!", life: 300 });
+            this.enemiesKilledSinceBoss = 0;
+        }
+    }
+
+    spawnChests() {
+        if (this.entities.chests.length === 0 && this.totalElapsedTime > this.nextChestSpawnTime) {
+            const buffer = 200;
+            let x, y, dist;
+            do {
+                x = Math.random() * (CONFIG.world.width - buffer * 2) + buffer;
+                y = Math.random() * (CONFIG.world.height - buffer * 2) + buffer;
+                dist = Utils.getDistance({ x, y }, this.player);
+            } while (dist < this.camera.width);
+            
+            this.addEntity('chests', new Chest(x, y));
+            this.nextChestSpawnTime = this.totalElapsedTime + CONFIG.chest.respawnTime;
+        }
+    }
+
+    spawnMapXpOrbs() {
+        const c = CONFIG.xpOrbs.mapSpawn;
+        if (this.totalElapsedTime > this.nextMapXpSpawnTime) {
+            if (this.entities.xpOrbs.length < c.max - c.batch) {
+                const clusterCenterX = Math.random() * CONFIG.world.width;
+                const clusterCenterY = Math.random() * CONFIG.world.height;
+                for (let i = 0; i < c.batch; i++) {
+                    const x = clusterCenterX + (Math.random() - 0.5) * 400;
+                    const y = clusterCenterY + (Math.random() - 0.5) * 400;
+                    const finalX = Math.max(0, Math.min(CONFIG.world.width - 1, x));
+                    const finalY = Math.max(0, Math.min(CONFIG.world.height - 1, y));
+                    this.addEntity('xpOrbs', new XpOrb(finalX, finalY, c.value));
+                }
+            }
+            this.nextMapXpSpawnTime = this.totalElapsedTime + c.interval;
+        }
+    }
+
+    // Metodi per il sistema di item
+    applyItemEffect(item) {
+        const itemInfo = CONFIG.itemTypes[item.type];
+        this.notifications.push({ text: itemInfo.desc, life: 300 });
+        
+        switch (item.type) {
+            case 'HEAL_POTION':
+                this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5);
+                break;
+            case 'XP_BOMB':
+                if(this.player.gainXP(this.player.xpNext)) this.checkForLevelUp();
+                break;
+            case 'INVINCIBILITY':
+                this.player.powerUpTimers.invincibility = 600;
+                break;
+            case 'DAMAGE_BOOST':
+                this.player.powerUpTimers.damageBoost = 1200;
+                break;
+            case 'LEGENDARY_ORB':
+                this.player.powerUpTimers.damageBoost = 3600;
+                this.player.powerUpTimers.invincibility = 3600;
+                break;
+        }
+    }
+
+    // Metodi per il sistema di esplosioni
+    createExplosion(x, y, radius, damage) {
+        this.addEntity('effects', new Effect(x, y, { type: 'explosion', maxRadius: radius, life: 20, initialLife: 20 }));
+        for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
+            if (Utils.getDistance({x,y}, enemy) <= radius) {
+                enemy.takeDamage(this.getDamage(damage), this);
+            }
+        }
+    }
 }
 
 // Stato runtime degli archetipi acquistati (non salvato in localStorage)
