@@ -3023,12 +3023,16 @@ class BallSurvivalGame {
     }
     populateStatsMenu() { 
         const runStatsContainer = this.dom.containers.runStats;
-        runStatsContainer.innerHTML = `
-            <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
-            <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
-            <div class="run-stat-item">Nemici <span>${this.entities.enemies.length + this.entities.bosses.length}</span></div>
-            <div class="run-stat-item">Cristalli <span>${this.gemsThisRun} 💎</span></div>
-        `;
+        if (runStatsContainer) {
+            runStatsContainer.innerHTML = `
+                <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
+                <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
+                <div class="run-stat-item">Nemici <span>${this.entities.enemies.length + this.entities.bosses.length}</span></div>
+                <div class="run-stat-item">Cristalli <span>${this.gemsThisRun} 💎</span></div>
+            `;
+        } else {
+            console.warn('Elemento runStats non trovato nel DOM');
+        }
 
         const p = this.player; 
         if (!p || !p.stats) {
@@ -3046,7 +3050,12 @@ class BallSurvivalGame {
         playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round(((p.modifiers.area || 1) - 1) * 100)}%</span></div>`; 
         playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round(((p.modifiers.xpGain || 1) - 1) * 100)}%</span></div>`; 
         playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round((p.modifiers.luck || 0) * 100)}%</span></div></div>`; 
-        this.dom.playerStats.innerHTML = playerHTML; 
+        
+        if (this.dom.containers.playerStats) {
+            this.dom.containers.playerStats.innerHTML = playerHTML;
+        } else {
+            console.warn('Elemento playerStats non trovato nel DOM');
+        } 
         
         let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`; 
         let hasWeapons = false; 
@@ -3060,7 +3069,12 @@ class BallSurvivalGame {
         }); 
         if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`; 
         weaponsHTML += `</div>`; 
-        this.dom.weaponsStats.innerHTML = weaponsHTML; 
+        
+        if (this.dom.containers.weaponsStats) {
+            this.dom.containers.weaponsStats.innerHTML = weaponsHTML;
+        } else {
+            console.warn('Elemento weaponsStats non trovato nel DOM');
+        } 
     }
     handleEscapeKey() { const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { this.hideAllPopups(); } else { this.togglePause(); } }
     handleInteractionKey() { 
