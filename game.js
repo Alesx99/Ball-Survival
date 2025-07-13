@@ -375,185 +375,6 @@ const CONFIG = {
         luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
         xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
         defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
-    },
-    // Sistema di Armi e Equipaggiamento
-    weapons: {
-        // Armi base
-        sword: {
-            name: 'Spada',
-            type: 'melee',
-            damage: 25,
-            speed: 1.2,
-            range: 40,
-            effects: ['bleed'],
-            rarity: 'common',
-            baseCost: 50,
-            materials: { iron: 2, wood: 1 }
-        },
-        bow: {
-            name: 'Arco',
-            type: 'ranged',
-            damage: 20,
-            speed: 1.5,
-            range: 120,
-            effects: ['pierce'],
-            rarity: 'common',
-            baseCost: 60,
-            materials: { wood: 3, string: 1 }
-        },
-        wand: {
-            name: 'Bacchetta',
-            type: 'magic',
-            damage: 30,
-            speed: 1.0,
-            range: 80,
-            effects: ['burn'],
-            rarity: 'rare',
-            baseCost: 100,
-            materials: { crystal: 2, wood: 1 }
-        },
-        axe: {
-            name: 'Ascia',
-            type: 'melee',
-            damage: 35,
-            speed: 0.8,
-            range: 35,
-            effects: ['stun'],
-            rarity: 'rare',
-            baseCost: 120,
-            materials: { iron: 3, wood: 2 }
-        },
-        dagger: {
-            name: 'Pugnale',
-            type: 'melee',
-            damage: 15,
-            speed: 2.0,
-            range: 25,
-            effects: ['crit'],
-            rarity: 'common',
-            baseCost: 40,
-            materials: { iron: 1, wood: 1 }
-        },
-        // Armi avanzate
-        fireSword: {
-            name: 'Spada di Fuoco',
-            type: 'melee',
-            damage: 40,
-            speed: 1.3,
-            range: 45,
-            effects: ['burn', 'bleed'],
-            rarity: 'epic',
-            baseCost: 300,
-            materials: { iron: 3, crystal: 2, fireEssence: 1 }
-        },
-        iceBow: {
-            name: 'Arco di Ghiaccio',
-            type: 'ranged',
-            damage: 35,
-            speed: 1.4,
-            range: 140,
-            effects: ['freeze', 'pierce'],
-            rarity: 'epic',
-            baseCost: 350,
-            materials: { wood: 4, crystal: 2, iceEssence: 1 }
-        },
-        lightningWand: {
-            name: 'Bacchetta del Fulmine',
-            type: 'magic',
-            damage: 50,
-            speed: 1.1,
-            range: 100,
-            effects: ['shock', 'chain'],
-            rarity: 'legendary',
-            baseCost: 500,
-            materials: { crystal: 3, lightningEssence: 2, gold: 1 }
-        }
-    },
-
-    // Materiali per crafting
-    materials: {
-        iron: { name: 'Ferro', rarity: 'common', dropRate: 0.3 },
-        wood: { name: 'Legno', rarity: 'common', dropRate: 0.4 },
-        crystal: { name: 'Cristallo', rarity: 'rare', dropRate: 0.1 },
-        string: { name: 'Corda', rarity: 'common', dropRate: 0.2 },
-        fireEssence: { name: 'Essenza di Fuoco', rarity: 'rare', dropRate: 0.05 },
-        iceEssence: { name: 'Essenza di Ghiaccio', rarity: 'rare', dropRate: 0.05 },
-        lightningEssence: { name: 'Essenza del Fulmine', rarity: 'epic', dropRate: 0.02 },
-        gold: { name: 'Oro', rarity: 'epic', dropRate: 0.03 }
-    },
-
-    // Effetti delle armi
-    weaponEffects: {
-        bleed: { name: 'Sanguinamento', damage: 5, duration: 300 },
-        burn: { name: 'Bruciatura', damage: 8, duration: 240 },
-        freeze: { name: 'Congelamento', slow: 0.5, duration: 180 },
-        shock: { name: 'Scossa', damage: 12, duration: 120 },
-        stun: { name: 'Stordimento', duration: 60 },
-        pierce: { name: 'Perforazione', armorPen: 0.3 },
-        crit: { name: 'Critico', critChance: 0.25, critDamage: 2.0 },
-        chain: { name: 'Catena', chainCount: 3, chainDamage: 0.7 }
-    },
-
-    // Rarità e bonus
-    rarity: {
-        common: { name: 'Comune', color: '#ffffff', bonus: 1.0 },
-        rare: { name: 'Raro', color: '#4a90e2', bonus: 1.2 },
-        epic: { name: 'Epico', color: '#9b59b6', bonus: 1.5 },
-        legendary: { name: 'Leggendario', color: '#f39c12', bonus: 2.0 }
-    },
-
-    // Configurazioni essenziali mancanti
-    spells: {
-        magicMissile: { damage: 15, speed: 8, size: 8, cooldown: 60, maxLevel: 5, level: 0 },
-        fireball: { damage: 25, speed: 6, size: 12, cooldown: 90, burnDamage: 5, burnDuration: 120, maxLevel: 5, level: 0, meteorCount: 3, explosionRadius: 80 },
-        lightning: { damage: 20, speed: 12, size: 6, cooldown: 120, chainCount: 3, maxLevel: 5, level: 0 },
-        frostbolt: { damage: 18, speed: 7, size: 10, cooldown: 100, slowDuration: 180, slowAmount: 0.5, maxLevel: 5, level: 0 },
-        shotgun: { damage: 12, speed: 10, size: 6, cooldown: 80, count: 5, maxLevel: 5, level: 0 },
-        heal: { amount: 30, cooldown: 300, maxLevel: 3, level: 0 },
-        shield: { duration: 180, cooldown: 600, maxLevel: 3, level: 0 },
-        shockwave: { damage: 35, cooldown: 150, maxLevel: 3, level: 0 }
-    },
-
-    upgradeTree: {
-        fireball: { id: 'fireball', name: 'Palla di Fuoco', type: 'spell', maxLevel: 5 },
-        fireball_evolve_giant: { id: 'fireball_evolve_giant', name: 'Gigante di Fuoco', type: 'evolution', baseId: 'fireball', evolution: 'giant' },
-        fireball_evolve_meteor: { id: 'fireball_evolve_meteor', name: 'Meteora', type: 'evolution', baseId: 'fireball', evolution: 'meteor' },
-        lightning: { id: 'lightning', name: 'Fulmine', type: 'spell', maxLevel: 5 },
-        frostbolt: { id: 'frostbolt', name: 'Dardo di Ghiaccio', type: 'spell', maxLevel: 5 },
-        shotgun: { id: 'shotgun', name: 'Fucile a Pompa', type: 'spell', maxLevel: 5 },
-        heal: { id: 'heal', name: 'Cura', type: 'spell', maxLevel: 3 },
-        shield: { id: 'shield', name: 'Scudo Magico', type: 'spell', maxLevel: 3 },
-        shockwave: { id: 'shockwave', name: 'Onda d\'Urto', type: 'spell', maxLevel: 3 }
-    },
-
-    itemTypes: {
-        HEAL_POTION: { name: 'Pozione di Cura', desc: 'Ripristina 50% HP', color: '#ff0000' },
-        XP_BOMB: { name: 'Bomba XP', desc: 'Guadagna XP per il prossimo livello', color: '#00ff00' },
-        INVINCIBILITY: { name: 'Invincibilità', desc: 'Invincibile per 10 secondi', color: '#ffff00' },
-        DAMAGE_BOOST: { name: 'Boost Danno', desc: '+25% danno per 20 secondi', color: '#ff6600' },
-        LEGENDARY_ORB: { name: 'Orb Leggendario', desc: 'Boost completo per 1 minuto', color: '#ff00ff' }
-    },
-
-    merchant: {
-        x: 4000, y: 3000, size: 40, interactionRadius: 60
-    },
-
-    chest: {
-        size: 30, spawnTime: 30
-    },
-
-    xpOrbs: {
-        pickupRadius: 30
-    },
-
-    statIcons: {
-        health: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
-        speed: `<svg class="icon" viewBox="0 0 24 24"><path d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.5 2.54l2.6 1.53c.56-1.24.9-2.62.9-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.06-4.09l-2.6-1.53C16.17 17.98 14.21 19 12 19z"/></svg>`,
-        power: `<svg class="icon" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`,
-        frequency: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
-        area: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>`,
-        xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
-        defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
     }
 };
 
@@ -1068,112 +889,6 @@ class Player extends Entity {
         this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false };
         this.hp = this.stats.maxHp;
         this.archetype = CONFIG.characterArchetypes.standard; // Default
-        
-        // Sistema di equipaggiamento
-        this.equippedWeapon = null;
-        this.inventory = {
-            materials: {},
-            weapons: []
-        };
-        this.craftingLevel = 1;
-        this.craftingExp = 0;
-    }
-    
-    // Funzioni per il sistema di armi
-    canCraftWeapon(weaponId) {
-        const weapon = CONFIG.weapons[weaponId];
-        if (!weapon) return false;
-        
-        // Controlla se ha i materiali necessari
-        for (const [materialId, requiredAmount] of Object.entries(weapon.materials)) {
-            const currentAmount = this.inventory.materials[materialId] || 0;
-            if (currentAmount < requiredAmount) return false;
-        }
-        return true;
-    }
-    
-    craftWeapon(weaponId) {
-        const weapon = CONFIG.weapons[weaponId];
-        if (!weapon || !this.canCraftWeapon(weaponId)) return false;
-        
-        // Consuma i materiali
-        for (const [materialId, requiredAmount] of Object.entries(weapon.materials)) {
-            this.inventory.materials[materialId] -= requiredAmount;
-            if (this.inventory.materials[materialId] <= 0) {
-                delete this.inventory.materials[materialId];
-            }
-        }
-        
-        // Crea l'arma
-        const newWeapon = {
-            id: Date.now() + Math.random(),
-            weaponId: weaponId,
-            name: weapon.name,
-            rarity: weapon.rarity
-        };
-        
-        this.inventory.weapons.push(newWeapon);
-        
-        // Guadagna EXP di crafting
-        this.craftingExp += 10;
-        this.checkCraftingLevelUp();
-        
-        return true;
-    }
-    
-    checkCraftingLevelUp() {
-        const expNeeded = this.craftingLevel * 50;
-        if (this.craftingExp >= expNeeded) {
-            this.craftingLevel++;
-            this.craftingExp -= expNeeded;
-        }
-    }
-    
-    equipWeapon(weaponId) {
-        const weapon = this.inventory.weapons.find(w => w.id === weaponId);
-        if (!weapon) return false;
-        
-        this.unequipWeapon();
-        this.equippedWeapon = weapon;
-        this.applyWeaponStats();
-        return true;
-    }
-    
-    unequipWeapon() {
-        if (this.equippedWeapon) {
-            this.removeWeaponStats();
-            this.equippedWeapon = null;
-        }
-    }
-    
-    applyWeaponStats() {
-        if (!this.equippedWeapon) return;
-        
-        const weaponConfig = CONFIG.weapons[this.equippedWeapon.weaponId];
-        if (!weaponConfig) return;
-        
-        // Applica bonus dell'arma
-        this.stats.damage = (this.stats.damage || 0) + weaponConfig.damage;
-        this.stats.speed = (this.stats.speed || 0) + weaponConfig.speed;
-    }
-    
-    removeWeaponStats() {
-        if (!this.equippedWeapon) return;
-        
-        const weaponConfig = CONFIG.weapons[this.equippedWeapon.weaponId];
-        if (!weaponConfig) return;
-        
-        // Rimuovi bonus dell'arma
-        this.stats.damage = Math.max(0, (this.stats.damage || 0) - weaponConfig.damage);
-        this.stats.speed = Math.max(0, (this.stats.speed || 0) - weaponConfig.speed);
-    }
-    
-    // Sistema di Materiali
-    addMaterial(materialId, amount = 1) {
-        if (!this.inventory.materials[materialId]) {
-            this.inventory.materials[materialId] = 0;
-        }
-        this.inventory.materials[materialId] += amount;
     }
     resetForNewRun(permUpgrades, archetypeId) {
         this.x = CONFIG.world.width / 2; 
@@ -1215,7 +930,7 @@ class Player extends Entity {
         if (this.xpNext <= 0) this.xpNext = 1;
         if (this.level < 1) this.level = 1;
         
-
+        console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
     }
     applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr = (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
     update(game, joystick) { let kDx = 0, kDy = 0; if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } this.x += fDx * this.stats.speed; this.y += fDy * this.stats.speed; this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); for (const key in this.powerUpTimers) { if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; } }
@@ -1341,27 +1056,15 @@ class Enemy extends Entity {
     }
     onDeath(game) {
         game.enemiesKilled++;
-        game.score += this.stats.scoreValue;
         game.enemiesKilledSinceBoss++;
-        
-        // Drop XP
-        const xpValue = this.stats.xpValue;
-        for (let i = 0; i < xpValue; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const distance = Math.random() * 20 + 10;
-            const xpX = this.x + Math.cos(angle) * distance;
-            const xpY = this.y + Math.sin(angle) * distance;
-            game.addEntity('xpOrbs', new XpOrb(xpX, xpY, 1));
+        game.score += Math.floor(this.stats.maxHp);
+        game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
+        if (Math.random() < 0.1 + game.player.modifiers.luck) {
+            game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 1 : 0)));
         }
-        
-        // Drop gemme (raramente)
-        if (Math.random() < 0.1) {
-            const gemValue = Math.floor(Math.random() * 3) + 1;
-            game.addEntity('gemOrbs', new GemOrb(this.x, this.y, gemValue));
+        for (let j = 0; j < 8; j++) {
+            game.addEntity('particles', new Particle(this.x, this.y, { vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: this.color }));
         }
-        
-        // Drop materiali per crafting
-        game.dropMaterials(this);
     }
     draw(ctx, game) {
         ctx.save();
@@ -1420,36 +1123,15 @@ class Boss extends Enemy {
         }
     }
     onDeath(game) {
-        game.enemiesKilled++;
-        game.score += this.stats.scoreValue * 10;
+        super.onDeath(game);
+        // Incrementa il contatore dei boss uccisi nello stage corrente
         game.bossesKilledThisStage++;
-        
-        // Drop XP extra per boss
-        const xpValue = this.stats.xpValue * 5;
-        for (let i = 0; i < xpValue; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const distance = Math.random() * 30 + 20;
-            const xpX = this.x + Math.cos(angle) * distance;
-            const xpY = this.y + Math.sin(angle) * distance;
-            game.addEntity('xpOrbs', new XpOrb(xpX, xpY, 2));
-        }
-        
-        // Drop gemme garantite per boss
-        const gemValue = Math.floor(Math.random() * 5) + 3;
-        game.addEntity('gemOrbs', new GemOrb(this.x, this.y, gemValue));
-        
-        // Drop materiali rari per boss
-        game.dropMaterials(this);
-        
-        // Particelle di morte
-        for (let j = 0; j < 15; j++) {
-            game.addEntity('particles', new Particle(this.x, this.y, { 
-                vx: (Math.random() - 0.5) * 8, 
-                vy: (Math.random() - 0.5) * 8, 
-                life: 30, 
-                color: this.color 
-            }));
-        }
+        // Cura il giocatore del 50% HP max
+        game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);
+        // Bonus gemme
+        game.gemsThisRun += 50;
+        // Mostra popup scelta upgrade passivo extra (overcap)
+        game.showBossUpgradePopup();
     }
     draw(ctx) {
         ctx.save();
@@ -1690,26 +1372,18 @@ class Effect extends Entity {
 
 class BallSurvivalGame {
     constructor(canvasId) {
-        this.canvas = document.getElementById(canvasId); 
-        this.ctx = this.canvas.getContext('2d');
-        
+        this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
         this.initDOM();
         this.initInputHandlers();
-        
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
-        
-        // Inizializza sistema di armi dopo la creazione del giocatore
-        this.initWeaponSystem();
-        
-        this.joystick = { dx: 0, dy: 0, active: false, touchId: null };
+        this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
         this.selectedStage = 1; // Stage selezionato dal giocatore
         this.lastFrameTime = 0; 
         this.totalElapsedTime = 0; 
         this.menuCooldown = 0;
-        
         this.loadGameData(); 
         this.loadStageProgress(); // Carica la progressione degli stage
         this.resetRunState(); 
@@ -1722,15 +1396,8 @@ class BallSurvivalGame {
     initDOM() {
         this.dom = {
             gameContainer: document.getElementById('gameContainer'),
-            popups: { 
-                start: document.getElementById('startScreen'), 
-                pause: document.getElementById('pauseMenu'), 
-                gameOver: document.getElementById('gameOver'), 
-                upgrade: document.getElementById('upgradeMenu'), 
-                shop: document.getElementById('permanentUpgradeShop'),
-                weaponSystem: document.getElementById('weaponSystem')
-            },
-            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), weaponSystemBtn: document.getElementById('weaponSystemBtn'), closeWeaponBtn: document.getElementById('closeWeaponBtn') },
+            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop') },
+            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn') },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
             containers: { 
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
@@ -1755,8 +1422,6 @@ class BallSurvivalGame {
                 gemCounter: document.getElementById('gemCounter')
             }
         };
-        
-        // Sistema di armi verrà inizializzato dopo la creazione del giocatore
     }
     initInputHandlers() {
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -1770,8 +1435,6 @@ class BallSurvivalGame {
         this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
         this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
         this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
-        this.dom.buttons.weaponSystemBtn.onclick = () => this.showPopup('weaponSystem');
-        this.dom.buttons.closeWeaponBtn.onclick = () => this.hideAllPopups();
         
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
@@ -3051,13 +2714,6 @@ class BallSurvivalGame {
                         if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; 
                     }); 
                 } 
-                
-                // Carica sistema di armi
-                if (data.weaponSystem) {
-                    this.player.inventory = data.weaponSystem.inventory || { materials: {}, weapons: [] };
-                    this.player.craftingLevel = data.weaponSystem.craftingLevel || 1;
-                    this.player.craftingExp = data.weaponSystem.craftingExp || 0;
-                }
             } else { 
                 this.totalGems = 0; 
             } 
@@ -3066,22 +2722,7 @@ class BallSurvivalGame {
             this.totalGems = 0; 
         } 
     }
-    saveGameData() { 
-        try { 
-            const saveData = { 
-                totalGems: this.totalGems, 
-                upgrades: this.permanentUpgrades,
-                weaponSystem: {
-                    inventory: this.player.inventory,
-                    craftingLevel: this.player.craftingLevel,
-                    craftingExp: this.player.craftingExp
-                }
-            }; 
-            localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); 
-        } catch (e) { 
-            console.error("Impossibile salvare:", e); 
-        } 
-    }
+    saveGameData() { try { const saveData = { totalGems: this.totalGems, upgrades: this.permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare:", e); } }
     populateShop() { 
         this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
@@ -3239,198 +2880,23 @@ class BallSurvivalGame {
         this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
     }
 
-    // Sistema di Drop Materiali
-    dropMaterials(enemy) {
-        for (const [materialId, material] of Object.entries(CONFIG.materials)) {
-            if (Math.random() < material.dropRate) {
-                this.player.addMaterial(materialId);
-                this.notifications.push({ 
-                    text: `+1 ${material.name}`, 
-                    life: 120 
-                });
-            }
-        }
-    }
-
     // Funzione di test per il negozio
     testShop() {
-        // Test function removed - shop is working correctly
-    }
-
-    // Sistema di Armi - Interfaccia
-    initWeaponSystem() {
-        // Inizializza tab
-        this.initWeaponTabs();
+        console.log('=== TEST NEGOZIO ===');
+        console.log('DOM elements:');
+        console.log('- totalGemsShop:', this.dom.totalGemsShop);
+        console.log('- permanentUpgradeOptions:', this.dom.containers.permanentUpgradeOptions);
+        console.log('- shop popup:', this.dom.popups.shop);
         
-        // Popola le liste
-        this.populateWeaponInventory();
-        this.populateCraftingList();
-        this.populateMaterialsList();
+        console.log('Dati:');
+        console.log('- totalGems:', this.totalGems);
+        console.log('- permanentUpgrades:', this.permanentUpgrades);
         
-        // Aggiorna UI
-        this.updateWeaponUI();
-    }
-
-    initWeaponTabs() {
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
+        // Test diretto del populateShop
+        console.log('Testando populateShop...');
+        this.populateShop();
         
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabName = btn.dataset.tab;
-                
-                // Rimuovi active da tutti
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                
-                // Aggiungi active al tab selezionato
-                btn.classList.add('active');
-                document.getElementById(`${tabName}-tab`).classList.add('active');
-            });
-        });
-    }
-
-    populateWeaponInventory() {
-        const weaponsList = document.getElementById('weapons-list');
-        weaponsList.innerHTML = '';
-        
-        if (this.player.inventory.weapons.length === 0) {
-            weaponsList.innerHTML = '<p style="color: #bdc3c7; text-align: center;">Nessuna arma posseduta</p>';
-            return;
-        }
-        
-        this.player.inventory.weapons.forEach(weapon => {
-            const weaponConfig = CONFIG.weapons[weapon.weaponId];
-            const rarityColor = CONFIG.rarity[weapon.rarity].color;
-            
-            const weaponElement = document.createElement('div');
-            weaponElement.className = `weapon-item ${weapon.rarity}`;
-            weaponElement.innerHTML = `
-                <div class="weapon-info">
-                    <div class="weapon-name" style="color: ${rarityColor}">${weapon.name}</div>
-                    <div class="weapon-stats">
-                        Danno: ${weaponConfig.damage} | Velocità: ${weaponConfig.speed} | Raggio: ${weaponConfig.range}
-                    </div>
-                </div>
-                <div class="weapon-actions">
-                    ${this.player.equippedWeapon?.id === weapon.id 
-                        ? '<button class="weapon-btn unequip-btn" onclick="game.unequipWeapon()">Rimuovi</button>'
-                        : '<button class="weapon-btn equip-btn" onclick="game.equipWeapon(\'' + weapon.id + '\')">Equipaggia</button>'
-                    }
-                </div>
-            `;
-            weaponsList.appendChild(weaponElement);
-        });
-    }
-
-    populateCraftingList() {
-        const craftingList = document.getElementById('crafting-list');
-        craftingList.innerHTML = '';
-        
-        Object.entries(CONFIG.weapons).forEach(([weaponId, weapon]) => {
-            const canCraft = this.player.canCraftWeapon(weaponId);
-            const rarityColor = CONFIG.rarity[weapon.rarity].color;
-            
-            const craftingElement = document.createElement('div');
-            craftingElement.className = 'crafting-item';
-            craftingElement.innerHTML = `
-                <div class="weapon-info">
-                    <div class="weapon-name" style="color: ${rarityColor}">${weapon.name}</div>
-                    <div class="weapon-stats">
-                        Danno: ${weapon.damage} | Velocità: ${weapon.speed} | Raggio: ${weapon.range}
-                    </div>
-                    <div class="material-requirements">
-                        Materiali: ${Object.entries(weapon.materials).map(([mat, amt]) => 
-                            `${CONFIG.materials[mat].name} x${amt}`
-                        ).join(', ')}
-                    </div>
-                </div>
-                <div class="weapon-actions">
-                    <button class="weapon-btn craft-btn" 
-                            onclick="game.craftWeapon('${weaponId}')"
-                            ${canCraft ? '' : 'disabled'}>
-                        ${canCraft ? 'Crea' : 'Materiali insufficienti'}
-                    </button>
-                </div>
-            `;
-            craftingList.appendChild(craftingElement);
-        });
-    }
-
-    populateMaterialsList() {
-        const materialsList = document.getElementById('materials-list');
-        materialsList.innerHTML = '';
-        
-        Object.entries(this.player.inventory.materials).forEach(([materialId, count]) => {
-            const material = CONFIG.materials[materialId];
-            const rarityColor = CONFIG.rarity[material.rarity].color;
-            
-            const materialElement = document.createElement('div');
-            materialElement.className = 'material-item';
-            materialElement.innerHTML = `
-                <div class="material-info">
-                    <span class="material-name" style="color: ${rarityColor}">${material.name}</span>
-                    <span class="material-rarity ${material.rarity}">${material.rarity.toUpperCase()}</span>
-                </div>
-                <div class="material-count">x${count}</div>
-            `;
-            materialsList.appendChild(materialElement);
-        });
-        
-        if (Object.keys(this.player.inventory.materials).length === 0) {
-            materialsList.innerHTML = '<p style="color: #bdc3c7; text-align: center;">Nessun materiale posseduto</p>';
-        }
-    }
-
-    updateWeaponUI() {
-        // Aggiorna arma equipaggiata
-        const equippedWeapon = document.getElementById('equipped-weapon');
-        if (this.player.equippedWeapon) {
-            const weaponConfig = CONFIG.weapons[this.player.equippedWeapon.weaponId];
-            const rarityColor = CONFIG.rarity[this.player.equippedWeapon.rarity].color;
-            
-            equippedWeapon.innerHTML = `
-                <div style="color: ${rarityColor}; font-weight: bold; margin-bottom: 10px;">
-                    ${this.player.equippedWeapon.name}
-                </div>
-                <div style="color: #bdc3c7; font-size: 0.9em;">
-                    Danno: ${weaponConfig.damage} | Velocità: ${weaponConfig.speed} | Raggio: ${weaponConfig.range}
-                </div>
-            `;
-        } else {
-            equippedWeapon.innerHTML = '<p>Nessuna arma equipaggiata</p>';
-        }
-        
-        // Aggiorna progress bar crafting
-        const expNeeded = this.player.craftingLevel * 50;
-        const progressPercent = (this.player.craftingExp / expNeeded) * 100;
-        
-        document.getElementById('crafting-level').textContent = this.player.craftingLevel;
-        document.getElementById('crafting-exp-bar').style.width = `${progressPercent}%`;
-        document.getElementById('crafting-exp-text').textContent = `${this.player.craftingExp} / ${expNeeded} EXP`;
-    }
-
-    // Funzioni pubbliche per l'interfaccia
-    equipWeapon(weaponId) {
-        if (this.player.equipWeapon(weaponId)) {
-            this.populateWeaponInventory();
-            this.updateWeaponUI();
-        }
-    }
-
-    unequipWeapon() {
-        this.player.unequipWeapon();
-        this.populateWeaponInventory();
-        this.updateWeaponUI();
-    }
-
-    craftWeapon(weaponId) {
-        if (this.player.craftWeapon(weaponId)) {
-            this.populateWeaponInventory();
-            this.populateCraftingList();
-            this.populateMaterialsList();
-            this.updateWeaponUI();
-        }
+        console.log('=== FINE TEST ===');
     }
 }
 

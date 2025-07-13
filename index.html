@@ -26,14 +26,13 @@
         </div>
 
         <!-- NUOVA UI DI GIOCO -->
-        <div id="inGameUI" style="display: none;">
-            <div id="gameTimer">00:00</div>
-            <div id="xpBar">
+        <div id="inGameUI">
+            <div id="gameTimer">0s</div>
+            <div id="xpBarContainer">
                 <div id="xpBarFill"></div>
-                <div id="xpBarText">Level 1</div>
+                <div id="xpBarText">LVL 1</div>
             </div>
             <div id="gemCounter">💎 0</div>
-            <button id="weaponSystemBtn" style="position: absolute; top: 10px; right: 10px; background: #3498db; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px;">🏹 Armi</button>
         </div>
 
         <!-- Popups -->
@@ -104,51 +103,6 @@
             <div id="permanentUpgradeOptions" class="menu-content"></div>
             <div class="menu-actions">
                 <button id="closeShopBtn">Chiudi</button>
-            </div>
-        </div>
-
-        <!-- Sistema di Armi e Crafting -->
-        <div id="weaponSystem" class="popup-menu">
-            <h3>🏹 Sistema Armi</h3>
-            <div class="weapon-tabs">
-                <button class="tab-btn active" data-tab="inventory">Inventario</button>
-                <button class="tab-btn" data-tab="crafting">Crafting</button>
-                <button class="tab-btn" data-tab="materials">Materiali</button>
-            </div>
-            
-            <!-- Tab Inventario -->
-            <div id="inventory-tab" class="tab-content active">
-                <h4>Arma Equipaggiata</h4>
-                <div id="equipped-weapon" class="equipped-weapon">
-                    <p>Nessuna arma equipaggiata</p>
-                </div>
-                
-                <h4>Arma Possedute</h4>
-                <div id="weapons-list" class="weapons-list"></div>
-            </div>
-            
-            <!-- Tab Crafting -->
-            <div id="crafting-tab" class="tab-content">
-                <h4>Crafting Level: <span id="crafting-level">1</span></h4>
-                <div id="crafting-progress">
-                    <div class="progress-bar">
-                        <div id="crafting-exp-bar" class="progress-fill"></div>
-                    </div>
-                    <span id="crafting-exp-text">0 / 50 EXP</span>
-                </div>
-                
-                <h4>Arma Disponibili</h4>
-                <div id="crafting-list" class="crafting-list"></div>
-            </div>
-            
-            <!-- Tab Materiali -->
-            <div id="materials-tab" class="tab-content">
-                <h4>Materiali Posseduti</h4>
-                <div id="materials-list" class="materials-list"></div>
-            </div>
-            
-            <div class="menu-actions">
-                <button id="closeWeaponBtn">Chiudi</button>
             </div>
         </div>
     </div>
