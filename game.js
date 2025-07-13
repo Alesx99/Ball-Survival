@@ -1977,7 +1977,14 @@ class BallSurvivalGame {
             chests: [],
             droppedItems: [],
             materialItems: [], // Aggiunto supporto per materiali
-            notifications: [] // Aggiunto supporto per notifiche
+            notifications: [], // Aggiunto supporto per notifiche
+            fireTrails: [],
+            sanctuaries: [],
+            staticFields: [],
+            bosses: [],
+            enemyProjectiles: [],
+            auras: [],
+            orbitals: []
         };
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
@@ -2032,23 +2039,25 @@ class BallSurvivalGame {
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
-        this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
-        this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
-        this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
-        this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
-        this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
-        this.entities.chests.forEach(e => e.draw(this.ctx, this));
-        this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
-        this.entities.materialItems.forEach(e => e.draw(this.ctx)); // Aggiunto disegno materiali
-        this.entities.enemies.forEach(e => e.draw(this.ctx, this));
-        this.entities.bosses.forEach(e => e.draw(this.ctx, this));
+        
+        // Controlli di sicurezza per tutti gli array di entità
+        if (this.entities.fireTrails) this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.sanctuaries) this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.staticFields) this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.xpOrbs) this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.gemOrbs) this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.chests) this.entities.chests.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.droppedItems) this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.materialItems) this.entities.materialItems.forEach(e => e.draw(this.ctx)); // Aggiunto disegno materiali
+        if (this.entities.enemies) this.entities.enemies.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.bosses) this.entities.bosses.forEach(e => e.draw(this.ctx, this));
         this.player.draw(this.ctx, this);
-        this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
-        this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
-        this.entities.auras.forEach(e => e.draw(this.ctx, this));
-        this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
-        this.entities.particles.forEach(e => e.draw(this.ctx, this));
-        this.entities.effects.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.projectiles) this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.enemyProjectiles) this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.auras) this.entities.auras.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.orbitals) this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.particles) this.entities.particles.forEach(e => e.draw(this.ctx, this));
+        if (this.entities.effects) this.entities.effects.forEach(e => e.draw(this.ctx, this));
         this.drawMerchant();
         this.ctx.restore();
         this.drawOffscreenIndicators();
@@ -3268,7 +3277,10 @@ class BallSurvivalGame {
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
     updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
     resizeCanvas() {
-        if (!this.dom.canvas) return; // Controllo di sicurezza
+        if (!this.dom || !this.dom.canvas) {
+            console.warn('Canvas non disponibile per il resize');
+            return;
+        }
         
         // Usa il canvas stesso per ottenere le dimensioni
         const rect = this.dom.canvas.getBoundingClientRect();
@@ -3281,7 +3293,7 @@ class BallSurvivalGame {
         this.canvas.height = height;
         this.camera.width = width;
         this.camera.height = height;
-        if (this.state !== 'running') this.draw();
+        if (this.state !== 'running' && this.entities) this.draw();
     }
     drawOffscreenIndicators() { if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); }
     drawOffscreenIndicator(target, color, shape) { const screenX = target.x - this.camera.x; const screenY = target.y - this.camera.y; if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; const pScreenX = this.player.x - this.camera.x; const pScreenY = this.player.y - this.camera.y; const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); const padding = 30; let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); this.ctx.save(); this.ctx.translate(arrowX, arrowY); this.ctx.rotate(angle); this.ctx.fillStyle = color; this.ctx.strokeStyle = "white"; this.ctx.lineWidth = 1; this.ctx.beginPath(); if (shape === 'arrow') { this.ctx.moveTo(15, 0); this.ctx.lineTo(-15, -10); this.ctx.lineTo(-10, 0); this.ctx.lineTo(-15, 10); } else { this.ctx.moveTo(0, -10); this.ctx.lineTo(10, 10); this.ctx.lineTo(-10, 10); } this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke(); this.ctx.restore(); }
