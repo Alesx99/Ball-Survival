@@ -1086,6 +1086,11 @@ class Player extends Entity {
         
         this.hp = this.stats.maxHp;
         
+        // Inizializza il sistema di materiali se non esiste
+        if (!this.materials) {
+            this.materials = {};
+        }
+        
         // Controlli di sicurezza finali per XP
         if (this.xp < 0) this.xp = 0;
         if (this.xpNext <= 0) this.xpNext = 1;
@@ -1272,6 +1277,12 @@ class Enemy extends Entity {
     }
 
     dropMaterials(game) {
+        // Controllo di sicurezza per il sistema di materiali
+        if (!game.player || !game.player.materials) {
+            console.warn('Sistema materiali non inizializzato');
+            return;
+        }
+        
         // Probabilità base di drop materiale
         let materialChance = CONFIG.materialDrop.baseMaterialChance;
         
@@ -1300,6 +1311,12 @@ class Enemy extends Entity {
     }
 
     selectMaterialToDrop(game) {
+        // Controllo di sicurezza per il sistema di materiali
+        if (!game.player || !game.player.materials) {
+            console.warn('Sistema materiali non inizializzato in selectMaterialToDrop');
+            return null;
+        }
+        
         const allMaterials = [];
         
         // Raccogli tutti i materiali disponibili
@@ -2022,7 +2039,6 @@ class BallSurvivalGame {
             chests: [],
             droppedItems: [],
             materialItems: [], // Aggiunto supporto per materiali
-            notifications: [], // Aggiunto supporto per notifiche
             fireTrails: [],
             sanctuaries: [],
             staticFields: [],
@@ -2031,7 +2047,9 @@ class BallSurvivalGame {
             auras: [],
             orbitals: []
         };
-        this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
+        // Le notifiche sono gestite separatamente (non sono entità)
+        this.notifications = [];
+        this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
         this.nextChestSpawnTime = CONFIG.chest.spawnTime; this.nextMapXpSpawnTime = 5;
         this.lastEnemySpawnTime = 0; 
@@ -2079,6 +2097,7 @@ class BallSurvivalGame {
                 if (entity.toRemove) this.entities[type].splice(i, 1);
             }
         }
+        // Aggiorna le notifiche (non sono entità, quindi non usano il metodo update)
         for (let i = this.notifications.length - 1; i >= 0; i--) {
             this.notifications[i].life--;
             if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
