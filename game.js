@@ -2932,23 +2932,38 @@ class BallSurvivalGame {
     }
 
     updateInGameUI() {
-        const ui = this.dom.inGameUI;
-        ui.timer.textContent = '🕒 ' + Math.floor(this.totalElapsedTime) + 's';
-        ui.gemCounter.textContent = '💎 ' + this.gemsThisRun;
-
-        if (this.player.xpNext > 0) {
-            const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
-            ui.xpBarFill.style.width = xpPercent + '%';
-        } else {
-            ui.xpBarFill.style.width = '100%';
+        // Controlli di sicurezza
+        if (!this.dom.inGameUI || !this.player) {
+            console.warn('updateInGameUI: DOM o player non ancora inizializzati');
+            return;
         }
-        ui.xpBarText.textContent = `LVL ${this.player.level}`;
+
+        const ui = this.dom.inGameUI;
+        
+        // Controlli per ogni elemento UI
+        if (ui.timer) {
+            ui.timer.textContent = '🕒 ' + Math.floor(this.totalElapsedTime) + 's';
+        }
+        
+        if (ui.gemCounter) {
+            ui.gemCounter.textContent = '💎 ' + this.gemsThisRun;
+        }
+
+        if (ui.xpBarFill && ui.xpBarText && this.player.xpNext !== undefined) {
+            if (this.player.xpNext > 0) {
+                const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
+                ui.xpBarFill.style.width = xpPercent + '%';
+            } else {
+                ui.xpBarFill.style.width = '100%';
+            }
+            ui.xpBarText.textContent = `LVL ${this.player.level}`;
+        }
         
         // Aggiorna anche la barra XP mobile
         const xpBarMobile = document.getElementById('xpBarMobile');
         const xpBarMobileFill = document.getElementById('xpBarMobileFill');
         const xpBarMobileText = document.getElementById('xpBarMobileText');
-        if (xpBarMobile && xpBarMobileFill && xpBarMobileText) {
+        if (xpBarMobile && xpBarMobileFill && xpBarMobileText && this.player.xpNext !== undefined) {
             if (this.player.xpNext > 0) {
                 const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
                 xpBarMobileFill.style.width = xpPercent + '%';
@@ -3007,16 +3022,21 @@ class BallSurvivalGame {
         `;
 
         const p = this.player; 
-        let playerHTML = `<div class="stats-section"><div class="stats-section-title">${p.archetype.name}</div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp)} / ${p.stats.maxHp}</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${p.stats.speed.toFixed(1)}</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.defense}<span class="stat-item-label">Rid. Danni:</span><span class="stat-item-value">${Math.round(p.stats.dr * 100)}%</span></div></div>`; 
+        if (!p || !p.stats) {
+            console.warn('populateStatsMenu: Player non ancora inizializzato');
+            return;
+        }
+        
+        let playerHTML = `<div class="stats-section"><div class="stats-section-title">${p.archetype ? p.archetype.name : 'Sconosciuto'}</div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp || 0)} / ${p.stats.maxHp || 0}</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${(p.stats.speed || 0).toFixed(1)}</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.defense}<span class="stat-item-label">Rid. Danni:</span><span class="stat-item-value">${Math.round((p.stats.dr || 0) * 100)}%</span></div></div>`; 
         playerHTML += `<div class="stats-section"><div class="stats-section-title">Modificatori</div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">${Math.round((p.modifiers.power - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">${Math.round((1 - p.modifiers.frequency) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round((p.modifiers.area - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round((p.modifiers.xpGain - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round(p.modifiers.luck * 100)}%</span></div></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">${Math.round(((p.modifiers.power || 1) - 1) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">${Math.round((1 - (p.modifiers.frequency || 1)) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round(((p.modifiers.area || 1) - 1) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round(((p.modifiers.xpGain || 1) - 1) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round((p.modifiers.luck || 0) * 100)}%</span></div></div>`; 
         this.dom.playerStats.innerHTML = playerHTML; 
         
         let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`; 
@@ -3248,7 +3268,10 @@ class BallSurvivalGame {
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
     updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
     resizeCanvas() {
-        const rect = this.dom.gameContainer.getBoundingClientRect();
+        if (!this.dom.canvas) return; // Controllo di sicurezza
+        
+        // Usa il canvas stesso per ottenere le dimensioni
+        const rect = this.dom.canvas.getBoundingClientRect();
         // Limiti massimi desktop
         const maxW = window.innerWidth <= 700 ? CONFIG.world.width : Math.min(CONFIG.world.width, 1200);
         const maxH = window.innerWidth <= 700 ? CONFIG.world.height : Math.min(CONFIG.world.height, 900);
