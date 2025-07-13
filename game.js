@@ -1980,7 +1980,7 @@ class BallSurvivalGame {
 
         Object.values(this.dom.popups).forEach(p => p.addEventListener('click', e => e.stopPropagation()));
         document.addEventListener('keydown', (e) => {
-     
+            this.player.keys[e.code] = true;
             if (e.code === 'Escape') this.handleEscapeKey();
             if (e.code === 'KeyE') this.handleInteractionKey();
         });
