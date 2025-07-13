@@ -1593,9 +1593,17 @@ class Effect extends Entity {
 
 class BallSurvivalGame {
     constructor(canvasId) {
-        this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
+        console.log('Starting game constructor...');
+        this.canvas = document.getElementById(canvasId); 
+        console.log('Canvas found:', this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+        console.log('Context created:', this.ctx);
+        
         this.initDOM();
+        console.log('DOM initialized');
         this.initInputHandlers();
+        console.log('Input handlers initialized');
+        
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
         this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
@@ -1605,13 +1613,21 @@ class BallSurvivalGame {
         this.lastFrameTime = 0; 
         this.totalElapsedTime = 0; 
         this.menuCooldown = 0;
+        
         this.loadGameData(); 
+        console.log('Game data loaded');
         this.loadStageProgress(); // Carica la progressione degli stage
+        console.log('Stage progress loaded');
         this.resetRunState(); 
+        console.log('Run state reset');
         this.resizeCanvas();
+        console.log('Canvas resized');
         this.populateCharacterSelection();
+        console.log('Character selection populated');
         this.populateStageSelection();
+        console.log('Stage selection populated');
         this.showPopup('start');
+        console.log('Start popup shown');
     }
 
     initDOM() {
@@ -1785,6 +1801,13 @@ class BallSurvivalGame {
     }
     
     draw() {
+        // Debug: log first few draws
+        if (!this.drawCount) this.drawCount = 0;
+        this.drawCount++;
+        if (this.drawCount <= 5) {
+            console.log('Draw called, count:', this.drawCount, 'state:', this.state);
+        }
+        
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
@@ -3263,21 +3286,7 @@ class BallSurvivalGame {
 
     // Funzione di test per il negozio
     testShop() {
-        console.log('=== TEST NEGOZIO ===');
-        console.log('DOM elements:');
-        console.log('- totalGemsShop:', this.dom.totalGemsShop);
-        console.log('- permanentUpgradeOptions:', this.dom.containers.permanentUpgradeOptions);
-        console.log('- shop popup:', this.dom.popups.shop);
-        
-        console.log('Dati:');
-        console.log('- totalGems:', this.totalGems);
-        console.log('- permanentUpgrades:', this.permanentUpgrades);
-        
-        // Test diretto del populateShop
-        console.log('Testando populateShop...');
-        this.populateShop();
-        
-        console.log('=== FINE TEST ===');
+        // Test function removed - shop is working correctly
     }
 
     // Sistema di Armi - Interfaccia
@@ -3462,5 +3471,11 @@ let unlockedArchetypes = new Set(['standard']);
 
 let game;
 window.addEventListener('DOMContentLoaded', () => { 
-    game = new BallSurvivalGame('gameCanvas'); 
+    console.log('DOM loaded, initializing game...');
+    try {
+        game = new BallSurvivalGame('gameCanvas'); 
+        console.log('Game initialized successfully');
+    } catch (error) {
+        console.error('Error initializing game:', error);
+    }
 });
