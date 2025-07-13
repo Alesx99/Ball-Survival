@@ -375,168 +375,7 @@ const CONFIG = {
         luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
         xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
         defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
-    },
-    // Sistema di Materiali con Rarità
-    materials: {
-        // Materiali Comuni (Rarità 1)
-        common: {
-            'IRON_ORE': { 
-                name: "Minerale di Ferro", 
-                color: '#8B7355', 
-                desc: "Minerale comune utilizzato per armi base.",
-                rarity: 1,
-                baseDropChance: 0.15,
-                stageMultiplier: 1.0
-            },
-            'WOOD': { 
-                name: "Legno", 
-                color: '#8B4513', 
-                desc: "Legno resistente per impugnature.",
-                rarity: 1,
-                baseDropChance: 0.12,
-                stageMultiplier: 1.0
-            },
-            'STONE': { 
-                name: "Pietra", 
-                color: '#696969', 
-                desc: "Pietra solida per armi pesanti.",
-                rarity: 1,
-                baseDropChance: 0.10,
-                stageMultiplier: 1.0
-            },
-            'LEATHER': { 
-                name: "Cuoio", 
-                color: '#D2691E', 
-                desc: "Cuoio flessibile per protezioni.",
-                rarity: 1,
-                baseDropChance: 0.08,
-                stageMultiplier: 1.0
-            }
-        },
-        // Materiali Rari (Rarità 2)
-        rare: {
-            'SILVER_ORE': { 
-                name: "Minerale d'Argento", 
-                color: '#C0C0C0', 
-                desc: "Argento prezioso per armi magiche.",
-                rarity: 2,
-                baseDropChance: 0.06,
-                stageMultiplier: 1.2
-            },
-            'MAGIC_CRYSTAL': { 
-                name: "Cristallo Magico", 
-                color: '#9370DB', 
-                desc: "Cristallo che irradia energia magica.",
-                rarity: 2,
-                baseDropChance: 0.05,
-                stageMultiplier: 1.3
-            },
-            'ENCHANTED_WOOD': { 
-                name: "Legno Incantato", 
-                color: '#228B22', 
-                desc: "Legno che brilla di magia antica.",
-                rarity: 2,
-                baseDropChance: 0.04,
-                stageMultiplier: 1.2
-            },
-            'MYTHRIL_FRAGMENT': { 
-                name: "Frammento di Mithril", 
-                color: '#4169E1', 
-                desc: "Lega leggendaria per armi supreme.",
-                rarity: 2,
-                baseDropChance: 0.03,
-                stageMultiplier: 1.4
-            }
-        },
-        // Materiali Epici (Rarità 3)
-        epic: {
-            'GOLD_ORE': { 
-                name: "Minerale d'Oro", 
-                color: '#FFD700', 
-                desc: "Oro puro per armi divine.",
-                rarity: 3,
-                baseDropChance: 0.025,
-                stageMultiplier: 1.5
-            },
-            'DRAGON_SCALE': { 
-                name: "Squama di Drago", 
-                color: '#DC143C', 
-                desc: "Squama indurita di drago antico.",
-                rarity: 3,
-                baseDropChance: 0.02,
-                stageMultiplier: 1.6
-            },
-            'PHOENIX_FEATHER': { 
-                name: "Piuma di Fenice", 
-                color: '#FF4500', 
-                desc: "Piuma che brucia di fuoco eterno.",
-                rarity: 3,
-                baseDropChance: 0.015,
-                stageMultiplier: 1.7
-            },
-            'VOID_ESSENCE': { 
-                name: "Essenza del Vuoto", 
-                color: '#4B0082', 
-                desc: "Essenza che piega la realtà.",
-                rarity: 3,
-                baseDropChance: 0.01,
-                stageMultiplier: 1.8
-            }
-        },
-        // Materiali Leggendari (Rarità 4)
-        legendary: {
-            'DIAMOND_CORE': { 
-                name: "Nucleo di Diamante", 
-                color: '#00FFFF', 
-                desc: "Diamante puro che irradia potere.",
-                rarity: 4,
-                baseDropChance: 0.005,
-                stageMultiplier: 2.0
-            },
-            'CELESTIAL_STEEL': { 
-                name: "Acciaio Celestiale", 
-                color: '#FF69B4', 
-                desc: "Metallo forgiato nelle stelle.",
-                rarity: 4,
-                baseDropChance: 0.003,
-                stageMultiplier: 2.2
-            },
-            'TIME_SHARD': { 
-                name: "Scheggia del Tempo", 
-                color: '#FF00FF', 
-                desc: "Frammento che controlla il tempo.",
-                rarity: 4,
-                baseDropChance: 0.002,
-                stageMultiplier: 2.5
-            },
-            'REALITY_FRAGMENT': { 
-                name: "Frammento di Realtà", 
-                color: '#FFFFFF', 
-                desc: "Pezzo della realtà stessa.",
-                rarity: 4,
-                baseDropChance: 0.001,
-                stageMultiplier: 3.0
-            }
-        }
-    },
-    // Configurazione del sistema di drop
-    materialDrop: {
-        // Bonus per materiali già raccolti (diminuisce la probabilità di drop)
-        collectedPenalty: {
-            1: 0.1,  // -10% per materiali comuni già raccolti
-            2: 0.15, // -15% per materiali rari già raccolti
-            3: 0.2,  // -20% per materiali epici già raccolti
-            4: 0.25  // -25% per materiali leggendari già raccolti
-        },
-        // Bonus per nemici elite
-        eliteMultiplier: 2.0,
-        // Bonus per boss
-        bossMultiplier: 5.0,
-        // Bonus per stage avanzati
-        stageBonus: 0.1, // +10% per ogni stage
-        // Probabilità base di drop materiale
-        baseMaterialChance: 0.3
-    },
+    }
 };
 
 const Utils = {
@@ -1220,104 +1059,12 @@ class Enemy extends Entity {
         game.enemiesKilledSinceBoss++;
         game.score += Math.floor(this.stats.maxHp);
         game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
-        
-        // Drop di gemme
         if (Math.random() < 0.1 + game.player.modifiers.luck) {
             game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 1 : 0)));
         }
-
-        // Sistema di drop materiali
-        this.dropMaterials(game);
-
-        // Particelle di morte
         for (let j = 0; j < 8; j++) {
             game.addEntity('particles', new Particle(this.x, this.y, { vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: this.color }));
         }
-    }
-
-    dropMaterials(game) {
-        // Probabilità base di drop materiale
-        let materialChance = CONFIG.materialDrop.baseMaterialChance;
-        
-        // Bonus per nemici elite
-        if (this.stats.isElite) {
-            materialChance *= CONFIG.materialDrop.eliteMultiplier;
-        }
-        
-        // Bonus per stage avanzati
-        const stageBonus = (game.currentStage - 1) * CONFIG.materialDrop.stageBonus;
-        materialChance += stageBonus;
-        
-        // Bonus per fortuna del giocatore
-        materialChance += game.player.modifiers.luck || 0;
-
-        // Controlla se droppa un materiale
-        if (Math.random() < materialChance) {
-            const materialId = this.selectMaterialToDrop(game);
-            if (materialId) {
-                // Posizione casuale intorno al nemico
-                const offsetX = (Math.random() - 0.5) * 40;
-                const offsetY = (Math.random() - 0.5) * 40;
-                game.addEntity('materialItems', new MaterialItem(this.x + offsetX, this.y + offsetY, materialId));
-            }
-        }
-    }
-
-    selectMaterialToDrop(game) {
-        const allMaterials = [];
-        
-        // Raccogli tutti i materiali disponibili
-        for (const [category, materials] of Object.entries(CONFIG.materials)) {
-            for (const [materialId, materialInfo] of Object.entries(materials)) {
-                allMaterials.push({ id: materialId, info: materialInfo, category });
-            }
-        }
-
-        if (allMaterials.length === 0) return null;
-
-        // Calcola probabilità per ogni materiale
-        const materialProbabilities = allMaterials.map(material => {
-            let probability = material.info.baseDropChance;
-            
-            // Moltiplicatore per stage
-            probability *= material.info.stageMultiplier;
-            
-            // Penalità per materiali già raccolti
-            if (game.player.materials && game.player.materials[material.id]) {
-                const collectedCount = game.player.materials[material.id];
-                const penalty = CONFIG.materialDrop.collectedPenalty[material.info.rarity] || 0;
-                probability *= Math.pow(1 - penalty, collectedCount);
-            }
-            
-            // Bonus per nemici elite
-            if (this.stats.isElite) {
-                probability *= CONFIG.materialDrop.eliteMultiplier;
-            }
-            
-            // Bonus per fortuna
-            probability *= (1 + (game.player.modifiers.luck || 0));
-            
-            return { material, probability };
-        });
-
-        // Seleziona materiale basato su probabilità
-        const totalProbability = materialProbabilities.reduce((sum, item) => sum + item.probability, 0);
-        let random = Math.random() * totalProbability;
-        
-        for (const item of materialProbabilities) {
-            random -= item.probability;
-            if (random <= 0) {
-                return item.material.id;
-            }
-        }
-
-        // Fallback: seleziona un materiale comune
-        const commonMaterials = allMaterials.filter(m => m.info.rarity === 1);
-        if (commonMaterials.length > 0) {
-            return commonMaterials[Math.floor(Math.random() * commonMaterials.length)].id;
-        }
-
-        return null;
     }
     draw(ctx, game) {
         ctx.save();
@@ -1622,163 +1369,6 @@ class Effect extends Entity {
     }
 }
 
-class MaterialItem extends Entity {
-    constructor(x, y, materialId) {
-        super(x, y);
-        this.materialId = materialId;
-        this.materialInfo = this.getMaterialInfo(materialId);
-        this.life = 900; // Durata più lunga dei materiali
-        this.bobOffset = Math.random() * Math.PI * 2;
-        this.rotation = 0;
-        this.glowIntensity = 0;
-        this.pulseDirection = 1;
-    }
-
-    getMaterialInfo(materialId) {
-        // Cerca il materiale in tutte le categorie
-        for (const category of Object.values(CONFIG.materials)) {
-            if (category[materialId]) {
-                return category[materialId];
-            }
-        }
-        return null;
-    }
-
-    update(game) {
-        this.life--;
-        if (this.life <= 0) {
-            this.toRemove = true;
-            return;
-        }
-
-        // Animazioni
-        this.rotation += 0.02;
-        this.glowIntensity += 0.1 * this.pulseDirection;
-        if (this.glowIntensity >= 1 || this.glowIntensity <= 0) {
-            this.pulseDirection *= -1;
-        }
-
-        // Controllo raccolta
-        const dist = Utils.getDistance(game.player, this);
-        if (dist < game.player.stats.radius + 15) {
-            this.collectMaterial(game);
-            this.toRemove = true;
-        }
-    }
-
-    collectMaterial(game) {
-        if (!this.materialInfo) return;
-
-        // Aggiungi al inventario del giocatore
-        if (!game.player.materials) {
-            game.player.materials = {};
-        }
-        
-        if (!game.player.materials[this.materialId]) {
-            game.player.materials[this.materialId] = 0;
-        }
-        
-        game.player.materials[this.materialId]++;
-
-        // Mostra notifica
-        game.showNotification(`+1 ${this.materialInfo.name}`, this.materialInfo.color);
-
-        // Effetti particellari
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 * i) / 8;
-            const speed = 3 + Math.random() * 2;
-            game.addEntity('particles', new Particle(
-                this.x, 
-                this.y, 
-                { 
-                    vx: Math.cos(angle) * speed, 
-                    vy: Math.sin(angle) * speed, 
-                    life: 30, 
-                    color: this.materialInfo.color 
-                }
-            ));
-        }
-    }
-
-    draw(ctx) {
-        if (!this.materialInfo) return;
-
-        ctx.save();
-        
-        // Calcola trasparenza basata sulla vita rimanente
-        const alpha = this.life > 120 ? 1.0 : Math.max(0, this.life / 120);
-        ctx.globalAlpha = alpha;
-
-        // Posizione con effetto bob
-        const bob = Math.sin(Date.now() / 300 + this.bobOffset) * 4;
-        const drawX = this.x;
-        const drawY = this.y + bob;
-
-        // Effetto glow basato sulla rarità
-        const glowRadius = 8 + this.materialInfo.rarity * 2;
-        const glowAlpha = 0.3 + this.glowIntensity * 0.2;
-        
-        // Glow esterno
-        ctx.globalAlpha = glowAlpha * alpha;
-        ctx.fillStyle = this.materialInfo.color;
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Corpo principale
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = this.materialInfo.color;
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, 8, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Bordo luminoso
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Effetto di rarità (stelle per leggendari, scintille per epici, etc.)
-        if (this.materialInfo.rarity >= 3) {
-            this.drawRarityEffect(ctx, drawX, drawY);
-        }
-
-        ctx.restore();
-    }
-
-    drawRarityEffect(ctx, x, y) {
-        const time = Date.now() / 1000;
-        
-        if (this.materialInfo.rarity === 4) {
-            // Effetto stellare per leggendari
-            for (let i = 0; i < 4; i++) {
-                const angle = time + (i * Math.PI / 2);
-                const starX = x + Math.cos(angle) * 12;
-                const starY = y + Math.sin(angle) * 12;
-                
-                ctx.fillStyle = '#FFFFFF';
-                ctx.globalAlpha = 0.8 * Math.sin(time * 3 + i);
-                ctx.beginPath();
-                ctx.arc(starX, starY, 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        } else if (this.materialInfo.rarity === 3) {
-            // Effetto scintille per epici
-            for (let i = 0; i < 3; i++) {
-                const angle = time * 2 + (i * Math.PI * 2 / 3);
-                const sparkX = x + Math.cos(angle) * 10;
-                const sparkY = y + Math.sin(angle) * 10;
-                
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 1;
-                ctx.globalAlpha = 0.6 * Math.sin(time * 4 + i);
-                ctx.beginPath();
-                ctx.moveTo(sparkX - 3, sparkY - 3);
-                ctx.lineTo(sparkX + 3, sparkY + 3);
-                ctx.stroke();
-            }
-        }
-    }
-}
 
 class BallSurvivalGame {
     constructor(canvasId) {
@@ -1805,50 +1395,25 @@ class BallSurvivalGame {
 
     initDOM() {
         this.dom = {
-            canvas: document.getElementById('gameCanvas'),
-            menuOverlay: document.getElementById('menuOverlay'),
-            joystick: {
-                container: document.getElementById('joystick-container'),
-                stick: document.getElementById('joystick-stick')
-            },
-            buttons: {
-                start: document.getElementById('startGameBtn'),
-                restart: document.getElementById('restartGameBtn'),
-                restartFromPause: document.getElementById('restartFromPauseBtn'),
-                pause: document.getElementById('pauseButton'),
-                returnToMenu: document.getElementById('returnToMenuBtn'),
-                returnToMenuPause: document.getElementById('returnToMenuPauseBtn'),
-                copy: document.getElementById('copyCodeBtn'),
-                load: document.getElementById('loadGameBtn'),
-                generateDebugSave: document.getElementById('generateDebugSave'),
-                copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'),
-                closeShopBtn: document.getElementById('closeShopBtn'),
-                closeMaterialsBtn: document.getElementById('closeMaterialsBtn'),
-                materialsInventory: document.createElement('button')
-            },
-            inputs: {
-                saveCode: document.getElementById('saveCodeOutput'),
-                loadCode: document.getElementById('loadCodeInput')
-            },
-            containers: {
-                characterSelection: document.getElementById('characterSelectionContainer'),
-                stageSelection: document.getElementById('stageSelectionContainer'),
-                upgradeOptions: document.getElementById('upgradeOptions'),
-                runStats: document.getElementById('runStatsContainer'),
-                pauseStats: document.getElementById('pauseStatsContainer'),
-                playerStats: document.getElementById('playerStatsColumn'),
-                weaponsStats: document.getElementById('weaponsStatsColumn'),
+            gameContainer: document.getElementById('gameContainer'),
+            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop') },
+            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn') },
+            inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
+            containers: { 
+                debugSaveContainer: document.getElementById('debugSaveContainer'),
+                characterSelectionContainer: document.getElementById('characterSelectionContainer'),
+                stageSelectionContainer: document.getElementById('stageSelectionContainer'),
                 permanentUpgradeOptions: document.getElementById('permanentUpgradeOptions'),
-                materialsInventory: document.getElementById('materialsInventoryContainer')
+                upgradeOptions: document.getElementById('upgradeOptions'),
+                pauseStatsContainer: document.getElementById('pauseStatsContainer'),
+                runStatsContainer: document.getElementById('runStatsContainer')
             },
-            popups: {
-                start: document.getElementById('startScreen'),
-                upgrade: document.getElementById('upgradeMenu'),
-                pause: document.getElementById('pauseMenu'),
-                gameOver: document.getElementById('gameOver'),
-                shop: document.getElementById('permanentUpgradeShop'),
-                materialsInventory: document.getElementById('materialsInventory')
-            },
+            joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, touchId: null },
+            menuOverlay: document.getElementById('menuOverlay'),
+            totalGemsShop: document.getElementById('totalGemsShop'),
+            playerStatsColumn: document.getElementById('playerStatsColumn'),
+            weaponsStatsColumn: document.getElementById('weaponsStatsColumn'),
+            loadNotification: document.getElementById('load-notification'),
             inGameUI: {
                 container: document.getElementById('inGameUI'),
                 timer: document.getElementById('gameTimer'),
@@ -1857,25 +1422,6 @@ class BallSurvivalGame {
                 gemCounter: document.getElementById('gemCounter')
             }
         };
-
-        // Crea il pulsante per l'inventario materiali
-        this.dom.buttons.materialsInventory.innerHTML = '📦 Materiali';
-        this.dom.buttons.materialsInventory.className = 'material-inventory-btn';
-        this.dom.buttons.materialsInventory.style.cssText = `
-            position: fixed;
-            top: 12px;
-            left: 12px;
-            z-index: 1002;
-            font-size: 16px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            background: #4a90e2;
-            color: #fff;
-            border: none;
-            box-shadow: 0 2px 8px #0005;
-            display: none;
-        `;
-        document.body.appendChild(this.dom.buttons.materialsInventory);
     }
     initInputHandlers() {
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -1888,19 +1434,12 @@ class BallSurvivalGame {
         this.dom.buttons.generateDebugSave.onclick = () => this.generateAndShowDebugCode();
         this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
         this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
-        this.dom.buttons.materialsInventory.onclick = () => this.showMaterialsInventory();
-     
+        this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
         
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
         if (closeShopBtn) {
             closeShopBtn.onclick = () => this.hideAllPopups();
-        }
-        
-        // Pulsante chiudi inventario materiali
-        const closeMaterialsBtn = document.getElementById('closeMaterialsBtn');
-        if (closeMaterialsBtn) {
-            closeMaterialsBtn.onclick = () => this.hideAllPopups();
         }
         
         // Tasto pausa mobile
@@ -1918,7 +1457,7 @@ class BallSurvivalGame {
 
         Object.values(this.dom.popups).forEach(p => p.addEventListener('click', e => e.stopPropagation()));
         document.addEventListener('keydown', (e) => {
-     
+            this.player.keys[e.code] = true;
             if (e.code === 'Escape') this.handleEscapeKey();
             if (e.code === 'KeyE') this.handleInteractionKey();
         });
@@ -1944,7 +1483,6 @@ class BallSurvivalGame {
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
-        this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
         this.state = 'running'; 
         this.lastFrameTime = performance.now();
         if (!this.gameLoopId) this.gameLoop();
@@ -1961,24 +1499,12 @@ class BallSurvivalGame {
         document.getElementById('finalScore').textContent = this.score;
         this.dom.inputs.saveCode.value = this.generateSaveCode();
         this.dom.buttons.pause.style.display = 'none';
-        this.dom.buttons.materialsInventory.style.display = 'none'; // Nascondi pulsante materiali
         this.dom.inGameUI.container.style.display = 'none';
         this.hideAllPopups(true); 
         this.showPopup('gameOver');
     }
     resetRunState() {
-        this.entities = {
-            enemies: [],
-            projectiles: [],
-            xpOrbs: [],
-            gemOrbs: [],
-            particles: [],
-            effects: [],
-            chests: [],
-            droppedItems: [],
-            materialItems: [], // Aggiunto supporto per materiali
-            notifications: [] // Aggiunto supporto per notifiche
-        };
+        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
         this.nextChestSpawnTime = CONFIG.chest.spawnTime; this.nextMapXpSpawnTime = 5;
@@ -2023,7 +1549,6 @@ class BallSurvivalGame {
         this.spawnMapXpOrbs();
         this.castSpells();
         this.checkForLevelUp(); // Spostato qui per coerenza
-        this.updateNotifications(); // Aggiunto aggiornamento notifiche
     }
     
     draw() {
@@ -2039,7 +1564,6 @@ class BallSurvivalGame {
         this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
         this.entities.chests.forEach(e => e.draw(this.ctx, this));
         this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
-        this.entities.materialItems.forEach(e => e.draw(this.ctx)); // Aggiunto disegno materiali
         this.entities.enemies.forEach(e => e.draw(this.ctx, this));
         this.entities.bosses.forEach(e => e.draw(this.ctx, this));
         this.player.draw(this.ctx, this);
@@ -2052,7 +1576,7 @@ class BallSurvivalGame {
         this.drawMerchant();
         this.ctx.restore();
         this.drawOffscreenIndicators();
-        this.drawNotifications(this.ctx); // Aggiunto disegno notifiche
+        this.drawNotifications();
     }
     
     drawBackground() {
@@ -2795,7 +2319,7 @@ class BallSurvivalGame {
     }
     
     populateCharacterSelection() {
-        const container = this.dom.containers.characterSelection;
+        const container = this.dom.containers.characterSelectionContainer;
         container.innerHTML = '';
         for (const key in CONFIG.characterArchetypes) {
             const archetype = CONFIG.characterArchetypes[key];
@@ -2852,7 +2376,7 @@ class BallSurvivalGame {
     }
     
     populateStageSelection() {
-        const container = this.dom.containers.stageSelection;
+        const container = this.dom.containers.stageSelectionContainer;
         container.innerHTML = '';
         
         Object.keys(CONFIG.stages).forEach(stageId => {
@@ -2989,16 +2513,14 @@ class BallSurvivalGame {
     togglePause() { 
         if (this.state !== 'running' && this.state !== 'paused') return; 
         if (this.state === 'running') { 
-            this.dom.buttons.materialsInventory.style.display = 'none'; // Nascondi pulsante materiali in pausa
             this.showPopup('pause'); 
         } else { 
-            this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
             this.hideAllPopups(); 
             this.dom.containers.debugSaveContainer.style.display = 'none'; 
         } 
     }
     populateStatsMenu() { 
-        const runStatsContainer = this.dom.containers.runStats;
+        const runStatsContainer = this.dom.containers.runStatsContainer;
         runStatsContainer.innerHTML = `
             <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
             <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
@@ -3017,7 +2539,7 @@ class BallSurvivalGame {
         playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round((p.modifiers.area - 1) * 100)}%</span></div>`; 
         playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round((p.modifiers.xpGain - 1) * 100)}%</span></div>`; 
         playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round(p.modifiers.luck * 100)}%</span></div></div>`; 
-        this.dom.playerStats.innerHTML = playerHTML; 
+        this.dom.playerStatsColumn.innerHTML = playerHTML; 
         
         let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`; 
         let hasWeapons = false; 
@@ -3031,7 +2553,7 @@ class BallSurvivalGame {
         }); 
         if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`; 
         weaponsHTML += `</div>`; 
-        this.dom.weaponsStats.innerHTML = weaponsHTML; 
+        this.dom.weaponsStatsColumn.innerHTML = weaponsHTML; 
     }
     handleEscapeKey() { const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { this.hideAllPopups(); } else { this.togglePause(); } }
     handleInteractionKey() { 
@@ -3262,24 +2784,19 @@ class BallSurvivalGame {
     }
     drawOffscreenIndicators() { if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); }
     drawOffscreenIndicator(target, color, shape) { const screenX = target.x - this.camera.x; const screenY = target.y - this.camera.y; if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; const pScreenX = this.player.x - this.camera.x; const pScreenY = this.player.y - this.camera.y; const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); const padding = 30; let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); this.ctx.save(); this.ctx.translate(arrowX, arrowY); this.ctx.rotate(angle); this.ctx.fillStyle = color; this.ctx.strokeStyle = "white"; this.ctx.lineWidth = 1; this.ctx.beginPath(); if (shape === 'arrow') { this.ctx.moveTo(15, 0); this.ctx.lineTo(-15, -10); this.ctx.lineTo(-10, 0); this.ctx.lineTo(-15, 10); } else { this.ctx.moveTo(0, -10); this.ctx.lineTo(10, 10); this.ctx.lineTo(-10, 10); } this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke(); this.ctx.restore(); }
-    drawNotifications(ctx) {
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.font = '16px Arial';
-        
-        for (const notification of this.entities.notifications) {
-            const alpha = notification.life > 60 ? 1.0 : notification.life / 60;
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = notification.color;
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 3;
-            
-            // Testo con outline
-            ctx.strokeText(notification.text, notification.x, notification.y);
-            ctx.fillText(notification.text, notification.x, notification.y);
-        }
-        
-        ctx.restore();
+    drawNotifications() {
+        this.ctx.save();
+        this.ctx.textAlign = 'center';
+        this.ctx.font = 'bold clamp(14px, 2.5vw, 18px) "Courier New", monospace';
+        const startY = 80; // Posizione Y iniziale abbassata
+        this.notifications.forEach((n, index) => {
+            const opacity = n.life > 30 ? 1.0 : n.life / 30;
+            this.ctx.fillStyle = `rgba(255, 215, 0, ${opacity})`;
+            this.ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+            this.ctx.shadowBlur = 5;
+            this.ctx.fillText(n.text, this.canvas.width / 2, startY + (index * 30));
+        });
+        this.ctx.restore();
     }
     drawMerchant() { const m = CONFIG.merchant; this.ctx.fillStyle = '#9b59b6'; this.ctx.fillRect(m.x, m.y, m.size, m.size); this.ctx.strokeStyle = '#f1c40f'; this.ctx.lineWidth = 3; this.ctx.strokeRect(m.x, m.y, m.size, m.size); if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { this.ctx.font = 'bold 14px "Courier New"'; this.ctx.fillStyle = 'white'; this.ctx.textAlign = 'center'; this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); } }
 
@@ -3380,127 +2897,6 @@ class BallSurvivalGame {
         this.populateShop();
         
         console.log('=== FINE TEST ===');
-    }
-
-    showNotification(text, color = '#ffffff') {
-        const notification = {
-            text: text,
-            color: color,
-            life: 120, // 2 secondi a 60 FPS
-            y: this.player.y - 50,
-            x: this.player.x
-        };
-        this.entities.notifications.push(notification);
-    }
-
-    updateNotifications() {
-        for (let i = this.entities.notifications.length - 1; i >= 0; i--) {
-            const notification = this.entities.notifications[i];
-            notification.life--;
-            notification.y -= 0.5; // Movimento verso l'alto
-            
-            if (notification.life <= 0) {
-                this.entities.notifications.splice(i, 1);
-            }
-        }
-    }
-
-    drawNotifications(ctx) {
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.font = '16px Arial';
-        
-        for (const notification of this.entities.notifications) {
-            const alpha = notification.life > 60 ? 1.0 : notification.life / 60;
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = notification.color;
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 3;
-            
-            // Testo con outline
-            ctx.strokeText(notification.text, notification.x, notification.y);
-            ctx.fillText(notification.text, notification.x, notification.y);
-        }
-        
-        ctx.restore();
-    }
-
-    showMaterialsInventory() {
-        if (!this.player.materials) {
-            this.player.materials = {};
-        }
-
-        const container = this.dom.containers.materialsInventory || document.createElement('div');
-        container.innerHTML = '';
-        container.className = 'materials-inventory';
-
-        // Raccogli tutti i materiali per categoria
-        const categories = ['common', 'rare', 'epic', 'legendary'];
-        const categoryNames = {
-            common: 'Comuni',
-            rare: 'Rari', 
-            epic: 'Epici',
-            legendary: 'Leggendari'
-        };
-
-        categories.forEach(category => {
-            const categoryMaterials = [];
-            
-            // Trova tutti i materiali di questa categoria che il giocatore ha
-            for (const [materialId, count] of Object.entries(this.player.materials)) {
-                const materialInfo = this.getMaterialInfo(materialId);
-                if (materialInfo && this.getMaterialCategory(materialId) === category && count > 0) {
-                    categoryMaterials.push({ id: materialId, info: materialInfo, count });
-                }
-            }
-
-            if (categoryMaterials.length > 0) {
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = `material-category ${category}`;
-                categoryDiv.innerHTML = `<h3>${categoryNames[category]}</h3>`;
-                
-                categoryMaterials.forEach(material => {
-                    const materialDiv = document.createElement('div');
-                    materialDiv.className = 'material-item';
-                    materialDiv.innerHTML = `
-                        <div class="material-icon" style="background-color: ${material.info.color}"></div>
-                        <div class="material-info">
-                            <div class="material-name">${material.info.name}</div>
-                            <div class="material-count">x${material.count}</div>
-                        </div>
-                    `;
-                    categoryDiv.appendChild(materialDiv);
-                });
-                
-                container.appendChild(categoryDiv);
-            }
-        });
-
-        if (container.children.length === 0) {
-            container.innerHTML = '<p>Nessun materiale raccolto ancora!</p>';
-        }
-
-        // Mostra il popup
-        this.dom.popups.materialsInventory = container;
-        this.showPopup('materialsInventory');
-    }
-
-    getMaterialInfo(materialId) {
-        for (const category of Object.values(CONFIG.materials)) {
-            if (category[materialId]) {
-                return category[materialId];
-            }
-        }
-        return null;
-    }
-
-    getMaterialCategory(materialId) {
-        for (const [categoryName, category] of Object.entries(CONFIG.materials)) {
-            if (category[materialId]) {
-                return categoryName;
-            }
-        }
-        return null;
     }
 }
 
