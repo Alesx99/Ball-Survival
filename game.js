@@ -2107,6 +2107,487 @@ class BallSurvivalGame {
             this.joystick.dy = 0;
         }
     }
+
+    // Metodi essenziali per il funzionamento del gioco
+    togglePause() {
+        if (this.state !== 'running' && this.state !== 'paused') return;
+        if (this.state === 'running') {
+            this.showPopup('pause');
+        } else {
+            this.hideAllPopups();
+        }
+    }
+
+    showPopup(popupKey) {
+        this.state = (popupKey === 'gameOver' || popupKey === 'start') ? popupKey : 'paused';
+        this.dom.menuOverlay.style.display = 'block';
+        Object.values(this.dom.popups).forEach(p => p.style.display = 'none');
+        this.dom.popups[popupKey].style.display = 'flex';
+        if (popupKey === 'shop') this.populateShop();
+        if (popupKey === 'pause') this.populateStatsMenu();
+    }
+
+    hideAllPopups(forceNoResume) {
+        Object.values(this.dom.popups).forEach(p => p.style.display = 'none');
+        this.dom.menuOverlay.style.display = 'none';
+        if (this.state === 'paused' && !forceNoResume) {
+            this.state = 'running';
+            this.lastFrameTime = performance.now();
+            this.menuCooldown = 5;
+        }
+    }
+
+    populateStatsMenu() {
+        const p = this.player;
+        let playerHTML = `<div class="stats-section"><div class="stats-section-title">Statistiche Giocatore</div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp)} / ${p.stats.maxHp}</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${p.stats.speed.toFixed(1)}</span></div></div>`;
+        playerHTML += `<div class="stats-section"><div class="stats-section-title">Modificatori</div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">+${Math.round((p.modifiers.power - 1) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">+${Math.round((1 - p.modifiers.frequency) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">+${Math.round((p.modifiers.area - 1) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">+${Math.round((p.modifiers.xpGain - 1) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">+${Math.round(p.modifiers.luck * 100)}%</span></div></div>`;
+        this.dom.playerStatsColumn.innerHTML = playerHTML;
+        
+        let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`;
+        let hasWeapons = false;
+        Object.values(this.spells).filter(s => s.level > 0).forEach(s => {
+            hasWeapons = true;
+            weaponsHTML += `<div class="stat-item-title">${s.name} (Liv. ${s.level})</div>`;
+            let details = '';
+            if (s.damage) details += `Danno: ${Math.round(this.getDamage(s.damage))}, `;
+            if (s.cooldown) details += `Ricarica: ${(s.cooldown * p.modifiers.frequency / 1000).toFixed(2)}s, `;
+            if (s.area) details += `Area: ${Math.round(s.area * p.modifiers.area)}, `;
+            if (s.count) details += `Proiettili: ${s.count}, `;
+            if (s.chains) details += `Rimbalzi: ${s.chains}, `;
+            if (s.penetration && s.penetration < 999) details += `Perforazione: ${s.penetration}, `;
+            weaponsHTML += `<div class="weapon-stat-details">${details.slice(0, -2) || 'Statistiche base'}</div>`;
+        });
+        if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`;
+        weaponsHTML += `</div>`;
+        this.dom.weaponsStatsColumn.innerHTML = weaponsHTML;
+    }
+
+    populateShop() {
+        this.dom.totalGemsShop.textContent = this.totalGems;
+        const container = this.dom.permanentUpgradeOptions;
+        container.innerHTML = '';
+        for (const key in this.permanentUpgrades) {
+            const upg = this.permanentUpgrades[key];
+            const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
+            let optionHTML = `<div class="permanent-upgrade-option"><div><div class="upgrade-title">${upg.name}</div><div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div><div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div></div>`;
+            if (upg.level < upg.maxLevel) {
+                optionHTML += `<div><div class="perm-upgrade-cost">Costo: ${cost} 💎</div><button class="buy-button" data-key="${key}" ${this.totalGems < cost ? 'disabled' : ''}>Compra</button></div>`;
+            } else {
+                optionHTML += `<div><span style="color: #2ecc71;">MAX</span></div>`;
+            }
+            optionHTML += `</div>`;
+            container.innerHTML += optionHTML;
+        }
+        container.querySelectorAll('.buy-button').forEach(btn => {
+            btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key);
+        });
+    }
+
+    buyPermanentUpgrade(key) {
+        const upg = this.permanentUpgrades[key];
+        const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
+        if (upg.level < upg.maxLevel && this.totalGems >= cost) {
+            this.totalGems -= cost;
+            upg.level++;
+            this.saveGameData();
+            this.player.applyPermanentUpgrades(this.permanentUpgrades);
+            this.populateShop();
+        }
+    }
+
+    updateCamera() {
+        this.camera.x = this.player.x - this.camera.width / 2;
+        this.camera.y = this.player.y - this.camera.height / 2;
+        this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width));
+        this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height));
+    }
+
+    resizeCanvas() {
+        const rect = this.dom.gameContainer.getBoundingClientRect();
+        this.canvas.width = rect.width;
+        this.canvas.height = rect.height;
+        this.camera.width = this.canvas.width;
+        this.camera.height = this.canvas.height;
+        if (this.state !== 'running') this.draw();
+    }
+
+    drawOffscreenIndicators() {
+        if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow');
+        this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle');
+    }
+
+    drawOffscreenIndicator(target, color, shape) {
+        const screenX = target.x - this.camera.x;
+        const screenY = target.y - this.camera.y;
+        if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return;
+        
+        const pScreenX = this.player.x - this.camera.x;
+        const pScreenY = this.player.y - this.camera.y;
+        const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX);
+        const padding = 30;
+        let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5);
+        let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5);
+        arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX));
+        arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY));
+        
+        this.ctx.save();
+        this.ctx.translate(arrowX, arrowY);
+        this.ctx.rotate(angle);
+        this.ctx.fillStyle = color;
+        this.ctx.strokeStyle = "white";
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        if (shape === 'arrow') {
+            this.ctx.moveTo(15, 0);
+            this.ctx.lineTo(-15, -10);
+            this.ctx.lineTo(-10, 0);
+            this.ctx.lineTo(-15, 10);
+        } else {
+            this.ctx.moveTo(0, -10);
+            this.ctx.lineTo(10, 10);
+            this.ctx.lineTo(-10, 10);
+        }
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+    drawNotifications() {
+        this.ctx.save();
+        this.ctx.textAlign = 'center';
+        this.ctx.font = 'bold clamp(14px, 2.5vw, 18px) "Courier New", monospace';
+        this.notifications.forEach((n, index) => {
+            const opacity = n.life > 30 ? 1.0 : n.life / 30;
+            this.ctx.fillStyle = `rgba(255, 215, 0, ${opacity})`;
+            this.ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+            this.ctx.shadowBlur = 5;
+            this.ctx.fillText(n.text, this.canvas.width / 2, 40 + (index * 25));
+        });
+        this.ctx.restore();
+    }
+
+    drawMerchant() {
+        const m = CONFIG.merchant;
+        this.ctx.fillStyle = '#9b59b6';
+        this.ctx.fillRect(m.x, m.y, m.size, m.size);
+        this.ctx.strokeStyle = '#f1c40f';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(m.x, m.y, m.size, m.size);
+        if (this.state === 'running' && Utils.getDistance(this.player, m) < m.interactionRadius) {
+            this.ctx.font = 'bold 14px "Courier New"';
+            this.ctx.fillStyle = 'white';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25);
+            this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10);
+        }
+    }
+
+    // Metodi per il sistema di combattimento
+    addEntity(type, entity) {
+        if (this.entities[type]) this.entities[type].push(entity);
+    }
+
+    getDamage(baseDamage) {
+        return baseDamage * (this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * this.player.modifiers.power;
+    }
+
+    resetSpells() {
+        this.spells = {
+            magicMissile: { id: 'magicMissile', name: "Proiettile Magico", level: 1, damage: 14, cooldown: 1200, lastCast: 0, speed: 6, size: 5, area: 5 },
+            fireball: { id: 'fireball', name: "Sfera di Fuoco", level: 0, evolution: 'none', damage: 15, cooldown: 1200, lastCast: 0, size: 8, speed: 7, explosionRadius: 20, penetration: 1, burnDamage: 5, burnDuration: 180, meteorCount: 3, area: 20 },
+            lightning: { id: 'lightning', name: "Fulmine a Catena", level: 0, damage: 10, cooldown: 1200, lastCast: 0, range: 250, chains: 2 },
+            frostbolt: { id: 'frostbolt', name: "Dardo di Gelo", level: 0, damage: 12, cooldown: 1200, lastCast: 0, slow: 0.5, slowDuration: 120, size: 7, speed: 6, penetration: 1, area: 7 },
+            shotgun: { id: 'shotgun', name: "Fucile Arcano", level: 0, damage: 8, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0 },
+            shockwave: { id: 'shockwave', name: "Onda d'Urto", level: 0, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15, area: 100 },
+            heal: { id: 'heal', name: "Cura", level: 0, amount: 20, cooldown: 10000, lastCast: 0 },
+            shield: { id: 'shield', name: "Scudo Magico", level: 0, duration: 3000, cooldown: 12000, lastCast: 0, active: false }
+        };
+        this.passives = { health: { level: 0 }, speed: { level: 0 }, attack_speed: { level: 0 } };
+    }
+
+    castSpells() {
+        const now = Date.now();
+        const freq = this.player.modifiers.frequency;
+        
+        if (this.spells.magicMissile.level > 0 && now - this.spells.magicMissile.lastCast > this.spells.magicMissile.cooldown * freq) 
+            this.castMagicMissile(now);
+        if (this.spells.fireball.level > 0 && now - this.spells.fireball.lastCast > this.spells.fireball.cooldown * freq) 
+            this.castFireball(now);
+        if (this.spells.shotgun.level > 0 && now - this.spells.shotgun.lastCast > this.spells.shotgun.cooldown * freq) 
+            this.castShotgun(now);
+        if (this.spells.shockwave.level > 0 && now - this.spells.shockwave.lastCast > this.spells.shockwave.cooldown * freq) 
+            this.castShockwave(now);
+        if (this.spells.lightning.level > 0 && now - this.spells.lightning.lastCast > this.spells.lightning.cooldown * freq) 
+            this.castLightning(now);
+        if (this.spells.frostbolt.level > 0 && now - this.spells.frostbolt.lastCast > this.spells.frostbolt.cooldown * freq) 
+            this.castFrostbolt(now);
+        if (this.spells.heal.level > 0 && this.player.hp < this.player.stats.maxHp && now - this.spells.heal.lastCast > this.spells.heal.cooldown * freq) 
+            this.castHeal(now);
+        if (this.spells.shield.level > 0 && !this.spells.shield.active && now - this.spells.shield.lastCast > this.spells.shield.cooldown * freq) 
+            this.castShield(now);
+    }
+
+    castMagicMissile(now) {
+        const s = this.spells.magicMissile;
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return;
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            angle, damage: this.getDamage(s.damage), speed: s.speed, life: 80, size: s.size * this.player.modifiers.area, penetration: 1, color: '#9d75ff'
+        }));
+        s.lastCast = now;
+    }
+
+    castFireball(now) {
+        const s = this.spells.fireball;
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return;
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            angle, damage: this.getDamage(s.damage), type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, explosionRadius: s.explosionRadius * this.player.modifiers.area
+        }));
+        s.lastCast = now;
+    }
+
+    castShotgun(now) {
+        const s = this.spells.shotgun;
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return;
+        const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        for (let i = 0; i < s.count; i++) {
+            const offset = (i - (s.count-1) / 2) * (s.angleSpread / s.count);
+            this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+                angle: angleBase + offset, damage: this.getDamage(s.damage), speed: 10, life: 30, size: 4 * this.player.modifiers.area, penetration: 1, color: '#ffaa00'
+            }));
+        }
+        s.lastCast = now;
+    }
+
+    castShockwave(now) {
+        const s = this.spells.shockwave;
+        const radius = s.radius * this.player.modifiers.area;
+        for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
+            if (Utils.getDistance(this.player, enemy) <= radius) {
+                enemy.takeDamage(this.getDamage(s.damage), this);
+                const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
+                enemy.x += Math.cos(kAngle) * s.knockback;
+                enemy.y += Math.sin(kAngle) * s.knockback;
+            }
+        }
+        s.lastCast = now;
+    }
+
+    castLightning(now) {
+        const s = this.spells.lightning;
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses], s.range);
+        if (!nearest) return;
+        s.lastCast = now;
+        let lastTarget = this.player;
+        let chainedEnemies = [];
+        for (let c = 0; c < s.chains; c++) {
+            let nextTarget = Utils.findNearest(lastTarget, [...this.entities.enemies, ...this.entities.bosses].filter(e => !chainedEnemies.includes(e)), 200);
+            if (nextTarget) {
+                nextTarget.takeDamage(this.getDamage(s.damage), this);
+                lastTarget = nextTarget;
+                chainedEnemies.push(nextTarget);
+            } else break;
+        }
+    }
+
+    castFrostbolt(now) {
+        const s = this.spells.frostbolt;
+        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        if (!nearest) return;
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            angle, damage: this.getDamage(s.damage), speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration: s.penetration, slow: s.slow, slowDuration: s.slowDuration
+        }));
+        s.lastCast = now;
+    }
+
+    castHeal(now) {
+        const s = this.spells.heal;
+        this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + s.amount);
+        s.lastCast = now;
+    }
+
+    castShield(now) {
+        const s = this.spells.shield;
+        s.active = true;
+        s.lastCast = now;
+        setTimeout(() => { s.active = false; }, s.duration);
+    }
+
+    // Metodi per il sistema di upgrade
+    handleLevelUp() {
+        this.player.levelUp();
+        this.populateUpgradeMenu();
+        this.showPopup('upgrade');
+    }
+
+    populateUpgradeMenu() {
+        const container = this.dom.upgradeOptions;
+        container.innerHTML = '';
+        const choices = this.getUpgradeChoices();
+        choices.forEach(upgrade => {
+            if (!upgrade) return;
+            const div = document.createElement('div');
+            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '');
+            let baseId = upgrade.id.split('_')[0];
+            let s = upgrade.type === 'passive' ? this.passives[upgrade.id] : this.spells[baseId];
+            let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`;
+            if (upgrade.type === 'evolution' || upgrade.id.includes('mastery')) levelText = '';
+            div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`;
+            div.onclick = () => {
+                this.applyUpgrade(upgrade.id);
+                this.hideAllPopups();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    getUpgradeChoices() {
+        let choices = [];
+        const fireball = this.spells.fireball;
+        const upgradeTree = CONFIG.upgradeTree;
+        
+        if (fireball.level === upgradeTree.fireball.maxLevel && fireball.evolution === 'none') {
+            choices.push(upgradeTree.fireball_evolve_giant, upgradeTree.fireball_evolve_meteor);
+        }
+        
+        let newSkillsPool = [], otherUpgradesPool = [];
+        Object.keys(upgradeTree).forEach(id => {
+            const upgrade = upgradeTree[id];
+            if (id === 'magicMissile' || upgrade.type === 'evolution') return;
+            const baseId = upgrade.id.split('_')[0];
+            const spell = this.spells[baseId];
+            
+            if (upgrade.type === 'passive') {
+                if (!this.passives[id] || this.passives[id].level < upgrade.maxLevel) {
+                    otherUpgradesPool.push(upgrade);
+                }
+            } else if (spell && spell.level === 0 && !id.includes('mastery')) {
+                newSkillsPool.push(upgrade);
+            } else if (spell && spell.level > 0) {
+                if (upgrade.id === baseId && spell.level < upgradeTree[baseId].maxLevel && spell.evolution === 'none') {
+                    otherUpgradesPool.push(upgrade);
+                }
+            }
+        });
+        
+        newSkillsPool = [...new Set(newSkillsPool)];
+        otherUpgradesPool = [...new Set(otherUpgradesPool)];
+        
+        if (choices.length < 3 && newSkillsPool.length > 0) {
+            choices.push(newSkillsPool.splice(Math.floor(Math.random() * newSkillsPool.length), 1)[0]);
+        }
+        
+        const combinedPool = [...newSkillsPool, ...otherUpgradesPool];
+        while (choices.length < 3 && combinedPool.length > 0) {
+            choices.push(combinedPool.splice(Math.floor(Math.random() * combinedPool.length), 1)[0]);
+        }
+        
+        return choices;
+    }
+
+    applyUpgrade(upgradeId) {
+        const upgrade = CONFIG.upgradeTree[upgradeId];
+        if (!upgrade) return;
+        
+        let target;
+        let baseId = upgrade.id.split('_')[0];
+        
+        if (upgrade.type === 'passive') {
+            if (!this.passives[upgrade.id]) this.passives[upgrade.id] = { level: 0 };
+            target = this.passives[upgrade.id];
+        } else {
+            if (!this.spells[baseId]) this.spells[baseId] = { level: 0, id: baseId, evolution: 'none', damage: 0, cooldown: 0, area: 0 };
+            target = this.spells[baseId];
+        }
+        
+        target.level++;
+        
+        if (upgradeId.includes('evolve')) {
+            target.evolution = upgradeId.includes('giant') ? 'giant' : 'meteor';
+        } else if (upgrade.id === 'fireball') {
+            target.damage += 5;
+            target.explosionRadius += 5;
+            target.area = target.explosionRadius;
+        } else if (upgrade.id === 'lightning') {
+            target.damage += 4;
+            target.chains++;
+        } else if (upgrade.id === 'frostbolt') {
+            target.damage += 3;
+            target.penetration++;
+        } else if (upgrade.id === 'shotgun') {
+            target.damage += 2;
+            target.count += 2;
+        } else if (upgrade.id === 'shockwave') {
+            target.damage += 10;
+            target.radius += 15;
+            target.knockback += 5;
+            target.area = target.radius;
+        } else if (upgrade.id === 'heal') {
+            target.amount += 10;
+            target.cooldown = Math.max(4000, target.cooldown - 1000);
+        } else if (upgrade.id === 'shield') {
+            target.duration += 1000;
+            target.cooldown = Math.max(5000, target.cooldown - 1500);
+        } else if (upgrade.id === 'health') {
+            this.player.stats.maxHp += 25;
+            this.player.hp += 25;
+        } else if (upgrade.id === 'speed') {
+            this.player.stats.speed += 0.4;
+        } else if (upgrade.id === 'attack_speed') {
+            this.player.modifiers.frequency *= 0.92;
+        }
+    }
+
+    // Metodi per il salvataggio
+    loadGameData() {
+        this.permanentUpgrades = {};
+        Object.keys(CONFIG.permanentUpgrades).forEach(key => {
+            this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 };
+        });
+        
+        try {
+            const savedData = localStorage.getItem('ballSurvivalSaveData_v3.2');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                this.totalGems = data.totalGems || 0;
+                if (data.upgrades) {
+                    Object.keys(this.permanentUpgrades).forEach(key => {
+                        if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0;
+                    });
+                }
+            } else {
+                this.totalGems = 0;
+            }
+        } catch (e) {
+            console.error("Impossibile caricare i dati salvati:", e);
+            this.totalGems = 0;
+        }
+    }
+
+    saveGameData() {
+        try {
+            const saveData = {
+                totalGems: this.totalGems,
+                upgrades: this.permanentUpgrades
+            };
+            localStorage.setItem('ballSurvivalSaveData_v3.2', JSON.stringify(saveData));
+        } catch (e) {
+            console.error("Impossibile salvare i dati:", e);
+        }
+    }
 }
 
 // Stato runtime degli archetipi acquistati (non salvato in localStorage)
