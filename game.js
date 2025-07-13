@@ -1078,6 +1078,103 @@ class Player extends Entity {
         this.craftingLevel = 1;
         this.craftingExp = 0;
     }
+    
+    // Funzioni per il sistema di armi
+    canCraftWeapon(weaponId) {
+        const weapon = CONFIG.weapons[weaponId];
+        if (!weapon) return false;
+        
+        // Controlla se ha i materiali necessari
+        for (const [materialId, requiredAmount] of Object.entries(weapon.materials)) {
+            const currentAmount = this.inventory.materials[materialId] || 0;
+            if (currentAmount < requiredAmount) return false;
+        }
+        return true;
+    }
+    
+    craftWeapon(weaponId) {
+        const weapon = CONFIG.weapons[weaponId];
+        if (!weapon || !this.canCraftWeapon(weaponId)) return false;
+        
+        // Consuma i materiali
+        for (const [materialId, requiredAmount] of Object.entries(weapon.materials)) {
+            this.inventory.materials[materialId] -= requiredAmount;
+            if (this.inventory.materials[materialId] <= 0) {
+                delete this.inventory.materials[materialId];
+            }
+        }
+        
+        // Crea l'arma
+        const newWeapon = {
+            id: Date.now() + Math.random(),
+            weaponId: weaponId,
+            name: weapon.name,
+            rarity: weapon.rarity
+        };
+        
+        this.inventory.weapons.push(newWeapon);
+        
+        // Guadagna EXP di crafting
+        this.craftingExp += 10;
+        this.checkCraftingLevelUp();
+        
+        return true;
+    }
+    
+    checkCraftingLevelUp() {
+        const expNeeded = this.craftingLevel * 50;
+        if (this.craftingExp >= expNeeded) {
+            this.craftingLevel++;
+            this.craftingExp -= expNeeded;
+        }
+    }
+    
+    equipWeapon(weaponId) {
+        const weapon = this.inventory.weapons.find(w => w.id === weaponId);
+        if (!weapon) return false;
+        
+        this.unequipWeapon();
+        this.equippedWeapon = weapon;
+        this.applyWeaponStats();
+        return true;
+    }
+    
+    unequipWeapon() {
+        if (this.equippedWeapon) {
+            this.removeWeaponStats();
+            this.equippedWeapon = null;
+        }
+    }
+    
+    applyWeaponStats() {
+        if (!this.equippedWeapon) return;
+        
+        const weaponConfig = CONFIG.weapons[this.equippedWeapon.weaponId];
+        if (!weaponConfig) return;
+        
+        // Applica bonus dell'arma
+        this.stats.damage = (this.stats.damage || 0) + weaponConfig.damage;
+        this.stats.speed = (this.stats.speed || 0) + weaponConfig.speed;
+    }
+    
+    removeWeaponStats() {
+        if (!this.equippedWeapon) return;
+        
+        const weaponConfig = CONFIG.weapons[this.equippedWeapon.weaponId];
+        if (!weaponConfig) return;
+        
+        // Rimuovi bonus dell'arma
+        this.stats.damage = Math.max(0, (this.stats.damage || 0) - weaponConfig.damage);
+        this.stats.speed = Math.max(0, (this.stats.speed || 0) - weaponConfig.speed);
+    }
+    
+    // Sistema di Materiali
+    addMaterial(materialId, amount = 1) {
+        if (!this.inventory.materials[materialId]) {
+            this.inventory.materials[materialId] = 0;
+        }
+        this.inventory.materials[materialId] += amount;
+    }
     resetForNewRun(permUpgrades, archetypeId) {
         this.x = CONFIG.world.width / 2; 
         this.y = CONFIG.world.height / 2;
@@ -1118,7 +1215,7 @@ class Player extends Entity {
         if (this.xpNext <= 0) this.xpNext = 1;
         if (this.level < 1) this.level = 1;
         
-        console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
+
     }
     applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr = (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
     update(game, joystick) { let kDx = 0, kDy = 0; if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } this.x += fDx * this.stats.speed; this.y += fDy * this.stats.speed; this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); for (const key in this.powerUpTimers) { if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; } }
@@ -1264,7 +1361,7 @@ class Enemy extends Entity {
         }
         
         // Drop materiali per crafting
-        game.player.dropMaterials(this);
+        game.dropMaterials(this);
     }
     draw(ctx, game) {
         ctx.save();
@@ -1342,7 +1439,7 @@ class Boss extends Enemy {
         game.addEntity('gemOrbs', new GemOrb(this.x, this.y, gemValue));
         
         // Drop materiali rari per boss
-        game.player.dropMaterials(this);
+        game.dropMaterials(this);
         
         // Particelle di morte
         for (let j = 0; j < 15; j++) {
@@ -1593,20 +1690,19 @@ class Effect extends Entity {
 
 class BallSurvivalGame {
     constructor(canvasId) {
-        console.log('Starting game constructor...');
         this.canvas = document.getElementById(canvasId); 
-        console.log('Canvas found:', this.canvas);
         this.ctx = this.canvas.getContext('2d');
-        console.log('Context created:', this.ctx);
         
         this.initDOM();
-        console.log('DOM initialized');
         this.initInputHandlers();
-        console.log('Input handlers initialized');
         
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
-        this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
+        
+        // Inizializza sistema di armi dopo la creazione del giocatore
+        this.initWeaponSystem();
+        
+        this.joystick = { dx: 0, dy: 0, active: false, touchId: null };
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
         this.selectedStage = 1; // Stage selezionato dal giocatore
@@ -1615,19 +1711,12 @@ class BallSurvivalGame {
         this.menuCooldown = 0;
         
         this.loadGameData(); 
-        console.log('Game data loaded');
         this.loadStageProgress(); // Carica la progressione degli stage
-        console.log('Stage progress loaded');
         this.resetRunState(); 
-        console.log('Run state reset');
         this.resizeCanvas();
-        console.log('Canvas resized');
         this.populateCharacterSelection();
-        console.log('Character selection populated');
         this.populateStageSelection();
-        console.log('Stage selection populated');
         this.showPopup('start');
-        console.log('Start popup shown');
     }
 
     initDOM() {
@@ -1667,8 +1756,7 @@ class BallSurvivalGame {
             }
         };
         
-        // Inizializza sistema di armi
-        this.initWeaponSystem();
+        // Sistema di armi verrà inizializzato dopo la creazione del giocatore
     }
     initInputHandlers() {
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -1801,13 +1889,6 @@ class BallSurvivalGame {
     }
     
     draw() {
-        // Debug: log first few draws
-        if (!this.drawCount) this.drawCount = 0;
-        this.drawCount++;
-        if (this.drawCount <= 5) {
-            console.log('Draw called, count:', this.drawCount, 'state:', this.state);
-        }
-        
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
@@ -3158,124 +3239,11 @@ class BallSurvivalGame {
         this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
     }
 
-    // Sistema di Equipaggiamento
-    equipWeapon(weaponId) {
-        const weapon = this.inventory.weapons.find(w => w.id === weaponId);
-        if (!weapon) return false;
-        
-        this.equippedWeapon = weapon;
-        this.applyWeaponStats();
-        return true;
-    }
-
-    unequipWeapon() {
-        if (!this.equippedWeapon) return;
-        
-        // Rimuovi bonus arma
-        this.removeWeaponStats();
-        this.equippedWeapon = null;
-    }
-
-    applyWeaponStats() {
-        if (!this.equippedWeapon) return;
-        
-        const weapon = CONFIG.weapons[this.equippedWeapon.weaponId];
-        const rarityBonus = CONFIG.rarity[weapon.rarity].bonus;
-        
-        // Applica statistiche arma
-        this.modifiers.weaponDamage = weapon.damage * rarityBonus;
-        this.modifiers.weaponSpeed = weapon.speed;
-        this.modifiers.weaponRange = weapon.range;
-        this.modifiers.weaponEffects = weapon.effects;
-    }
-
-    removeWeaponStats() {
-        delete this.modifiers.weaponDamage;
-        delete this.modifiers.weaponSpeed;
-        delete this.modifiers.weaponRange;
-        delete this.modifiers.weaponEffects;
-    }
-
-    // Sistema di Materiali
-    addMaterial(materialId, amount = 1) {
-        if (!this.inventory.materials[materialId]) {
-            this.inventory.materials[materialId] = 0;
-        }
-        this.inventory.materials[materialId] += amount;
-    }
-
-    hasMaterials(requirements) {
-        for (const [materialId, amount] of Object.entries(requirements)) {
-            if (!this.inventory.materials[materialId] || this.inventory.materials[materialId] < amount) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    consumeMaterials(requirements) {
-        if (!this.hasMaterials(requirements)) return false;
-        
-        for (const [materialId, amount] of Object.entries(requirements)) {
-            this.inventory.materials[materialId] -= amount;
-        }
-        return true;
-    }
-
-    // Sistema di Crafting
-    canCraftWeapon(weaponId) {
-        const weapon = CONFIG.weapons[weaponId];
-        if (!weapon) return false;
-        
-        return this.hasMaterials(weapon.materials);
-    }
-
-    craftWeapon(weaponId) {
-        const weapon = CONFIG.weapons[weaponId];
-        if (!weapon || !this.canCraftWeapon(weaponId)) return false;
-        
-        // Consuma materiali
-        if (!this.consumeMaterials(weapon.materials)) return false;
-        
-        // Crea arma
-        const craftedWeapon = {
-            id: `${weaponId}_${Date.now()}`,
-            weaponId: weaponId,
-            name: weapon.name,
-            rarity: weapon.rarity,
-            level: 1,
-            exp: 0
-        };
-        
-        this.inventory.weapons.push(craftedWeapon);
-        this.craftingExp += 10;
-        this.checkCraftingLevelUp();
-        
-        this.notifications.push({ 
-            text: `Arma creata: ${weapon.name}!`, 
-            life: 180 
-        });
-        
-        return true;
-    }
-
-    checkCraftingLevelUp() {
-        const expNeeded = this.craftingLevel * 50;
-        if (this.craftingExp >= expNeeded) {
-            this.craftingLevel++;
-            this.craftingExp -= expNeeded;
-            this.notifications.push({ 
-                text: `Crafting livello ${this.craftingLevel}!`, 
-                life: 180 
-            });
-        }
-    }
-
     // Sistema di Drop Materiali
     dropMaterials(enemy) {
         for (const [materialId, material] of Object.entries(CONFIG.materials)) {
             if (Math.random() < material.dropRate) {
-                this.addMaterial(materialId);
+                this.player.addMaterial(materialId);
                 this.notifications.push({ 
                     text: `+1 ${material.name}`, 
                     life: 120 
@@ -3471,11 +3439,5 @@ let unlockedArchetypes = new Set(['standard']);
 
 let game;
 window.addEventListener('DOMContentLoaded', () => { 
-    console.log('DOM loaded, initializing game...');
-    try {
-        game = new BallSurvivalGame('gameCanvas'); 
-        console.log('Game initialized successfully');
-    } catch (error) {
-        console.error('Error initializing game:', error);
-    }
+    game = new BallSurvivalGame('gameCanvas'); 
 });
