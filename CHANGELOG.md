@@ -1,6 +1,27 @@
 # Changelog - Ball Survival Game
 
-## [Versione 5.0] - 2024-12-19
+## [Versione 5.1] - 2024-12-19
+
+### 🏹 Sistema di Armi e Equipaggiamento - COMPLETO
+- **Configurazione Armi**: 7 armi uniche (Spada, Arco, Bacchetta, Ascia, Pugnale, Spada di Fuoco, Arco di Ghiaccio, Bacchetta del Fulmine)
+- **Statistiche Armi**: Danno, Velocità, Raggio, Effetti speciali per ogni arma
+- **Sistema Rarità**: Comune, Raro, Epico, Leggendario con bonus progressivi
+- **Effetti Armi**: Sanguinamento, Bruciatura, Congelamento, Scossa, Stordimento, Perforazione, Critico, Catena
+- **Sistema Crafting**: Creazione armi con materiali specifici
+- **Materiali**: 8 materiali con rarità diverse (Ferro, Legno, Cristallo, Corda, Essenze, Oro)
+- **Drop Materiali**: Nemici e boss droppano materiali con probabilità basate sulla rarità
+- **Interfaccia Completa**: Tab per Inventario, Crafting e Materiali
+- **Sistema Equipaggiamento**: Equipaggia/rimuovi armi con statistiche dinamiche
+- **Progress Bar Crafting**: Visualizzazione progresso esperienza crafting
+- **Salvataggio**: Sistema di armi salvato automaticamente
+- **Pulsante UI**: Pulsante "🏹 Armi" nell'interfaccia di gioco
+
+### 🎮 Integrazione Gameplay
+- **Drop Materiali**: Nemici droppano materiali quando muoiono
+- **Boss Bonus**: Boss droppano materiali rari e gemme garantite
+- **Notifiche**: Notifiche per materiali raccolti e armi create
+- **Statistiche Dinamiche**: Le statistiche del giocatore cambiano in base all'arma equipaggiata
+- **Crafting Level**: Sistema di livelli crafting con esperienza
 
 ### 🔧 Correzioni Sistema Negozio
 - **Risolto problema negozio vuoto**: Aggiunte le funzioni `effect()` mancanti nella configurazione `permanentUpgrades`
@@ -26,34 +47,8 @@
 
 ### 🎮 Miglioramenti Precedenti
 - **Sistema di Stage**: Aggiunto sistema di progressione con 5 stage unici, ognuno con tema e difficoltà specifiche
-- **Stage 1 - Pianura Eterna**: Tutorial, sempre sbloccato, nemici semplici
-- **Stage 2 - Foresta Oscura**: Sbloccato dopo 5 minuti nel primo stage, nemici triangolari verdi
-- **Stage 3 - Deserto Infuocato**: Sbloccato dopo aver ucciso 1 boss nel secondo stage, nemici quadrati arancioni
-- **Stage 4 - Ghiacciaio Perduto**: Sbloccato al livello 10 nel terzo stage, nemici diamanti blu
-- **Stage 5 - Abisso Cosmico**: Sbloccato dopo 15 minuti totali di gioco, nemici stelle viola
-- **Sistema di Unlock**: Progressione basata su tempo di sopravvivenza, uccisioni boss, e livelli raggiunti
-- **Temi Visivi**: Ogni stage ha sfondo, griglia e pattern unici
-- **Difficoltà Progressiva**: DR, velocità nemici e probabilità elite aumentano per stage
-- **Menu di Selezione**: Interfaccia per scegliere lo stage prima di iniziare la partita
-- **Salvataggio Progresso**: Il sistema ricorda gli stage sbloccati tra le sessioni
-
-### 🎨 Sprite Nemici Dettagliati
-- **Slime**: Corpo gelatinoso con occhi bianchi e bordo nero, elite con aura rossa
-- **Goblin**: Forma triangolare con occhi rossi e zanne, elite con aura arancione
-- **Golem**: Forma quadrata con occhi gialli e fessure, elite con cristalli di energia
-- **Ice Crystal**: Diamante con occhi ciano e cristalli di ghiaccio, elite con tempesta di ghiaccio
-- **Demon**: Stella con occhi rossi e fiamme, elite con tempesta di fuoco
-- **Effetti Elite**: Aura colorata, particelle animate, effetti speciali per ogni tipo
-- **Dettagli Tematici**: Ogni nemico ha caratteristiche visive che riflettono il suo tipo e rarità
-
-### 🛠️ Correzioni Tecniche
-- **Sistema di Salvataggio**: Migliorato per supportare il nuovo sistema di stage
-- **Gestione Memoria**: Ottimizzata per gestire più entità e effetti visivi
-- **Performance**: Miglioramenti per supportare sprite più complessi
-- **Compatibilità**: Mantenuta compatibilità con salvataggi precedenti
-
-### 📝 Note per gli Sviluppatori
-- Il sistema di stage è estendibile: aggiungere nuovi stage richiede solo configurazione
-- Gli sprite nemici sono modulari e possono essere facilmente personalizzati
-- Il sistema di unlock è flessibile e supporta diversi tipi di requisiti
-- Tutti i miglioramenti mantengono la retrocompatibilità con versioni precedenti 
+- **Selezione Stage**: Menu di selezione stage con requisiti di sblocco basati su achievement
+- **Progressione Unlock**: Sistema di sblocco progressivo degli stage basato su performance del giocatore
+- **Temi Unici**: Ogni stage ha nemici, colori e difficoltà specifiche
+- **Sprite Nemici**: Sprite dettagliati per ogni tipo di nemico con effetti elite
+- **Roadmap Completa**: Documento dettagliato con 4 fasi di sviluppo e 20+ idee innovative 
