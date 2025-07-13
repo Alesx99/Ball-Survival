@@ -3594,6 +3594,18 @@ class BallSurvivalGame {
     }
 
     showNotification(text, color = '#ffffff') {
+        // Controllo di sicurezza per le notifiche
+        if (!this.notifications || !Array.isArray(this.notifications)) {
+            console.warn('showNotification: Notifications non inizializzate correttamente');
+            return;
+        }
+        
+        // Controllo di sicurezza per il player
+        if (!this.player) {
+            console.warn('showNotification: Player non ancora inizializzato');
+            return;
+        }
+        
         const notification = {
             text: text,
             color: color,
@@ -3601,30 +3613,51 @@ class BallSurvivalGame {
             y: this.player.y - 50,
             x: this.player.x
         };
-        this.entities.notifications.push(notification);
+        this.notifications.push(notification);
     }
 
     updateNotifications() {
-        for (let i = this.entities.notifications.length - 1; i >= 0; i--) {
-            const notification = this.entities.notifications[i];
+        // Controllo di sicurezza per le notifiche
+        if (!this.notifications || !Array.isArray(this.notifications)) {
+            console.warn('updateNotifications: Notifications non inizializzate correttamente');
+            return;
+        }
+        
+        for (let i = this.notifications.length - 1; i >= 0; i--) {
+            const notification = this.notifications[i];
+            if (!notification || typeof notification.life === 'undefined') {
+                this.notifications.splice(i, 1); // Rimuovi notifiche non valide
+                continue;
+            }
+            
             notification.life--;
             notification.y -= 0.5; // Movimento verso l'alto
             
             if (notification.life <= 0) {
-                this.entities.notifications.splice(i, 1);
+                this.notifications.splice(i, 1);
             }
         }
     }
 
     drawNotifications(ctx) {
+        // Controllo di sicurezza per le notifiche
+        if (!this.notifications || !Array.isArray(this.notifications)) {
+            console.warn('drawNotifications: Notifications non inizializzate correttamente');
+            return;
+        }
+        
         ctx.save();
         ctx.textAlign = 'center';
         ctx.font = '16px Arial';
         
-        for (const notification of this.entities.notifications) {
+        for (const notification of this.notifications) {
+            if (!notification || typeof notification.life === 'undefined') {
+                continue; // Salta notifiche non valide
+            }
+            
             const alpha = notification.life > 60 ? 1.0 : notification.life / 60;
             ctx.globalAlpha = alpha;
-            ctx.fillStyle = notification.color;
+            ctx.fillStyle = notification.color || '#ffffff';
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3;
             
