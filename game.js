@@ -500,6 +500,60 @@ const CONFIG = {
         rare: { name: 'Raro', color: '#4a90e2', bonus: 1.2 },
         epic: { name: 'Epico', color: '#9b59b6', bonus: 1.5 },
         legendary: { name: 'Leggendario', color: '#f39c12', bonus: 2.0 }
+    },
+
+    // Configurazioni essenziali mancanti
+    spells: {
+        magicMissile: { damage: 15, speed: 8, size: 8, cooldown: 60, maxLevel: 5, level: 0 },
+        fireball: { damage: 25, speed: 6, size: 12, cooldown: 90, burnDamage: 5, burnDuration: 120, maxLevel: 5, level: 0, meteorCount: 3, explosionRadius: 80 },
+        lightning: { damage: 20, speed: 12, size: 6, cooldown: 120, chainCount: 3, maxLevel: 5, level: 0 },
+        frostbolt: { damage: 18, speed: 7, size: 10, cooldown: 100, slowDuration: 180, slowAmount: 0.5, maxLevel: 5, level: 0 },
+        shotgun: { damage: 12, speed: 10, size: 6, cooldown: 80, count: 5, maxLevel: 5, level: 0 },
+        heal: { amount: 30, cooldown: 300, maxLevel: 3, level: 0 },
+        shield: { duration: 180, cooldown: 600, maxLevel: 3, level: 0 },
+        shockwave: { damage: 35, cooldown: 150, maxLevel: 3, level: 0 }
+    },
+
+    upgradeTree: {
+        fireball: { id: 'fireball', name: 'Palla di Fuoco', type: 'spell', maxLevel: 5 },
+        fireball_evolve_giant: { id: 'fireball_evolve_giant', name: 'Gigante di Fuoco', type: 'evolution', baseId: 'fireball', evolution: 'giant' },
+        fireball_evolve_meteor: { id: 'fireball_evolve_meteor', name: 'Meteora', type: 'evolution', baseId: 'fireball', evolution: 'meteor' },
+        lightning: { id: 'lightning', name: 'Fulmine', type: 'spell', maxLevel: 5 },
+        frostbolt: { id: 'frostbolt', name: 'Dardo di Ghiaccio', type: 'spell', maxLevel: 5 },
+        shotgun: { id: 'shotgun', name: 'Fucile a Pompa', type: 'spell', maxLevel: 5 },
+        heal: { id: 'heal', name: 'Cura', type: 'spell', maxLevel: 3 },
+        shield: { id: 'shield', name: 'Scudo Magico', type: 'spell', maxLevel: 3 },
+        shockwave: { id: 'shockwave', name: 'Onda d\'Urto', type: 'spell', maxLevel: 3 }
+    },
+
+    itemTypes: {
+        HEAL_POTION: { name: 'Pozione di Cura', desc: 'Ripristina 50% HP', color: '#ff0000' },
+        XP_BOMB: { name: 'Bomba XP', desc: 'Guadagna XP per il prossimo livello', color: '#00ff00' },
+        INVINCIBILITY: { name: 'Invincibilità', desc: 'Invincibile per 10 secondi', color: '#ffff00' },
+        DAMAGE_BOOST: { name: 'Boost Danno', desc: '+25% danno per 20 secondi', color: '#ff6600' },
+        LEGENDARY_ORB: { name: 'Orb Leggendario', desc: 'Boost completo per 1 minuto', color: '#ff00ff' }
+    },
+
+    merchant: {
+        x: 4000, y: 3000, size: 40, interactionRadius: 60
+    },
+
+    chest: {
+        size: 30, spawnTime: 30
+    },
+
+    xpOrbs: {
+        pickupRadius: 30
+    },
+
+    statIcons: {
+        health: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
+        speed: `<svg class="icon" viewBox="0 0 24 24"><path d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.5 2.54l2.6 1.53c.56-1.24.9-2.62.9-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.06-4.09l-2.6-1.53C16.17 17.98 14.21 19 12 19z"/></svg>`,
+        power: `<svg class="icon" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`,
+        frequency: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
+        area: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>`,
+        xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
+        defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
     }
 };
 
