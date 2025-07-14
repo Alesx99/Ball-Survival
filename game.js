@@ -1847,6 +1847,7 @@ class BallSurvivalGame {
         this.initInputHandlers();
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
+        // Inizializzazione joystick per mobile
         this.joystick = { 
             dx: 0, 
             dy: 0, 
@@ -1854,8 +1855,7 @@ class BallSurvivalGame {
             touchId: null,
             startX: 0,
             startY: 0,
-            radius: 50, // Raggio fisso per il joystick
-            ...this.dom.joystick 
+            radius: 50 // Raggio fisso per il joystick
         };
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
@@ -2061,14 +2061,7 @@ class BallSurvivalGame {
         this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
         
         // Reset del joystick per mobile
-        if (this.joystick) {
-            this.joystick.active = false;
-            this.joystick.touchId = null;
-            this.joystick.dx = 0;
-            this.joystick.dy = 0;
-            this.joystick.startX = 0;
-            this.joystick.startY = 0;
-        }
+        this.resetJoystick();
         
         this.state = 'running'; 
         this.lastFrameTime = performance.now();
@@ -3330,106 +3323,87 @@ class BallSurvivalGame {
             return; 
         } 
         
-        if (e.pointerType === 'touch' && !this.joystick.active) { 
+        // Gestione joystick per mobile
+        if (e.pointerType === 'touch') {
             e.preventDefault(); 
             e.stopPropagation();
             
-            // Debug per mobile
-            console.log('Mobile Debug - Touch detected:', {
-                pointerType: e.pointerType,
-                clientX: clientX,
-                clientY: clientY,
-                joystickActive: this.joystick.active,
-                joystickExists: !!this.joystick,
-                domJoystickExists: !!(this.dom && this.dom.joystick),
-                state: this.state,
-                pointerId: e.pointerId
-            });
-            
             // Controllo di sicurezza per il joystick
-            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.container) {
+            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.container || !this.dom.joystick.stick) {
                 console.warn('Joystick non inizializzato correttamente');
                 return;
             }
             
-            console.log('Mobile Debug - Activating joystick');
-            this.joystick.touchId = e.pointerId; 
-            this.joystick.active = true; 
-            this.joystick.startX = clientX; 
-            this.joystick.startY = clientY; 
-            this.joystick.dx = 0;
-            this.joystick.dy = 0;
-            
-            // Posizionamento migliorato del joystick
-            this.dom.joystick.container.style.display = 'block'; 
-            this.dom.joystick.container.style.position = 'fixed';
-            this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
-            this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
-            this.dom.joystick.container.style.zIndex = '1000';
-            
-            // Reset del stick al centro
-            this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
-            
-            console.log('Mobile Debug - Joystick activated:', {
-                active: this.joystick.active,
-                touchId: this.joystick.touchId,
-                startX: this.joystick.startX,
-                startY: this.joystick.startY,
-                containerLeft: this.dom.joystick.container.style.left,
-                containerTop: this.dom.joystick.container.style.top
-            });
-        } else if (e.pointerType === 'touch' && this.joystick.active) {
-            // Se il joystick è già attivo, gestisci il movimento
-            console.log('Mobile Debug - Joystick already active, handling movement');
-            this.handlePointerMove(e);
-        } 
+            // Se il joystick non è attivo, attivalo
+            if (!this.joystick.active) {
+                this.joystick.touchId = e.pointerId; 
+                this.joystick.active = true; 
+                this.joystick.startX = clientX; 
+                this.joystick.startY = clientY; 
+                this.joystick.dx = 0;
+                this.joystick.dy = 0;
+                
+                // Mostra e posiziona il joystick
+                this.dom.joystick.container.style.display = 'block'; 
+                this.dom.joystick.container.style.position = 'fixed';
+                this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
+                this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+                this.dom.joystick.container.style.zIndex = '1000';
+                
+                // Reset del stick al centro
+                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
+                
+                console.log('Mobile Debug - Joystick activated:', {
+                    active: this.joystick.active,
+                    touchId: this.joystick.touchId,
+                    startX: this.joystick.startX,
+                    startY: this.joystick.startY
+                });
+            }
+        }
     }
     handlePointerMove(e) { 
-        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) {
-            console.log('Mobile Debug - handlePointerMove skipped:', {
-                joystickActive: this.joystick.active,
-                pointerId: e.pointerId,
-                touchId: this.joystick.touchId
-            });
-            return; 
+        // Gestione movimento joystick
+        if (e.pointerType === 'touch' && this.joystick.active && e.pointerId === this.joystick.touchId) {
+            e.preventDefault(); 
+            e.stopPropagation();
+            
+            // Controllo di sicurezza per il joystick
+            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.stick) {
+                console.warn('Joystick non inizializzato correttamente in handlePointerMove');
+                return;
+            }
+            
+            // Calcola la posizione relativa del touch rispetto al centro del joystick
+            let deltaX = e.clientX - this.joystick.startX; 
+            let deltaY = e.clientY - this.joystick.startY; 
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
+            const maxDistance = this.dom.joystick.radius; 
+            
+            // Limita il movimento del joystick al raggio massimo
+            if (distance > maxDistance) { 
+                deltaX = (deltaX / distance) * maxDistance; 
+                deltaY = (deltaY / distance) * maxDistance; 
+            } 
+            
+            // Aggiorna la posizione visiva del stick
+            this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
+            
+            // Aggiorna i valori di input del joystick (normalizzati tra -1 e 1)
+            this.joystick.dx = deltaX / maxDistance; 
+            this.joystick.dy = deltaY / maxDistance;
+            
+            console.log('Mobile Debug - Joystick moved:', {
+                dx: this.joystick.dx,
+                dy: this.joystick.dy,
+                distance: distance,
+                maxDistance: maxDistance
+            }); 
         }
-        
-        e.preventDefault(); 
-        e.stopPropagation();
-        
-        // Controllo di sicurezza per il joystick
-        if (!this.joystick || !this.dom.joystick || !this.dom.joystick.stick) {
-            console.warn('Joystick non inizializzato correttamente in handlePointerMove');
-            return;
-        }
-        
-        let deltaX = e.clientX - this.joystick.startX; 
-        let deltaY = e.clientY - this.joystick.startY; 
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
-        const maxDistance = this.dom.joystick.radius; 
-        
-        if (distance > maxDistance) { 
-            deltaX = (deltaX / distance) * maxDistance; 
-            deltaY = (deltaY / distance) * maxDistance; 
-        } 
-        
-        // Aggiorna la posizione del stick
-        this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
-        this.joystick.dx = deltaX / maxDistance; 
-        this.joystick.dy = deltaY / maxDistance;
-        
-        console.log('Mobile Debug - Joystick moved:', {
-            deltaX: deltaX,
-            deltaY: deltaY,
-            dx: this.joystick.dx,
-            dy: this.joystick.dy,
-            distance: distance,
-            maxDistance: maxDistance,
-            pointerId: e.pointerId
-        }); 
     }
     handlePointerEnd(e) { 
-        if (this.joystick.active && e.pointerId === this.joystick.touchId) { 
+        // Gestione fine touch per joystick
+        if (e.pointerType === 'touch' && this.joystick.active && e.pointerId === this.joystick.touchId) { 
             e.preventDefault();
             e.stopPropagation();
             
@@ -3439,15 +3413,40 @@ class BallSurvivalGame {
                 return;
             }
             
+            // Disattiva il joystick
             this.joystick.active = false; 
             this.joystick.touchId = null; 
+            
+            // Reset visivo del joystick
             this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; 
             this.dom.joystick.container.style.display = 'none'; 
+            
+            // Reset dei valori di input
             this.joystick.dx = 0; 
             this.joystick.dy = 0;
             
             console.log('Mobile Debug - Joystick deactivated'); 
         } 
+    }
+    
+    resetJoystick() {
+        if (this.joystick) {
+            this.joystick.active = false;
+            this.joystick.touchId = null;
+            this.joystick.dx = 0;
+            this.joystick.dy = 0;
+            this.joystick.startX = 0;
+            this.joystick.startY = 0;
+        }
+        
+        if (this.dom && this.dom.joystick) {
+            if (this.dom.joystick.container) {
+                this.dom.joystick.container.style.display = 'none';
+            }
+            if (this.dom.joystick.stick) {
+                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
+            }
+        }
     }
     
     generateAndShowDebugCode() {
