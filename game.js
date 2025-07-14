@@ -1927,6 +1927,16 @@ class BallSurvivalGame {
             }
         };
 
+        // Debug per mobile - verifica inizializzazione DOM
+        if (window.innerWidth <= 768) {
+            console.log('Mobile Debug - DOM inizializzazione:', {
+                canvas: !!this.dom.canvas,
+                joystickContainer: !!this.dom.joystick.container,
+                joystickStick: !!this.dom.joystick.stick,
+                inGameUI: !!this.dom.inGameUI.container
+            });
+        }
+        
         // Crea il pulsante per l'inventario materiali
         this.dom.buttons.materialsInventory.innerHTML = '📦 Materiali';
         this.dom.buttons.materialsInventory.className = 'material-inventory-btn';
@@ -1992,6 +2002,15 @@ class BallSurvivalGame {
             if (e.code === 'KeyE') this.handleInteractionKey();
         });
         document.addEventListener('keyup', (e) => { this.player.keys[e.code] = false; });
+        // Debug per mobile - verifica canvas prima di aggiungere event listeners
+        if (window.innerWidth <= 768) {
+            console.log('Mobile Debug - Canvas prima degli event listeners:', {
+                canvas: !!this.canvas,
+                canvasWidth: this.canvas ? this.canvas.width : 'N/A',
+                canvasHeight: this.canvas ? this.canvas.height : 'N/A'
+            });
+        }
+        
         this.canvas.addEventListener('pointerdown', this.handlePointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this));
         this.canvas.addEventListener('pointerup', this.handlePointerEnd.bind(this));
@@ -2169,6 +2188,17 @@ class BallSurvivalGame {
     }
     
     draw() {
+        // Debug per mobile - verifica se il canvas è valido
+        if (window.innerWidth <= 768 && (!this.ctx || !this.canvas)) {
+            console.error('Mobile Debug - Canvas non valido:', {
+                ctx: !!this.ctx,
+                canvas: !!this.canvas,
+                canvasWidth: this.canvas ? this.canvas.width : 'N/A',
+                canvasHeight: this.canvas ? this.canvas.height : 'N/A'
+            });
+            return;
+        }
+        
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
