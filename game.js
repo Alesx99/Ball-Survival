@@ -259,6 +259,106 @@ const CONFIG = {
     chest: { spawnTime: 20, respawnTime: 30, size: 25, gemDrop: { min: 5, random: 6 } },
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
     xpOrbs: { mapSpawn: { interval: 4, batch: 15, max: 300, value: 5 }, pickupRadius: 100 },
+    
+    // Sistema di Materiali
+    materials: {
+        // Materiali per Core (rivestimenti della sfera)
+        coreMaterials: {
+            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.15, enemyTypes: ['all'] },
+            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.08, enemyTypes: ['elite', 'boss'] },
+            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.05, enemyTypes: ['boss'] },
+            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.03, enemyTypes: ['boss', 'elite'] },
+            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.01, enemyTypes: ['boss'] }
+        },
+        
+        // Materiali per Armi (esterne)
+        weaponMaterials: {
+            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.12, enemyTypes: ['all'] },
+            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.10, enemyTypes: ['all'] },
+            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.06, enemyTypes: ['elite', 'boss'] },
+            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.04, enemyTypes: ['boss'] },
+            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.02, enemyTypes: ['boss'] }
+        }
+    },
+    
+    // Core disponibili (rivestimenti della sfera)
+    cores: {
+        'magnetic': { 
+            id: 'magnetic', 
+            name: 'Core Magnetico', 
+            desc: 'Attira gemme e XP da distanza maggiore',
+            materials: { 'iron_fragment': 3, 'steel_fragment': 1 },
+            effect: { type: 'magnet', range: 1.5 }
+        },
+        'reflection': { 
+            id: 'reflection', 
+            name: 'Core Riflettente', 
+            desc: 'Riflette i proiettili nemici',
+            materials: { 'steel_fragment': 2, 'crystal_fragment': 1 },
+            effect: { type: 'reflect', chance: 0.3 }
+        },
+        'bounce': { 
+            id: 'bounce', 
+            name: 'Core Rimbalzante', 
+            desc: 'Rimbalza sui nemici causando danno',
+            materials: { 'iron_fragment': 2, 'wood_fragment': 2 },
+            effect: { type: 'bounce', damage: 15 }
+        },
+        'speed': { 
+            id: 'speed', 
+            name: 'Core di Velocità', 
+            desc: 'Aumenta la velocità di movimento',
+            materials: { 'crystal_fragment': 1, 'energy_fragment': 1 },
+            effect: { type: 'speed', bonus: 0.15 }
+        },
+        'resistance': { 
+            id: 'resistance', 
+            name: 'Core di Resistenza', 
+            desc: 'Riduce i danni ricevuti',
+            materials: { 'steel_fragment': 3, 'stone_fragment': 2 },
+            effect: { type: 'resistance', dr: 0.1 }
+        },
+        'amplification': { 
+            id: 'amplification', 
+            name: 'Core di Amplificazione', 
+            desc: 'Potenzia il danno da contatto',
+            materials: { 'magma_fragment': 1, 'energy_fragment': 2 },
+            effect: { type: 'amplify', multiplier: 1.5 }
+        }
+    },
+    
+    // Armi esterne
+    weapons: {
+        'spike_ring': { 
+            id: 'spike_ring', 
+            name: 'Anello di Spine', 
+            desc: 'Spine che danneggiano i nemici al contatto',
+            materials: { 'wood_fragment': 3, 'stone_fragment': 2 },
+            effect: { type: 'spikes', damage: 20, radius: 25 }
+        },
+        'energy_field': { 
+            id: 'energy_field', 
+            name: 'Campo Energetico', 
+            desc: 'Campo che rallenta e danneggia i nemici',
+            materials: { 'energy_fragment': 2, 'crystal_fragment': 1 },
+            effect: { type: 'field', damage: 10, slow: 0.3, radius: 40 }
+        },
+        'orbital_shield': { 
+            id: 'orbital_shield', 
+            name: 'Scudo Orbitale', 
+            desc: 'Scudi che orbitano intorno alla palla',
+            materials: { 'metal_fragment': 2, 'steel_fragment': 1 },
+            effect: { type: 'orbital', count: 2, damage: 15 }
+        },
+        'pulse_wave': { 
+            id: 'pulse_wave', 
+            name: 'Onda Pulsante', 
+            desc: 'Onde che respingono i nemici',
+            materials: { 'cosmic_fragment': 1, 'energy_fragment': 1 },
+            effect: { type: 'pulse', damage: 25, knockback: 30, cooldown: 3000 }
+        }
+    },
+    
     upgradeTree: {
         'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 40.', maxLevel: 10, type: 'passive' },
         'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
@@ -1059,11 +1159,41 @@ class Enemy extends Entity {
         game.enemiesKilledSinceBoss++;
         game.score += Math.floor(this.stats.maxHp);
         game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
+        
+        // Drop di gemme
         if (Math.random() < 0.1 + game.player.modifiers.luck) {
             game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 1 : 0)));
         }
+        
+        // Drop di materiali basato su tipo di nemico
+        this.dropMaterials(game);
+        
         for (let j = 0; j < 8; j++) {
             game.addEntity('particles', new Particle(this.x, this.y, { vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: this.color }));
+        }
+    }
+    
+    dropMaterials(game) {
+        const enemyType = this.isElite ? 'elite' : (this.isBoss ? 'boss' : 'normal');
+        
+        // Drop di materiali per core
+        for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
+            if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
+                const dropChance = material.dropChance * (1 + game.player.modifiers.luck);
+                if (Math.random() < dropChance) {
+                    game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                }
+            }
+        }
+        
+        // Drop di materiali per armi
+        for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
+            if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
+                const dropChance = material.dropChance * (1 + game.player.modifiers.luck);
+                if (Math.random() < dropChance) {
+                    game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                }
+            }
         }
     }
     draw(ctx, game) {
@@ -1286,6 +1416,78 @@ class GemOrb extends Entity {
         ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
     }
 }
+class MaterialOrb extends Entity {
+    constructor(x, y, materialId) { 
+        super(x, y); 
+        this.materialId = materialId;
+        this.material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
+        this.life = 900; // 15 secondi
+    }
+    
+    update(game) {
+        this.life--;
+        if (this.life <= 0) this.toRemove = true;
+        
+        const player = game.player;
+        const dist = Utils.getDistance(this, player);
+        
+        // Attrazione magnetica se il player ha il core magnetico
+        const magnetRange = 150;
+        if (dist < magnetRange) {
+            const angle = Math.atan2(player.y - this.y, player.x - this.x);
+            const speed = Math.max(3, (magnetRange - dist) * 0.08);
+            this.x += Math.cos(angle) * speed; 
+            this.y += Math.sin(angle) * speed;
+        }
+        
+        if (dist < 20) { 
+            game.addMaterial(this.materialId, 1);
+            this.toRemove = true; 
+        }
+    }
+    
+    draw(ctx) {
+        const rarity = this.material.rarity;
+        const colors = {
+            'common': '#8B7355',
+            'uncommon': '#708090', 
+            'rare': '#87CEEB',
+            'epic': '#FF4500',
+            'legendary': '#8A2BE2'
+        };
+        
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(Date.now() / 800);
+        
+        // Effetto di rarità
+        const pulse = Math.sin(Date.now() / 200) * 2;
+        const size = 8 + (rarity === 'legendary' ? pulse : 0);
+        
+        // Colore base
+        ctx.fillStyle = colors[rarity] || '#8B7355';
+        ctx.beginPath();
+        ctx.arc(0, 0, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bordo per rarità più alte
+        if (rarity !== 'common') {
+            ctx.strokeStyle = rarity === 'legendary' ? '#FFD700' : '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Effetto speciale per legendary
+        if (rarity === 'legendary') {
+            ctx.globalAlpha = 0.6;
+            ctx.beginPath();
+            ctx.arc(0, 0, size + 4, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+}
 class Chest extends Entity {
     constructor(x,y) { super(x,y); this.size = CONFIG.chest.size; }
     update(game) {
@@ -1504,7 +1706,7 @@ class BallSurvivalGame {
         this.showPopup('gameOver');
     }
     resetRunState() {
-        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
+        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
         this.nextChestSpawnTime = CONFIG.chest.spawnTime; this.nextMapXpSpawnTime = 5;
@@ -1513,6 +1715,12 @@ class BallSurvivalGame {
         this.currentStage = 1;
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
         this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
+        
+        // Sistema di materiali
+        this.materials = {};
+        this.cores = [];
+        this.weapons = [];
+        
         this.resetSpells();
     }
     gameLoop() {
@@ -1539,6 +1747,9 @@ class BallSurvivalGame {
                 if (entity.toRemove) this.entities[type].splice(i, 1);
             }
         }
+        
+        // Aggiorna gli effetti delle armi
+        this.updateWeaponEffects();
         for (let i = this.notifications.length - 1; i >= 0; i--) {
             this.notifications[i].life--;
             if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
@@ -1562,6 +1773,7 @@ class BallSurvivalGame {
         this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
         this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
         this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
+        this.entities.materialOrbs.forEach(e => e.draw(this.ctx, this));
         this.entities.chests.forEach(e => e.draw(this.ctx, this));
         this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
         this.entities.enemies.forEach(e => e.draw(this.ctx, this));
@@ -1652,6 +1864,191 @@ class BallSurvivalGame {
         }
     }
     addEntity(type, entity) { if (this.entities[type]) this.entities[type].push(entity); }
+    
+    // Sistema di gestione materiali
+    addMaterial(materialId, amount = 1) {
+        if (!this.materials[materialId]) {
+            this.materials[materialId] = 0;
+        }
+        this.materials[materialId] += amount;
+        
+        // Notifica al giocatore
+        const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
+        if (material) {
+            this.notifications.push({ 
+                text: `+${amount} ${material.name}`, 
+                life: 180,
+                color: material.color 
+            });
+        }
+    }
+    
+    canCraftCore(coreId) {
+        const core = CONFIG.cores[coreId];
+        if (!core) return false;
+        
+        for (const [materialId, required] of Object.entries(core.materials)) {
+            if (!this.materials[materialId] || this.materials[materialId] < required) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    canCraftWeapon(weaponId) {
+        const weapon = CONFIG.weapons[weaponId];
+        if (!weapon) return false;
+        
+        for (const [materialId, required] of Object.entries(weapon.materials)) {
+            if (!this.materials[materialId] || this.materials[materialId] < required) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    craftCore(coreId) {
+        if (!this.canCraftCore(coreId)) return false;
+        
+        const core = CONFIG.cores[coreId];
+        
+        // Consuma i materiali
+        for (const [materialId, required] of Object.entries(core.materials)) {
+            this.materials[materialId] -= required;
+        }
+        
+        // Aggiungi il core
+        this.cores.push(coreId);
+        
+        // Applica l'effetto del core
+        this.applyCoreEffect(coreId);
+        
+        this.notifications.push({ 
+            text: `Core creato: ${core.name}`, 
+            life: 300,
+            color: '#FFD700' 
+        });
+        
+        return true;
+    }
+    
+    craftWeapon(weaponId) {
+        if (!this.canCraftWeapon(weaponId)) return false;
+        
+        const weapon = CONFIG.weapons[weaponId];
+        
+        // Consuma i materiali
+        for (const [materialId, required] of Object.entries(weapon.materials)) {
+            this.materials[materialId] -= required;
+        }
+        
+        // Aggiungi l'arma
+        this.weapons.push(weaponId);
+        
+        // Applica l'effetto dell'arma
+        this.applyWeaponEffect(weaponId);
+        
+        this.notifications.push({ 
+            text: `Arma creata: ${weapon.name}`, 
+            life: 300,
+            color: '#FFD700' 
+        });
+        
+        return true;
+    }
+    
+    applyCoreEffect(coreId) {
+        const core = CONFIG.cores[coreId];
+        if (!core) return;
+        
+        switch (core.effect.type) {
+            case 'magnet':
+                // Il core magnetico è già implementato nel MaterialOrb
+                break;
+            case 'reflect':
+                this.player.modifiers.reflectChance = (this.player.modifiers.reflectChance || 0) + core.effect.chance;
+                break;
+            case 'bounce':
+                this.player.modifiers.bounceDamage = (this.player.modifiers.bounceDamage || 0) + core.effect.damage;
+                break;
+            case 'speed':
+                this.player.stats.speed += core.effect.bonus;
+                break;
+            case 'resistance':
+                this.player.stats.dr += core.effect.dr;
+                break;
+            case 'amplify':
+                this.player.modifiers.contactMultiplier = (this.player.modifiers.contactMultiplier || 1) * core.effect.multiplier;
+                break;
+        }
+    }
+    
+    applyWeaponEffect(weaponId) {
+        const weapon = CONFIG.weapons[weaponId];
+        if (!weapon) return;
+        
+        // Gli effetti delle armi verranno applicati durante il gameplay
+        // Per ora li memorizziamo nel player
+        if (!this.player.weapons) this.player.weapons = [];
+        this.player.weapons.push(weaponId);
+    }
+    
+    updateWeaponEffects() {
+        if (!this.player.weapons) return;
+        
+        for (const weaponId of this.player.weapons) {
+            const weapon = CONFIG.weapons[weaponId];
+            if (!weapon) continue;
+            
+            switch (weapon.effect.type) {
+                case 'spikes':
+                    // Danno da contatto con spine
+                    [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+                        const dist = Utils.getDistance(this.player, enemy);
+                        if (dist < this.player.stats.radius + weapon.effect.radius) {
+                            enemy.takeDamage(weapon.effect.damage, this);
+                        }
+                    });
+                    break;
+                    
+                case 'field':
+                    // Campo energetico che rallenta e danneggia
+                    [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+                        const dist = Utils.getDistance(this.player, enemy);
+                        if (dist < weapon.effect.radius) {
+                            enemy.takeDamage(weapon.effect.damage / 60, this); // DPS
+                            enemy.slowAmount = weapon.effect.slow;
+                            enemy.slowTimer = 60; // 1 secondo
+                        }
+                    });
+                    break;
+                    
+                case 'orbital':
+                    // Scudi orbitali
+                    if (!this.player.orbitals) this.player.orbitals = [];
+                    if (this.player.orbitals.length < weapon.effect.count) {
+                        const angle = (this.player.orbitals.length / weapon.effect.count) * Math.PI * 2;
+                        this.addEntity('orbitals', new Orbital(this.player.x, this.player.y, {
+                            angle: angle,
+                            distance: 40,
+                            rotationSpeed: 0.05,
+                            damage: weapon.effect.damage,
+                            radius: 8
+                        }));
+                    }
+                    break;
+                    
+                case 'pulse':
+                    // Onda pulsante (una volta ogni cooldown)
+                    if (!this.player.lastPulseTime) this.player.lastPulseTime = 0;
+                    if (Date.now() - this.player.lastPulseTime > weapon.effect.cooldown) {
+                        this.createExplosion(this.player.x, this.player.y, weapon.effect.knockback, weapon.effect.damage);
+                        this.player.lastPulseTime = Date.now();
+                    }
+                    break;
+            }
+        }
+    }
     
     checkStage() {
         // Controlla se è il momento di cambiare stage automaticamente
