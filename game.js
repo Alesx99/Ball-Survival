@@ -1876,10 +1876,14 @@ class BallSurvivalGame {
     
     // Sistema di gestione materiali
     addMaterial(materialId, amount = 1) {
+        console.log(`addMaterial chiamato: ${materialId}, quantità: ${amount}`);
+        
         if (!this.materials[materialId]) {
             this.materials[materialId] = 0;
         }
         this.materials[materialId] += amount;
+        
+        console.log(`Materiali aggiornati:`, this.materials);
         
         // Notifica al giocatore
         const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
@@ -1890,6 +1894,9 @@ class BallSurvivalGame {
                 color: material.color 
             });
         }
+        
+        // Salva i dati dopo aver aggiunto materiali
+        this.saveGameData();
     }
     
     canCraftCore(coreId) {
@@ -2909,9 +2916,15 @@ class BallSurvivalGame {
     }
     
     showInventory() {
+        console.log('showInventory chiamato');
+        console.log('Popup inventory:', this.dom.popups.inventory);
+        console.log('Materiali:', this.materials);
+        
         this.showPopup('inventory');
         this.populateInventory();
         this.setupInventoryTabs();
+        
+        console.log('Inventario popolato');
     }
     
     populateInventory() {
@@ -3229,6 +3242,11 @@ class BallSurvivalGame {
             this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 }; 
         }); 
         
+        // Inizializza materiali, core e armi
+        this.materials = {};
+        this.cores = [];
+        this.weapons = [];
+        
         try { 
             const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7'); 
             
@@ -3240,7 +3258,18 @@ class BallSurvivalGame {
                     Object.keys(this.permanentUpgrades).forEach(key => { 
                         if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; 
                     }); 
-                } 
+                }
+                
+                // Carica materiali, core e armi
+                if (data.materials) {
+                    this.materials = data.materials;
+                }
+                if (data.cores) {
+                    this.cores = data.cores;
+                }
+                if (data.weapons) {
+                    this.weapons = data.weapons;
+                }
             } else { 
                 this.totalGems = 0; 
             } 
@@ -3249,7 +3278,20 @@ class BallSurvivalGame {
             this.totalGems = 0; 
         } 
     }
-    saveGameData() { try { const saveData = { totalGems: this.totalGems, upgrades: this.permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare:", e); } }
+    saveGameData() { 
+        try { 
+            const saveData = { 
+                totalGems: this.totalGems, 
+                upgrades: this.permanentUpgrades,
+                materials: this.materials,
+                cores: this.cores,
+                weapons: this.weapons
+            }; 
+            localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); 
+        } catch (e) { 
+            console.error("Impossibile salvare:", e); 
+        } 
+    }
     populateShop() { 
         this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
