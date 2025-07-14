@@ -726,6 +726,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
 @media (max-width: 700px) {
     .materials-inventory {
         max-height: 300px;
+        overflow-y: auto;
     }
     
     .material-item {
@@ -752,5 +753,31 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
         font-size: 16px;
         bottom: 15px;
         right: 15px;
+    }
+}
+
+/* Fix per display verticali - scorrimento migliorato */
+@media (max-width: 700px) and (orientation: portrait) {
+    .popup-menu {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .menu-content {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    .materials-inventory {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+    
+    /* Titolo materiali più compatto su mobile */
+    #materialsInventory h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 } 
