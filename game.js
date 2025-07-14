@@ -3346,8 +3346,17 @@ class BallSurvivalGame {
                 // Mostra e posiziona il joystick
                 this.dom.joystick.container.style.display = 'block'; 
                 this.dom.joystick.container.style.position = 'fixed';
-                this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
-                this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+                
+                // Posiziona il joystick nella posizione del touch, ma con offset per centrarlo
+                const joystickX = clientX - this.dom.joystick.radius;
+                const joystickY = clientY - this.dom.joystick.radius;
+                
+                // Assicurati che il joystick rimanga visibile sullo schermo
+                const maxX = window.innerWidth - (this.dom.joystick.radius * 2);
+                const maxY = window.innerHeight - (this.dom.joystick.radius * 2);
+                
+                this.dom.joystick.container.style.left = `${Math.max(10, Math.min(joystickX, maxX))}px`; 
+                this.dom.joystick.container.style.top = `${Math.max(10, Math.min(joystickY, maxY))}px`; 
                 this.dom.joystick.container.style.zIndex = '1000';
                 
                 // Reset del stick al centro
@@ -3357,7 +3366,9 @@ class BallSurvivalGame {
                     active: this.joystick.active,
                     touchId: this.joystick.touchId,
                     startX: this.joystick.startX,
-                    startY: this.joystick.startY
+                    startY: this.joystick.startY,
+                    joystickX: joystickX,
+                    joystickY: joystickY
                 });
             }
         }
@@ -3393,11 +3404,41 @@ class BallSurvivalGame {
             this.joystick.dx = deltaX / maxDistance; 
             this.joystick.dy = deltaY / maxDistance;
             
+            // Aggiorna la posizione del joystick per seguire il touch se necessario
+            const joystickRect = this.dom.joystick.container.getBoundingClientRect();
+            const touchDistanceFromJoystick = Math.sqrt(
+                Math.pow(e.clientX - (joystickRect.left + joystickRect.width/2), 2) + 
+                Math.pow(e.clientY - (joystickRect.top + joystickRect.height/2), 2)
+            );
+            
+            // Se il touch si è spostato troppo dal centro del joystick, aggiorna la posizione
+            if (touchDistanceFromJoystick > this.dom.joystick.radius * 1.5) {
+                const newJoystickX = e.clientX - this.dom.joystick.radius;
+                const newJoystickY = e.clientY - this.dom.joystick.radius;
+                
+                // Mantieni il joystick visibile sullo schermo
+                const maxX = window.innerWidth - (this.dom.joystick.radius * 2);
+                const maxY = window.innerHeight - (this.dom.joystick.radius * 2);
+                
+                this.dom.joystick.container.style.left = `${Math.max(10, Math.min(newJoystickX, maxX))}px`;
+                this.dom.joystick.container.style.top = `${Math.max(10, Math.min(newJoystickY, maxY))}px`;
+                
+                // Aggiorna la posizione di riferimento
+                this.joystick.startX = e.clientX;
+                this.joystick.startY = e.clientY;
+                
+                // Reset del movimento del stick
+                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
+                this.joystick.dx = 0;
+                this.joystick.dy = 0;
+            }
+            
             console.log('Mobile Debug - Joystick moved:', {
                 dx: this.joystick.dx,
                 dy: this.joystick.dy,
                 distance: distance,
-                maxDistance: maxDistance
+                maxDistance: maxDistance,
+                touchDistanceFromJoystick: touchDistanceFromJoystick
             }); 
         }
     }
@@ -3688,10 +3729,30 @@ class BallSurvivalGame {
             return;
         }
         
-        this.camera.x = this.player.x - this.camera.width / 2; 
-        this.camera.y = this.player.y - this.camera.height / 2; 
+        // Calcola la posizione target della camera (centrata sul player)
+        const targetX = this.player.x - this.camera.width / 2;
+        const targetY = this.player.y - this.camera.height / 2;
+        
+        // Applica un movimento fluido della camera (smoothing)
+        const smoothing = 0.1; // Valore più basso = movimento più fluido
+        this.camera.x += (targetX - this.camera.x) * smoothing;
+        this.camera.y += (targetY - this.camera.y) * smoothing;
+        
+        // Mantieni la camera entro i limiti del mondo
         this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); 
         this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); 
+        
+        // Debug per mobile
+        if (window.innerWidth <= 700) {
+            console.log('Mobile Debug - Camera:', {
+                playerX: this.player.x,
+                playerY: this.player.y,
+                cameraX: this.camera.x,
+                cameraY: this.camera.y,
+                targetX: targetX,
+                targetY: targetY
+            });
+        }
     }
     resizeCanvas() {
         if (!this.dom || !this.dom.canvas) {
