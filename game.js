@@ -1935,6 +1935,19 @@ class BallSurvivalGame {
                 joystickStick: !!this.dom.joystick.stick,
                 inGameUI: !!this.dom.inGameUI.container
             });
+            
+            // Verifica che il joystick sia inizializzato correttamente
+            if (this.dom.joystick.container && this.dom.joystick.stick) {
+                // Assicurati che il joystick abbia le proprietà corrette
+                this.dom.joystick.container.style.position = 'fixed';
+                this.dom.joystick.container.style.display = 'none';
+                this.dom.joystick.container.style.zIndex = '1000';
+                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
+                
+                console.log('Mobile Debug - Joystick inizializzato correttamente');
+            } else {
+                console.warn('Mobile Debug - Joystick non trovato nel DOM');
+            }
         }
         
         // Crea il pulsante per l'inventario materiali
@@ -3346,15 +3359,23 @@ class BallSurvivalGame {
             this.joystick.dx = 0;
             this.joystick.dy = 0;
             
+            // Posizionamento migliorato del joystick
             this.dom.joystick.container.style.display = 'block'; 
+            this.dom.joystick.container.style.position = 'fixed';
             this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
             this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+            this.dom.joystick.container.style.zIndex = '1000';
+            
+            // Reset del stick al centro
+            this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
             
             console.log('Mobile Debug - Joystick activated:', {
                 active: this.joystick.active,
                 touchId: this.joystick.touchId,
                 startX: this.joystick.startX,
-                startY: this.joystick.startY
+                startY: this.joystick.startY,
+                containerLeft: this.dom.joystick.container.style.left,
+                containerTop: this.dom.joystick.container.style.top
             });
         } 
     }
@@ -3380,9 +3401,19 @@ class BallSurvivalGame {
             deltaY = (deltaY / distance) * maxDistance; 
         } 
         
+        // Aggiorna la posizione del stick
         this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
         this.joystick.dx = deltaX / maxDistance; 
-        this.joystick.dy = deltaY / maxDistance; 
+        this.joystick.dy = deltaY / maxDistance;
+        
+        console.log('Mobile Debug - Joystick moved:', {
+            deltaX: deltaX,
+            deltaY: deltaY,
+            dx: this.joystick.dx,
+            dy: this.joystick.dy,
+            distance: distance,
+            maxDistance: maxDistance
+        }); 
     }
     handlePointerEnd(e) { 
         if (this.joystick.active && e.pointerId === this.joystick.touchId) { 
@@ -3400,7 +3431,9 @@ class BallSurvivalGame {
             this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; 
             this.dom.joystick.container.style.display = 'none'; 
             this.joystick.dx = 0; 
-            this.joystick.dy = 0; 
+            this.joystick.dy = 0;
+            
+            console.log('Mobile Debug - Joystick deactivated'); 
         } 
     }
     
