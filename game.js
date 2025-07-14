@@ -2122,6 +2122,12 @@ class BallSurvivalGame {
         this.totalElapsedTime = 0; 
         this.menuCooldown = 0;
         this.materials = {}; // Inizializza l'inventario materiali
+        this.cores = {}; // Inizializza i core
+        this.weapons = {}; // Inizializza le armi
+        this.arsenal = {
+            activeCore: null, // Solo 1 core attivo
+            activeWeapons: [] // Max 2 armi attive
+        };
         this.loadGameData(); 
         this.loadStageProgress(); // Carica la progressione degli stage
         this.resetRunState(); 
@@ -2228,15 +2234,19 @@ class BallSurvivalGame {
         }
         
         // Applica gli effetti dei core e delle armi salvati
-        if (this.cores && this.cores.length > 0) {
-            for (const coreId of this.cores) {
-                this.applyCoreEffect(coreId);
+        if (this.cores && Object.keys(this.cores).length > 0) {
+            for (const [coreId, coreData] of Object.entries(this.cores)) {
+                if (coreData.equipped) {
+                    this.applyCoreEffect(coreId);
+                }
             }
         }
         
-        if (this.weapons && this.weapons.length > 0) {
-            for (const weaponId of this.weapons) {
-                this.applyWeaponEffect(weaponId);
+        if (this.weapons && Object.keys(this.weapons).length > 0) {
+            for (const [weaponId, weaponData] of Object.entries(this.weapons)) {
+                if (weaponData.equipped) {
+                    this.applyWeaponEffect(weaponId);
+                }
             }
         }
         
@@ -2274,14 +2284,8 @@ class BallSurvivalGame {
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
         this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
         
-        // Sistema di materiali e arsenale
-        this.materials = {};
-        this.cores = {}; // { coreId: { level: 1, equipped: false } }
-        this.weapons = {}; // { weaponId: { level: 1, equipped: false } }
-        this.arsenal = {
-            activeCore: null, // Solo 1 core attivo
-            activeWeapons: [] // Max 2 armi attive
-        };
+        // NON reinizializzare materiali e arsenale - vengono mantenuti tra le run
+        // this.materials, this.cores, this.weapons, this.arsenal rimangono invariati
         
         this.resetSpells();
     }
