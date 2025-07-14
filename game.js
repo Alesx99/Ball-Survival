@@ -1249,9 +1249,11 @@ class Player extends Entity {
     }
     
     drawActiveCores(ctx, game) {
-        if (!this.cores || this.cores.length === 0) return;
+        if (!game.cores || Object.keys(game.cores).length === 0) return;
         
-        for (const coreId of this.cores) {
+        for (const [coreId, coreData] of Object.entries(game.cores)) {
+            if (!coreData.equipped) continue; // Disegna solo i core equipaggiati
+            
             const core = CONFIG.cores[coreId];
             if (!core) continue;
             
@@ -1282,9 +1284,11 @@ class Player extends Entity {
     }
     
     drawActiveWeapons(ctx, game) {
-        if (!this.weapons || this.weapons.length === 0) return;
+        if (!game.weapons || Object.keys(game.weapons).length === 0) return;
         
-        for (const weaponId of this.weapons) {
+        for (const [weaponId, weaponData] of Object.entries(game.weapons)) {
+            if (!weaponData.equipped) continue; // Disegna solo le armi equipaggiate
+            
             const weapon = CONFIG.weapons[weaponId];
             if (!weapon) continue;
             
