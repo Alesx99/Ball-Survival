@@ -1317,56 +1317,149 @@ class Player extends Entity {
     
     // Sprite dei Core
     drawMagneticCore(ctx) {
-        // Anelli magnetici rotanti
+        // Anelli magnetici rotanti con particelle
         const time = Date.now() / 1000;
-        const radius = this.stats.radius + 8;
+        const radius = this.stats.radius + 12;
         
         ctx.save();
-        ctx.strokeStyle = '#4A90E2';
+        
+        // Particelle magnetiche che orbitano
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + time * 3;
+            const particleRadius = radius + Math.sin(time * 4 + i) * 5;
+            const x = this.x + Math.cos(angle) * particleRadius;
+            const y = this.y + Math.sin(angle) * particleRadius;
+            
+            // Gradiente per ogni particella
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, 6);
+            gradient.addColorStop(0, 'rgba(74, 144, 226, 1)');
+            gradient.addColorStop(0.5, 'rgba(74, 144, 226, 0.6)');
+            gradient.addColorStop(1, 'rgba(74, 144, 226, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Anelli magnetici multipli
+        for (let i = 0; i < 3; i++) {
+            const ringRadius = radius + i * 8;
+            const rotationSpeed = time * (2 + i * 0.5);
+            
+            ctx.strokeStyle = `rgba(74, 144, 226, ${0.8 - i * 0.2})`;
+            ctx.lineWidth = 3 - i;
+            ctx.globalAlpha = 0.9 - i * 0.2;
+            
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(rotationSpeed);
+            
+            // Anello tratteggiato
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        // Campo magnetico pulsante
+        const pulseRadius = radius + Math.sin(time * 6) * 10;
+        const pulseAlpha = 0.3 + Math.sin(time * 6) * 0.2;
+        
+        ctx.strokeStyle = `rgba(74, 144, 226, ${pulseAlpha})`;
         ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.8;
-        
-        // Anello esterno
+        ctx.setLineDash([]);
         ctx.beginPath();
-        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, pulseRadius, 0, Math.PI * 2);
         ctx.stroke();
-        
-        // Anello interno rotante
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(time * 2);
-        ctx.beginPath();
-        ctx.arc(0, 0, radius * 0.6, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
         
         ctx.restore();
     }
     
     drawReflectionCore(ctx) {
-        // Scudo riflettente con scintille
+        // Scudo riflettente con specchi e prismi
         const time = Date.now() / 1000;
-        const radius = this.stats.radius + 6;
+        const radius = this.stats.radius + 10;
         
         ctx.save();
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.globalAlpha = 0.9;
         
-        // Scudo principale
+        // Scudo principale con gradiente
+        const shieldGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, radius);
+        shieldGradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+        shieldGradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.4)');
+        shieldGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        
+        ctx.fillStyle = shieldGradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bordo riflettente
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 4;
+        ctx.globalAlpha = 0.9;
         ctx.beginPath();
         ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
         ctx.stroke();
         
-        // Scintille riflettenti
-        for (let i = 0; i < 6; i++) {
-            const angle = (i / 6) * Math.PI * 2 + time * 3;
-            const x = this.x + Math.cos(angle) * radius * 0.8;
-            const y = this.y + Math.sin(angle) * radius * 0.8;
+        // Prismi riflettenti rotanti
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + time * 2;
+            const prismRadius = radius * 0.7;
+            const x = this.x + Math.cos(angle) * prismRadius;
+            const y = this.y + Math.sin(angle) * prismRadius;
             
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle + time * 3);
+            
+            // Disegna prisma triangolare
             ctx.fillStyle = '#FFFFFF';
+            ctx.globalAlpha = 0.8;
             ctx.beginPath();
-            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.moveTo(0, -6);
+            ctx.lineTo(-4, 4);
+            ctx.lineTo(4, 4);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // Raggi di luce riflessi
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 + time * 1.5;
+            const rayLength = 15 + Math.sin(time * 4 + i) * 5;
+            const x1 = this.x + Math.cos(angle) * radius;
+            const y1 = this.y + Math.sin(angle) * radius;
+            const x2 = this.x + Math.cos(angle) * (radius + rayLength);
+            const y2 = this.y + Math.sin(angle) * (radius + rayLength);
+            
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 + Math.sin(time * 4 + i) * 0.4})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        
+        // Scintille dorate
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2 + time * 4;
+            const sparkRadius = radius + Math.sin(time * 6 + i) * 8;
+            const x = this.x + Math.cos(angle) * sparkRadius;
+            const y = this.y + Math.sin(angle) * sparkRadius;
+            
+            const sparkGradient = ctx.createRadialGradient(x, y, 0, x, y, 4);
+            sparkGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            sparkGradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.8)');
+            sparkGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            
+            ctx.fillStyle = sparkGradient;
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
             ctx.fill();
         }
         
@@ -1397,22 +1490,75 @@ class Player extends Entity {
     }
     
     drawSpeedCore(ctx) {
-        // Scie di velocità
+        // Scie di velocità con particelle e onde d'urto
         const time = Date.now() / 1000;
-        const radius = this.stats.radius + 5;
+        const radius = this.stats.radius + 8;
         
         ctx.save();
-        ctx.strokeStyle = '#00FFFF';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.6;
         
-        // Scie multiple
-        for (let i = 0; i < 3; i++) {
-            const offset = (i / 3) * Math.PI * 2 + time * 4;
+        // Particelle di velocità che seguono il movimento
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 + time * 8;
+            const particleRadius = radius + Math.sin(time * 6 + i) * 8;
+            const x = this.x + Math.cos(angle) * particleRadius;
+            const y = this.y + Math.sin(angle) * particleRadius;
+            
+            // Gradiente per particelle di velocità
+            const particleGradient = ctx.createRadialGradient(x, y, 0, x, y, 4);
+            particleGradient.addColorStop(0, 'rgba(0, 255, 255, 1)');
+            particleGradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.6)');
+            particleGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+            
+            ctx.fillStyle = particleGradient;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, radius + i * 3, offset, offset + Math.PI);
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Scie multiple con effetti di velocità
+        for (let i = 0; i < 4; i++) {
+            const offset = (i / 4) * Math.PI * 2 + time * 6;
+            const sciaRadius = radius + i * 6;
+            const alpha = 0.8 - i * 0.15;
+            
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = 3 - i * 0.5;
+            ctx.globalAlpha = alpha;
+            
+            // Scia principale
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, sciaRadius, offset, offset + Math.PI * 1.5);
+            ctx.stroke();
+            
+            // Scia secondaria
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, sciaRadius * 0.7, offset + Math.PI, offset + Math.PI * 2.5);
             ctx.stroke();
         }
+        
+        // Onde d'urto di velocità
+        for (let i = 0; i < 3; i++) {
+            const shockRadius = radius + 15 + i * 8 + Math.sin(time * 8 + i) * 5;
+            const shockAlpha = 0.4 - i * 0.1;
+            
+            ctx.strokeStyle = `rgba(0, 255, 255, ${shockAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, shockRadius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        // Campo di velocità pulsante
+        const speedFieldRadius = radius + Math.sin(time * 10) * 12;
+        const speedFieldAlpha = 0.2 + Math.sin(time * 10) * 0.1;
+        
+        ctx.setLineDash([]);
+        ctx.strokeStyle = `rgba(0, 255, 255, ${speedFieldAlpha})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, speedFieldRadius, 0, Math.PI * 2);
+        ctx.stroke();
         
         ctx.restore();
     }
@@ -1512,55 +1658,177 @@ class Player extends Entity {
     
     // Sprite delle Armi
     drawSpikeRing(ctx) {
-        // Anello di spine
+        // Anello di spine rotanti con effetti metallici
         const time = Date.now() / 1000;
-        const radius = this.stats.radius + 20;
+        const radius = this.stats.radius + 25;
         
         ctx.save();
-        ctx.fillStyle = '#8B4513';
-        ctx.globalAlpha = 0.9;
         
-        // Spine esterne
-        for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2;
-            const x = this.x + Math.cos(angle) * radius;
-            const y = this.y + Math.sin(angle) * radius;
+        // Anello base metallico
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 4;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Spine dinamiche rotanti
+        for (let i = 0; i < 16; i++) {
+            const angle = (i / 16) * Math.PI * 2 + time * 2;
+            const spikeRadius = radius + Math.sin(time * 4 + i) * 3;
+            const x = this.x + Math.cos(angle) * spikeRadius;
+            const y = this.y + Math.sin(angle) * spikeRadius;
             
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle + time * 3);
+            
+            // Gradiente per ogni spina
+            const spikeGradient = ctx.createLinearGradient(0, -12, 0, 12);
+            spikeGradient.addColorStop(0, '#8B4513');
+            spikeGradient.addColorStop(0.5, '#A0522D');
+            spikeGradient.addColorStop(1, '#8B4513');
+            
+            ctx.fillStyle = spikeGradient;
+            ctx.globalAlpha = 0.9;
+            
+            // Disegna spina triangolare
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8);
-            ctx.lineTo(x + Math.cos(angle + 0.3) * 6, y + Math.sin(angle + 0.3) * 6);
-            ctx.lineTo(x + Math.cos(angle - 0.3) * 6, y + Math.sin(angle - 0.3) * 6);
+            ctx.moveTo(0, -12);
+            ctx.lineTo(-6, 0);
+            ctx.lineTo(-3, 8);
+            ctx.lineTo(3, 8);
+            ctx.lineTo(6, 0);
             ctx.closePath();
             ctx.fill();
+            
+            // Bordo della spina
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            ctx.restore();
         }
+        
+        // Particelle metalliche che orbitano
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + time * 4;
+            const particleRadius = radius * 0.6;
+            const x = this.x + Math.cos(angle) * particleRadius;
+            const y = this.y + Math.sin(angle) * particleRadius;
+            
+            const particleGradient = ctx.createRadialGradient(x, y, 0, x, y, 3);
+            particleGradient.addColorStop(0, 'rgba(139, 69, 19, 1)');
+            particleGradient.addColorStop(0.5, 'rgba(160, 82, 45, 0.8)');
+            particleGradient.addColorStop(1, 'rgba(139, 69, 19, 0)');
+            
+            ctx.fillStyle = particleGradient;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Campo di forza delle spine
+        const forceFieldRadius = radius + Math.sin(time * 6) * 8;
+        const forceFieldAlpha = 0.3 + Math.sin(time * 6) * 0.2;
+        
+        ctx.strokeStyle = `rgba(139, 69, 19, ${forceFieldAlpha})`;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, forceFieldRadius, 0, Math.PI * 2);
+        ctx.stroke();
         
         ctx.restore();
     }
     
     drawEnergyField(ctx) {
-        // Campo energetico
+        // Campo energetico con particelle e fulmini
         const time = Date.now() / 1000;
-        const radius = this.stats.radius + 25;
+        const radius = this.stats.radius + 30;
         
         ctx.save();
-        ctx.strokeStyle = '#00FFFF';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.6;
         
-        // Campo principale
+        // Campo energetico principale con gradiente
+        const fieldGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, radius);
+        fieldGradient.addColorStop(0, 'rgba(0, 255, 255, 0.8)');
+        fieldGradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.4)');
+        fieldGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+        
+        ctx.fillStyle = fieldGradient;
         ctx.beginPath();
         ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bordo energetico pulsante
+        const borderRadius = radius + Math.sin(time * 8) * 5;
+        ctx.strokeStyle = '#00FFFF';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, borderRadius, 0, Math.PI * 2);
         ctx.stroke();
         
-        // Onde energetiche
-        for (let i = 0; i < 3; i++) {
-            const waveRadius = radius + i * 5 + Math.sin(time * 2 + i) * 3;
-            ctx.globalAlpha = 0.4 - i * 0.1;
+        // Onde energetiche multiple
+        for (let i = 0; i < 4; i++) {
+            const waveRadius = radius + i * 8 + Math.sin(time * 3 + i) * 6;
+            const waveAlpha = 0.6 - i * 0.15;
+            
+            ctx.strokeStyle = `rgba(0, 255, 255, ${waveAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
             ctx.beginPath();
             ctx.arc(this.x, this.y, waveRadius, 0, Math.PI * 2);
             ctx.stroke();
         }
+        
+        // Particelle energetiche che orbitano
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 + time * 5;
+            const particleRadius = radius * 0.7 + Math.sin(time * 4 + i) * 10;
+            const x = this.x + Math.cos(angle) * particleRadius;
+            const y = this.y + Math.sin(angle) * particleRadius;
+            
+            const particleGradient = ctx.createRadialGradient(x, y, 0, x, y, 5);
+            particleGradient.addColorStop(0, 'rgba(0, 255, 255, 1)');
+            particleGradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.6)');
+            particleGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+            
+            ctx.fillStyle = particleGradient;
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Fulmini energetici
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2 + time * 2;
+            const lightningLength = 20 + Math.sin(time * 6 + i) * 10;
+            const x1 = this.x + Math.cos(angle) * radius;
+            const y1 = this.y + Math.sin(angle) * radius;
+            const x2 = this.x + Math.cos(angle) * (radius + lightningLength);
+            const y2 = this.y + Math.sin(angle) * (radius + lightningLength);
+            
+            ctx.strokeStyle = `rgba(0, 255, 255, ${0.8 + Math.sin(time * 8 + i) * 0.2})`;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        
+        // Nucleo energetico centrale
+        const coreRadius = 8 + Math.sin(time * 10) * 3;
+        const coreGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, coreRadius);
+        coreGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        coreGradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.8)');
+        coreGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+        
+        ctx.fillStyle = coreGradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, coreRadius, 0, Math.PI * 2);
+        ctx.fill();
         
         ctx.restore();
     }
