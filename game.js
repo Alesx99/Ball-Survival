@@ -281,102 +281,128 @@ const CONFIG = {
         }
     },
     
-    // Core disponibili (rivestimenti della sfera)
+    // Core disponibili (rivestimenti della sfera) - MAX 1 per tipo
     cores: {
         'magnetic': { 
             id: 'magnetic', 
             name: 'Core Magnetico', 
             desc: 'Anelli magnetici rotanti che attirano gemme e XP da +50% distanza. Effetto visivo: anelli blu rotanti',
             materials: { 'iron_fragment': 3, 'steel_fragment': 1 },
-            effect: { type: 'magnet', range: 1.5 }
+            effect: { type: 'magnet', range: 1.5 },
+            maxLevel: 1, // Solo 1 livello
+            upgradeCost: null // Non potenziabile
         },
         'reflection': { 
             id: 'reflection', 
             name: 'Core Riflettente', 
             desc: 'Scudo dorato che riflette il 30% dei proiettili nemici. Effetto visivo: scudo con scintille bianche',
             materials: { 'steel_fragment': 2, 'crystal_fragment': 1 },
-            effect: { type: 'reflect', chance: 0.3 }
+            effect: { type: 'reflect', chance: 0.3 },
+            maxLevel: 1,
+            upgradeCost: null
         },
         'bounce': { 
             id: 'bounce', 
             name: 'Core Rimbalzante', 
             desc: 'Spine arancioni che rimbalzano sui nemici infliggendo +15 danno. Effetto visivo: spine rotanti',
             materials: { 'iron_fragment': 2, 'wood_fragment': 2 },
-            effect: { type: 'bounce', damage: 15 }
+            effect: { type: 'bounce', damage: 15 },
+            maxLevel: 1,
+            upgradeCost: null
         },
         'speed': { 
             id: 'speed', 
             name: 'Core di Velocità', 
             desc: 'Scie ciano che aumentano la velocità di +15%. Effetto visivo: scie multiple rotanti',
             materials: { 'crystal_fragment': 1, 'energy_fragment': 1 },
-            effect: { type: 'speed', bonus: 0.15 }
+            effect: { type: 'speed', bonus: 0.15 },
+            maxLevel: 1,
+            upgradeCost: null
         },
         'resistance': { 
             id: 'resistance', 
             name: 'Core di Resistenza', 
             desc: 'Barriera marrone che riduce i danni ricevuti del 10%. Effetto visivo: doppia barriera',
             materials: { 'steel_fragment': 3, 'stone_fragment': 2 },
-            effect: { type: 'resistance', dr: 0.1 }
+            effect: { type: 'resistance', dr: 0.1 },
+            maxLevel: 1,
+            upgradeCost: null
         },
         'amplification': { 
             id: 'amplification', 
             name: 'Core di Amplificazione', 
             desc: 'Aura rossa che potenzia il danno da contatto del 50%. Effetto visivo: aura con particelle',
             materials: { 'magma_fragment': 1, 'energy_fragment': 2 },
-            effect: { type: 'amplify', multiplier: 1.5 }
+            effect: { type: 'amplify', multiplier: 1.5 },
+            maxLevel: 1,
+            upgradeCost: null
         },
         'void': { 
             id: 'void', 
             name: 'Core del Vuoto', 
             desc: 'Vortice viola che teletrasporta quando salute < 30%. Cooldown: 10s. Effetto visivo: vortice rotante',
             materials: { 'void_fragment': 1, 'cosmic_fragment': 1 },
-            effect: { type: 'void_teleport', threshold: 0.3, cooldown: 10000 }
+            effect: { type: 'void_teleport', threshold: 0.3, cooldown: 10000 },
+            maxLevel: 1,
+            upgradeCost: null
         }
     },
     
-    // Armi esterne
+    // Armi esterne - MAX 3 livelli per tipo
     weapons: {
         'spike_ring': { 
             id: 'spike_ring', 
             name: 'Anello di Spine', 
             desc: '12 spine marroni che danneggiano i nemici per +20 danno al contatto. Raggio: 25px. Effetto visivo: spine triangolari',
             materials: { 'wood_fragment': 3, 'stone_fragment': 2 },
-            effect: { type: 'spikes', damage: 20, radius: 25 }
+            effect: { type: 'spikes', damage: 20, radius: 25 },
+            maxLevel: 3,
+            upgradeCost: { 'wood_fragment': 2, 'stone_fragment': 1 } // Costo per potenziamento
         },
         'energy_field': { 
             id: 'energy_field', 
             name: 'Campo Energetico', 
             desc: 'Campo ciano che rallenta nemici del 30% e infligge 10 DPS. Raggio: 40px. Effetto visivo: onde energetiche',
             materials: { 'energy_fragment': 2, 'crystal_fragment': 1 },
-            effect: { type: 'field', damage: 10, slow: 0.3, radius: 40 }
+            effect: { type: 'field', damage: 10, slow: 0.3, radius: 40 },
+            maxLevel: 3,
+            upgradeCost: { 'energy_fragment': 1, 'crystal_fragment': 1 }
         },
         'orbital_shield': { 
             id: 'orbital_shield', 
             name: 'Scudo Orbitale', 
             desc: '2 scudi bianchi che orbitano intorno alla palla infliggendo +15 danno. Effetto visivo: scudi orbitanti',
             materials: { 'metal_fragment': 2, 'steel_fragment': 1 },
-            effect: { type: 'orbital', count: 2, damage: 15 }
+            effect: { type: 'orbital', count: 2, damage: 15 },
+            maxLevel: 3,
+            upgradeCost: { 'metal_fragment': 1, 'steel_fragment': 1 }
         },
         'pulse_wave': { 
             id: 'pulse_wave', 
             name: 'Onda Pulsante', 
             desc: 'Onde rosa che respingono i nemici infliggendo +25 danno. Cooldown: 3s. Effetto visivo: onde multiple',
             materials: { 'cosmic_fragment': 1, 'energy_fragment': 1 },
-            effect: { type: 'pulse', damage: 25, knockback: 30, cooldown: 3000 }
+            effect: { type: 'pulse', damage: 25, knockback: 30, cooldown: 3000 },
+            maxLevel: 3,
+            upgradeCost: { 'cosmic_fragment': 1, 'energy_fragment': 1 }
         },
         'void_blade': { 
             id: 'void_blade', 
             name: 'Lama del Vuoto', 
             desc: '6 lame viola che tagliano i nemici per +30 danno e li rallentano del 50% per 3s. Effetto visivo: lame rotanti',
             materials: { 'void_fragment': 1, 'metal_fragment': 2 },
-            effect: { type: 'void_blade', damage: 30, slow: 0.5, duration: 3000 }
+            effect: { type: 'void_blade', damage: 30, slow: 0.5, duration: 3000 },
+            maxLevel: 3,
+            upgradeCost: { 'void_fragment': 1, 'metal_fragment': 1 }
         },
         'crystal_barrier': { 
             id: 'crystal_barrier', 
             name: 'Barriera di Cristallo', 
             desc: 'Barriera azzurra che blocca l\'80% dei proiettili e riflette +15 danno. Effetto visivo: cristalli riflettenti',
             materials: { 'crystal_fragment': 2, 'stone_fragment': 3 },
-            effect: { type: 'crystal_barrier', blockChance: 0.8, reflectDamage: 15 }
+            effect: { type: 'crystal_barrier', blockChance: 0.8, reflectDamage: 15 },
+            maxLevel: 3,
+            upgradeCost: { 'crystal_fragment': 1, 'stone_fragment': 2 }
         }
     },
     
@@ -2248,10 +2274,14 @@ class BallSurvivalGame {
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
         this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
         
-        // Sistema di materiali
+        // Sistema di materiali e arsenale
         this.materials = {};
-        this.cores = [];
-        this.weapons = [];
+        this.cores = {}; // { coreId: { level: 1, equipped: false } }
+        this.weapons = {}; // { weaponId: { level: 1, equipped: false } }
+        this.arsenal = {
+            activeCore: null, // Solo 1 core attivo
+            activeWeapons: [] // Max 2 armi attive
+        };
         
         this.resetSpells();
     }
@@ -2426,6 +2456,12 @@ class BallSurvivalGame {
         const core = CONFIG.cores[coreId];
         if (!core) return false;
         
+        // Controlla se il core esiste già
+        if (this.cores[coreId]) {
+            return false; // Core già posseduto
+        }
+        
+        // Controlla materiali
         for (const [materialId, required] of Object.entries(core.materials)) {
             if (!this.materials[materialId] || this.materials[materialId] < required) {
                 return false;
@@ -2438,7 +2474,25 @@ class BallSurvivalGame {
         const weapon = CONFIG.weapons[weaponId];
         if (!weapon) return false;
         
-        for (const [materialId, required] of Object.entries(weapon.materials)) {
+        const weaponData = this.weapons[weaponId];
+        
+        // Se l'arma non esiste, controlla materiali per crearla
+        if (!weaponData) {
+            for (const [materialId, required] of Object.entries(weapon.materials)) {
+                if (!this.materials[materialId] || this.materials[materialId] < required) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        // Se l'arma esiste, controlla se può essere potenziata
+        if (weaponData.level >= weapon.maxLevel) {
+            return false; // Livello massimo raggiunto
+        }
+        
+        // Controlla materiali per potenziamento
+        for (const [materialId, required] of Object.entries(weapon.upgradeCost)) {
             if (!this.materials[materialId] || this.materials[materialId] < required) {
                 return false;
             }
@@ -2456,12 +2510,13 @@ class BallSurvivalGame {
             this.materials[materialId] -= required;
         }
         
-        // Aggiungi il core al player
-        if (!this.player.cores) this.player.cores = [];
-        this.player.cores.push(coreId);
+        // Aggiungi il core all'arsenale
+        this.cores[coreId] = { level: 1, equipped: false };
         
-        // Applica l'effetto del core
-        this.applyCoreEffect(coreId);
+        // Se non c'è un core attivo, equipaggia questo
+        if (!this.arsenal.activeCore) {
+            this.equipCore(coreId);
+        }
         
         this.notifications.push({ 
             text: `Core creato: ${core.name}`, 
@@ -2477,26 +2532,40 @@ class BallSurvivalGame {
         if (!this.canCraftWeapon(weaponId)) return false;
         
         const weapon = CONFIG.weapons[weaponId];
+        const weaponData = this.weapons[weaponId];
         
-        // Consuma i materiali
-        for (const [materialId, required] of Object.entries(weapon.materials)) {
-            this.materials[materialId] -= required;
+        if (!weaponData) {
+            // Crea nuova arma
+            for (const [materialId, required] of Object.entries(weapon.materials)) {
+                this.materials[materialId] -= required;
+            }
+            
+            this.weapons[weaponId] = { level: 1, equipped: false };
+            
+            // Se c'è spazio nell'arsenale, equipaggia l'arma
+            if (this.arsenal.activeWeapons.length < 2) {
+                this.equipWeapon(weaponId);
+            }
+            
+            this.notifications.push({ 
+                text: `Arma creata: ${weapon.name}`, 
+                life: 300,
+                color: '#FFD700' 
+            });
+        } else {
+            // Potenzia arma esistente
+            for (const [materialId, required] of Object.entries(weapon.upgradeCost)) {
+                this.materials[materialId] -= required;
+            }
+            
+            weaponData.level++;
+            
+            this.notifications.push({ 
+                text: `${weapon.name} potenziata al livello ${weaponData.level}!`, 
+                life: 300,
+                color: '#FFD700' 
+            });
         }
-        
-        // Aggiungi l'arma al player (solo una volta)
-        if (!this.player.weapons) this.player.weapons = [];
-        if (!this.player.weapons.includes(weaponId)) {
-            this.player.weapons.push(weaponId);
-        }
-        
-        // Applica l'effetto dell'arma
-        this.applyWeaponEffect(weaponId);
-        
-        this.notifications.push({ 
-            text: `Arma creata: ${weapon.name}`, 
-            life: 300,
-            color: '#FFD700' 
-        });
         
         this.saveGameData();
         return true;
@@ -2532,21 +2601,78 @@ class BallSurvivalGame {
         }
     }
     
+    // Metodi per gestire l'arsenale
+    equipCore(coreId) {
+        if (!this.cores[coreId]) return false;
+        
+        // Disequipaggia il core attuale
+        if (this.arsenal.activeCore) {
+            this.cores[this.arsenal.activeCore].equipped = false;
+        }
+        
+        // Equipaggia il nuovo core
+        this.arsenal.activeCore = coreId;
+        this.cores[coreId].equipped = true;
+        
+        // Applica l'effetto del core
+        this.applyCoreEffect(coreId);
+        
+        this.notifications.push({ 
+            text: `Core equipaggiato: ${CONFIG.cores[coreId].name}`, 
+            life: 300,
+            color: '#00FF00' 
+        });
+        
+        return true;
+    }
+    
+    equipWeapon(weaponId) {
+        if (!this.weapons[weaponId]) return false;
+        if (this.arsenal.activeWeapons.length >= 2) return false;
+        
+        this.arsenal.activeWeapons.push(weaponId);
+        this.weapons[weaponId].equipped = true;
+        
+        this.notifications.push({ 
+            text: `Arma equipaggiata: ${CONFIG.weapons[weaponId].name}`, 
+            life: 300,
+            color: '#00FF00' 
+        });
+        
+        return true;
+    }
+    
+    unequipWeapon(weaponId) {
+        const index = this.arsenal.activeWeapons.indexOf(weaponId);
+        if (index === -1) return false;
+        
+        this.arsenal.activeWeapons.splice(index, 1);
+        this.weapons[weaponId].equipped = false;
+        
+        this.notifications.push({ 
+            text: `Arma rimossa: ${CONFIG.weapons[weaponId].name}`, 
+            life: 300,
+            color: '#FF0000' 
+        });
+        
+        return true;
+    }
+    
     applyWeaponEffect(weaponId) {
         const weapon = CONFIG.weapons[weaponId];
         if (!weapon) return;
         
         // Gli effetti delle armi verranno applicati durante il gameplay
-        // Non aggiungiamo l'arma qui perché viene già aggiunta in craftWeapon
         console.log(`Effetto arma applicato: ${weapon.name}`);
     }
     
     updateWeaponEffects() {
-        if (!this.player.weapons) return;
+        if (!this.arsenal.activeWeapons || this.arsenal.activeWeapons.length === 0) return;
         
-        for (const weaponId of this.player.weapons) {
+        for (const weaponId of this.arsenal.activeWeapons) {
             const weapon = CONFIG.weapons[weaponId];
-            if (!weapon) continue;
+            const weaponData = this.weapons[weaponId];
+            if (!weapon || !weaponData) continue;
             
             switch (weapon.effect.type) {
                 case 'spikes':
@@ -3510,6 +3636,9 @@ class BallSurvivalGame {
         
         // Popola la lista delle armi disponibili
         this.populateCraftingList('weaponsList', CONFIG.weapons, 'weapon');
+        
+        // Popola l'arsenale
+        this.populateArsenal();
     }
     
     populateMaterialsList(containerId, materialsConfig) {
@@ -3558,14 +3687,37 @@ class BallSurvivalGame {
             const canCraft = type === 'core' ? this.canCraftCore(itemId) : this.canCraftWeapon(itemId);
             const materialsText = this.getMaterialsRequiredText(itemId, type);
             
+            // Informazioni sul livello e stato
+            let statusText = '';
+            let buttonText = 'Crea';
+            
+            if (type === 'core') {
+                const coreData = this.cores[itemId];
+                if (coreData) {
+                    statusText = `<div class="item-status">Posseduto (Livello ${coreData.level})</div>`;
+                    buttonText = 'Già posseduto';
+                }
+            } else {
+                const weaponData = this.weapons[itemId];
+                if (weaponData) {
+                    statusText = `<div class="item-status">Livello ${weaponData.level}/${item.maxLevel}</div>`;
+                    if (weaponData.level >= item.maxLevel) {
+                        buttonText = 'Livello massimo';
+                    } else {
+                        buttonText = 'Potenziamento';
+                    }
+                }
+            }
+            
             html += `
                 <div class="crafting-item">
                     <h5>${item.name}</h5>
                     <p>${item.desc}</p>
+                    ${statusText}
                     <div class="materials-required">${materialsText}</div>
                     <button class="craft-btn" ${canCraft ? '' : 'disabled'} 
                             data-item-id="${itemId}" data-item-type="${type}">
-                        ${canCraft ? 'Crea' : 'Materiali insufficienti'}
+                        ${buttonText}
                     </button>
                 </div>
             `;
@@ -3598,10 +3750,19 @@ class BallSurvivalGame {
     
     getMaterialsRequiredText(itemId, type) {
         const item = type === 'core' ? CONFIG.cores[itemId] : CONFIG.weapons[itemId];
-        if (!item || !item.materials) return '';
+        if (!item) return '';
+        
+        let materialsToCheck = item.materials;
+        
+        // Se è un'arma e esiste già, usa i costi di potenziamento
+        if (type === 'weapon' && this.weapons[itemId]) {
+            materialsToCheck = item.upgradeCost;
+        }
+        
+        if (!materialsToCheck) return '';
         
         const materials = [];
-        for (const [materialId, amount] of Object.entries(item.materials)) {
+        for (const [materialId, amount] of Object.entries(materialsToCheck)) {
             const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
             const current = this.materials[materialId] || 0;
             const color = current >= amount ? '#2ecc71' : '#e74c3c';
@@ -3628,6 +3789,195 @@ class BallSurvivalGame {
                 document.getElementById(targetTab + 'Tab').classList.add('active');
             });
         });
+    }
+    
+    populateArsenal() {
+        // Popola core attivo
+        this.populateActiveCore();
+        
+        // Popola armi attive
+        this.populateActiveWeapons();
+        
+        // Popola core disponibili
+        this.populateAvailableCores();
+        
+        // Popola armi disponibili
+        this.populateAvailableWeapons();
+    }
+    
+    populateActiveCore() {
+        const container = document.getElementById('activeCoreDisplay');
+        if (!container) return;
+        
+        if (this.arsenal.activeCore) {
+            const core = CONFIG.cores[this.arsenal.activeCore];
+            const coreData = this.cores[this.arsenal.activeCore];
+            
+            container.innerHTML = `
+                <div class="active-item">
+                    <h6>${core.name}</h6>
+                    <p>${core.desc}</p>
+                    <div class="item-level">Livello ${coreData.level}</div>
+                    <button class="unequip-btn" data-item-id="${this.arsenal.activeCore}" data-item-type="core">
+                        Rimuovi
+                    </button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '<div class="no-item">Nessun core equipaggiato</div>';
+        }
+        
+        // Aggiungi event listeners
+        container.querySelectorAll('.unequip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.dataset.itemId;
+                const itemType = e.target.dataset.itemType;
+                
+                if (itemType === 'core') {
+                    this.unequipCore(itemId);
+                }
+                
+                this.populateArsenal();
+            });
+        });
+    }
+    
+    populateActiveWeapons() {
+        const container = document.getElementById('activeWeaponsDisplay');
+        if (!container) return;
+        
+        if (this.arsenal.activeWeapons.length > 0) {
+            let html = '';
+            for (const weaponId of this.arsenal.activeWeapons) {
+                const weapon = CONFIG.weapons[weaponId];
+                const weaponData = this.weapons[weaponId];
+                
+                html += `
+                    <div class="active-item">
+                        <h6>${weapon.name}</h6>
+                        <p>${weapon.desc}</p>
+                        <div class="item-level">Livello ${weaponData.level}/${weapon.maxLevel}</div>
+                        <button class="unequip-btn" data-item-id="${weaponId}" data-item-type="weapon">
+                            Rimuovi
+                        </button>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<div class="no-item">Nessuna arma equipaggiata</div>';
+        }
+        
+        // Aggiungi event listeners
+        container.querySelectorAll('.unequip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.dataset.itemId;
+                const itemType = e.target.dataset.itemType;
+                
+                if (itemType === 'weapon') {
+                    this.unequipWeapon(itemId);
+                }
+                
+                this.populateArsenal();
+            });
+        });
+    }
+    
+    populateAvailableCores() {
+        const container = document.getElementById('availableCoresDisplay');
+        if (!container) return;
+        
+        let html = '';
+        for (const [coreId, coreData] of Object.entries(this.cores)) {
+            const core = CONFIG.cores[coreId];
+            
+            html += `
+                <div class="available-item ${coreData.equipped ? 'equipped' : ''}">
+                    <h6>${core.name}</h6>
+                    <p>${core.desc}</p>
+                    <div class="item-level">Livello ${coreData.level}</div>
+                    <button class="equip-btn" data-item-id="${coreId}" data-item-type="core" ${coreData.equipped ? 'disabled' : ''}>
+                        ${coreData.equipped ? 'Equipaggiato' : 'Equipaggia'}
+                    </button>
+                </div>
+            `;
+        }
+        
+        if (!html) {
+            html = '<div class="no-item">Nessun core posseduto</div>';
+        }
+        
+        container.innerHTML = html;
+        
+        // Aggiungi event listeners
+        container.querySelectorAll('.equip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.dataset.itemId;
+                const itemType = e.target.dataset.itemType;
+                
+                if (itemType === 'core') {
+                    this.equipCore(itemId);
+                }
+                
+                this.populateArsenal();
+            });
+        });
+    }
+    
+    populateAvailableWeapons() {
+        const container = document.getElementById('availableWeaponsDisplay');
+        if (!container) return;
+        
+        let html = '';
+        for (const [weaponId, weaponData] of Object.entries(this.weapons)) {
+            const weapon = CONFIG.weapons[weaponId];
+            
+            html += `
+                <div class="available-item ${weaponData.equipped ? 'equipped' : ''}">
+                    <h6>${weapon.name}</h6>
+                    <p>${weapon.desc}</p>
+                    <div class="item-level">Livello ${weaponData.level}/${weapon.maxLevel}</div>
+                    <button class="equip-btn" data-item-id="${weaponId}" data-item-type="weapon" ${weaponData.equipped ? 'disabled' : ''}>
+                        ${weaponData.equipped ? 'Equipaggiata' : 'Equipaggia'}
+                    </button>
+                </div>
+            `;
+        }
+        
+        if (!html) {
+            html = '<div class="no-item">Nessuna arma posseduta</div>';
+        }
+        
+        container.innerHTML = html;
+        
+        // Aggiungi event listeners
+        container.querySelectorAll('.equip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.dataset.itemId;
+                const itemType = e.target.dataset.itemType;
+                
+                if (itemType === 'weapon') {
+                    this.equipWeapon(itemId);
+                }
+                
+                this.populateArsenal();
+            });
+        });
+    }
+    
+    unequipCore(coreId) {
+        if (this.arsenal.activeCore !== coreId) return false;
+        
+        this.arsenal.activeCore = null;
+        this.cores[coreId].equipped = false;
+        
+        this.notifications.push({ 
+            text: `Core rimosso: ${CONFIG.cores[coreId].name}`, 
+            life: 300,
+            color: '#FF0000' 
+        });
+        
+        return true;
     }
     hideAllPopups(forceNoResume) { 
         Object.values(this.dom.popups).forEach(p => p.style.display = 'none'); 
@@ -3843,11 +4193,15 @@ class BallSurvivalGame {
         
         // Inizializza materiali, core e armi
         this.materials = {};
-        this.cores = [];
-        this.weapons = [];
+        this.cores = {};
+        this.weapons = {};
+        this.arsenal = {
+            activeCore: null,
+            activeWeapons: []
+        };
         
         try { 
-            const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7'); 
+            const savedData = localStorage.getItem('ballSurvivalSaveData_v4.8'); 
             
             if (savedData) { 
                 const data = JSON.parse(savedData); 
@@ -3869,6 +4223,9 @@ class BallSurvivalGame {
                 if (data.weapons) {
                     this.weapons = data.weapons;
                 }
+                if (data.arsenal) {
+                    this.arsenal = data.arsenal;
+                }
             } else { 
                 this.totalGems = 0; 
             } 
@@ -3884,9 +4241,10 @@ class BallSurvivalGame {
                 upgrades: this.permanentUpgrades,
                 materials: this.materials,
                 cores: this.cores,
-                weapons: this.weapons
+                weapons: this.weapons,
+                arsenal: this.arsenal
             }; 
-            localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); 
+            localStorage.setItem('ballSurvivalSaveData_v4.8', JSON.stringify(saveData)); 
         } catch (e) { 
             console.error("Impossibile salvare:", e); 
         } 

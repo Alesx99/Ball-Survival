@@ -769,8 +769,111 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
 }
 
 .empty-inventory {
-  text-align: center;
-  color: var(--text-muted-color);
-  font-style: italic;
-  padding: 20px;
+    text-align: center;
+    color: var(--text-muted-color);
+    font-style: italic;
+    padding: 20px;
+}
+
+/* Stili per l'arsenale */
+.arsenal-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(44, 62, 80, 0.8);
+    border-radius: 8px;
+    border: 1px solid #34495e;
+}
+
+.arsenal-section h5 {
+    margin: 0 0 10px 0;
+    color: #3498db;
+    font-size: 16px;
+}
+
+.active-item-display, .active-weapons-display {
+    min-height: 60px;
+    padding: 10px;
+    background: rgba(52, 152, 219, 0.1);
+    border: 1px solid #3498db;
+    border-radius: 5px;
+}
+
+.available-items-display {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(44, 62, 80, 0.5);
+    border-radius: 5px;
+}
+
+.active-item {
+    background: rgba(52, 152, 219, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #3498db;
+}
+
+.available-item {
+    background: rgba(44, 62, 80, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    border: 1px solid #34495e;
+    transition: all 0.3s;
+}
+
+.available-item:hover {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: #3498db;
+}
+
+.available-item.equipped {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: #2ecc71;
+}
+
+.item-level {
+    font-size: 12px;
+    color: #f39c12;
+    margin: 5px 0;
+}
+
+.equip-btn, .unequip-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.equip-btn {
+    background: #3498db;
+    color: white;
+}
+
+.equip-btn:hover:not(:disabled) {
+    background: #2980b9;
+}
+
+.equip-btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+.unequip-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.unequip-btn:hover {
+    background: #c0392b;
+}
+
+.no-item {
+    color: #95a5a6;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
 } 
