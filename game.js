@@ -1645,7 +1645,7 @@ class BallSurvivalGame {
         
         // Pulsante inventario
         this.dom.buttons.inventory.onclick = () => this.showInventory();
-        this.dom.buttons.closeInventory.onclick = () => this.hideAllPopups();
+        this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
         
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
@@ -2925,6 +2925,16 @@ class BallSurvivalGame {
         this.setupInventoryTabs();
         
         console.log('Inventario popolato');
+    }
+    
+    closeInventory() {
+        // Se siamo in gioco, riporta al menu principale
+        if (this.state === 'running' || this.state === 'paused') {
+            this.returnToStartScreen();
+        } else {
+            // Altrimenti chiudi semplicemente il popup
+            this.hideAllPopups();
+        }
     }
     
     populateInventory() {
