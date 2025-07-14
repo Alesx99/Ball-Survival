@@ -1,0 +1,25 @@
+GET
+https://source.unsplash.com/random/468x60
+[HTTP/2 503  145ms]
+
+Mobile Debug - DOM inizializzazione: 
+Object { canvas: true, joystickContainer: true, joystickStick: true, inGameUI: true }
+game.js:1932:21
+Mobile Debug - Canvas prima degli event listeners: 
+Object { canvas: true, canvasWidth: 300, canvasHeight: 150 }
+game.js:2007:21
+Reset completato - Livello: 1, XP: 0, XP necessario: 10 game.js:1099:17
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 498.6166687011719, clientY: 756.5, joystickActive: false, joystickExists: true, domJoystickExists: true, state: "running" }
+game.js:3325:21
+Mobile Debug - Activating joystick game.js:3341:21
+Mobile Debug - Joystick activated: 
+Object { active: true, touchId: 0, startX: 498.6166687011719, startY: 756.5 }
+game.js:3353:21
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 459.8666687011719, clientY: 718.3833618164062, joystickActive: false, joystickExists: true, domJoystickExists: true, state: "running" }
+game.js:3325:21
+Mobile Debug - Activating joystick game.js:3341:21
+Mobile Debug - Joystick activated: 
+Object { active: true, touchId: 0, startX: 459.8666687011719, startY: 718.3833618164062 }
+game.js:3353:21

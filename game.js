@@ -3342,7 +3342,8 @@ class BallSurvivalGame {
                 joystickActive: this.joystick.active,
                 joystickExists: !!this.joystick,
                 domJoystickExists: !!(this.dom && this.dom.joystick),
-                state: this.state
+                state: this.state,
+                pointerId: e.pointerId
             });
             
             // Controllo di sicurezza per il joystick
@@ -3377,10 +3378,21 @@ class BallSurvivalGame {
                 containerLeft: this.dom.joystick.container.style.left,
                 containerTop: this.dom.joystick.container.style.top
             });
+        } else if (e.pointerType === 'touch' && this.joystick.active) {
+            // Se il joystick è già attivo, gestisci il movimento
+            console.log('Mobile Debug - Joystick already active, handling movement');
+            this.handlePointerMove(e);
         } 
     }
     handlePointerMove(e) { 
-        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; 
+        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) {
+            console.log('Mobile Debug - handlePointerMove skipped:', {
+                joystickActive: this.joystick.active,
+                pointerId: e.pointerId,
+                touchId: this.joystick.touchId
+            });
+            return; 
+        }
         
         e.preventDefault(); 
         e.stopPropagation();
@@ -3412,7 +3424,8 @@ class BallSurvivalGame {
             dx: this.joystick.dx,
             dy: this.joystick.dy,
             distance: distance,
-            maxDistance: maxDistance
+            maxDistance: maxDistance,
+            pointerId: e.pointerId
         }); 
     }
     handlePointerEnd(e) { 
