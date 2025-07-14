@@ -2046,6 +2046,17 @@ class BallSurvivalGame {
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
         this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
+        
+        // Reset del joystick per mobile
+        if (this.joystick) {
+            this.joystick.active = false;
+            this.joystick.touchId = null;
+            this.joystick.dx = 0;
+            this.joystick.dy = 0;
+            this.joystick.startX = 0;
+            this.joystick.startY = 0;
+        }
+        
         this.state = 'running'; 
         this.lastFrameTime = performance.now();
         
@@ -3317,7 +3328,8 @@ class BallSurvivalGame {
                 clientY: clientY,
                 joystickActive: this.joystick.active,
                 joystickExists: !!this.joystick,
-                domJoystickExists: !!(this.dom && this.dom.joystick)
+                domJoystickExists: !!(this.dom && this.dom.joystick),
+                state: this.state
             });
             
             // Controllo di sicurezza per il joystick
@@ -3326,6 +3338,7 @@ class BallSurvivalGame {
                 return;
             }
             
+            console.log('Mobile Debug - Activating joystick');
             this.joystick.touchId = e.pointerId; 
             this.joystick.active = true; 
             this.joystick.startX = clientX; 
@@ -3336,6 +3349,13 @@ class BallSurvivalGame {
             this.dom.joystick.container.style.display = 'block'; 
             this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
             this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+            
+            console.log('Mobile Debug - Joystick activated:', {
+                active: this.joystick.active,
+                touchId: this.joystick.touchId,
+                startX: this.joystick.startX,
+                startY: this.joystick.startY
+            });
         } 
     }
     handlePointerMove(e) { 

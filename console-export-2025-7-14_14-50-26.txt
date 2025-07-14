@@ -1,0 +1,20 @@
+GET
+https://source.unsplash.com/random/468x60
+[HTTP/2 503  406ms]
+
+Reset completato - Livello: 1, XP: 0, XP necessario: 10 game.js:1099:17
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 342.3666687011719, clientY: 666.933349609375, joystickActive: false, joystickExists: true, domJoystickExists: true }
+game.js:3284:21
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 431.2833251953125, clientY: 748.25, joystickActive: false, joystickExists: true, domJoystickExists: true }
+game.js:3284:21
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 503.70001220703125, clientY: 794.6166381835938, joystickActive: false, joystickExists: true, domJoystickExists: true }
+game.js:3284:21
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 375.3999938964844, clientY: 810.4833374023438, joystickActive: false, joystickExists: true, domJoystickExists: true }
+game.js:3284:21
+Mobile Debug - Touch detected: 
+Object { pointerType: "touch", clientX: 307.4333190917969, clientY: 759.0333251953125, joystickActive: false, joystickExists: true, domJoystickExists: true }
+game.js:3284:21
