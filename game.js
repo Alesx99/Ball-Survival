@@ -1733,6 +1733,9 @@ class MaterialItem extends Entity {
         
         game.player.materials[this.materialId]++;
 
+        // Salva automaticamente i materiali
+        game.saveGameData();
+
         // Mostra notifica
         game.showNotification(`+1 ${this.materialInfo.name}`, this.materialInfo.color);
 
@@ -1995,6 +1998,19 @@ class BallSurvivalGame {
             this.resetRunState();
             this.currentStage = this.selectedStage; // Inizia con lo stage selezionato
             this.player.resetForNewRun(this.permanentUpgrades, this.selectedArchetype);
+
+            // Carica i materiali salvati se esistono
+            try {
+                const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    if (data.materials && this.player) {
+                        this.player.materials = data.materials;
+                    }
+                }
+            } catch (e) {
+                console.error("Errore nel caricamento materiali:", e);
+            }
 
             const archetype = CONFIG.characterArchetypes[this.selectedArchetype];
             if (archetype && archetype.startingWeapon && this.spells[archetype.startingWeapon]) {
@@ -3322,7 +3338,12 @@ class BallSurvivalGame {
                     Object.keys(this.permanentUpgrades).forEach(key => { 
                         if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; 
                     }); 
-                } 
+                }
+                
+                // Carica i materiali salvati
+                if (data.materials && this.player) {
+                    this.player.materials = data.materials;
+                }
             } else { 
                 this.totalGems = 0; 
             } 
@@ -3331,7 +3352,18 @@ class BallSurvivalGame {
             this.totalGems = 0; 
         } 
     }
-    saveGameData() { try { const saveData = { totalGems: this.totalGems, upgrades: this.permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare:", e); } }
+    saveGameData() { 
+        try { 
+            const saveData = { 
+                totalGems: this.totalGems, 
+                upgrades: this.permanentUpgrades,
+                materials: this.player ? this.player.materials || {} : {}
+            }; 
+            localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); 
+        } catch (e) { 
+            console.error("Impossibile salvare:", e); 
+        } 
+    }
     populateShop() { 
         this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
