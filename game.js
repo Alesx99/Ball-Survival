@@ -286,49 +286,49 @@ const CONFIG = {
         'magnetic': { 
             id: 'magnetic', 
             name: 'Core Magnetico', 
-            desc: 'Attira gemme e XP da distanza maggiore',
+            desc: 'Anelli magnetici rotanti che attirano gemme e XP da +50% distanza. Effetto visivo: anelli blu rotanti',
             materials: { 'iron_fragment': 3, 'steel_fragment': 1 },
             effect: { type: 'magnet', range: 1.5 }
         },
         'reflection': { 
             id: 'reflection', 
             name: 'Core Riflettente', 
-            desc: 'Riflette i proiettili nemici',
+            desc: 'Scudo dorato che riflette il 30% dei proiettili nemici. Effetto visivo: scudo con scintille bianche',
             materials: { 'steel_fragment': 2, 'crystal_fragment': 1 },
             effect: { type: 'reflect', chance: 0.3 }
         },
         'bounce': { 
             id: 'bounce', 
             name: 'Core Rimbalzante', 
-            desc: 'Rimbalza sui nemici causando danno',
+            desc: 'Spine arancioni che rimbalzano sui nemici infliggendo +15 danno. Effetto visivo: spine rotanti',
             materials: { 'iron_fragment': 2, 'wood_fragment': 2 },
             effect: { type: 'bounce', damage: 15 }
         },
         'speed': { 
             id: 'speed', 
             name: 'Core di Velocità', 
-            desc: 'Aumenta la velocità di movimento',
+            desc: 'Scie ciano che aumentano la velocità di +15%. Effetto visivo: scie multiple rotanti',
             materials: { 'crystal_fragment': 1, 'energy_fragment': 1 },
             effect: { type: 'speed', bonus: 0.15 }
         },
         'resistance': { 
             id: 'resistance', 
             name: 'Core di Resistenza', 
-            desc: 'Riduce i danni ricevuti',
+            desc: 'Barriera marrone che riduce i danni ricevuti del 10%. Effetto visivo: doppia barriera',
             materials: { 'steel_fragment': 3, 'stone_fragment': 2 },
             effect: { type: 'resistance', dr: 0.1 }
         },
         'amplification': { 
             id: 'amplification', 
             name: 'Core di Amplificazione', 
-            desc: 'Potenzia il danno da contatto',
+            desc: 'Aura rossa che potenzia il danno da contatto del 50%. Effetto visivo: aura con particelle',
             materials: { 'magma_fragment': 1, 'energy_fragment': 2 },
             effect: { type: 'amplify', multiplier: 1.5 }
         },
         'void': { 
             id: 'void', 
             name: 'Core del Vuoto', 
-            desc: 'Teletrasporta la palla quando la salute è bassa',
+            desc: 'Vortice viola che teletrasporta quando salute < 30%. Cooldown: 10s. Effetto visivo: vortice rotante',
             materials: { 'void_fragment': 1, 'cosmic_fragment': 1 },
             effect: { type: 'void_teleport', threshold: 0.3, cooldown: 10000 }
         }
@@ -339,42 +339,42 @@ const CONFIG = {
         'spike_ring': { 
             id: 'spike_ring', 
             name: 'Anello di Spine', 
-            desc: 'Spine che danneggiano i nemici al contatto',
+            desc: '12 spine marroni che danneggiano i nemici per +20 danno al contatto. Raggio: 25px. Effetto visivo: spine triangolari',
             materials: { 'wood_fragment': 3, 'stone_fragment': 2 },
             effect: { type: 'spikes', damage: 20, radius: 25 }
         },
         'energy_field': { 
             id: 'energy_field', 
             name: 'Campo Energetico', 
-            desc: 'Campo che rallenta e danneggia i nemici',
+            desc: 'Campo ciano che rallenta nemici del 30% e infligge 10 DPS. Raggio: 40px. Effetto visivo: onde energetiche',
             materials: { 'energy_fragment': 2, 'crystal_fragment': 1 },
             effect: { type: 'field', damage: 10, slow: 0.3, radius: 40 }
         },
         'orbital_shield': { 
             id: 'orbital_shield', 
             name: 'Scudo Orbitale', 
-            desc: 'Scudi che orbitano intorno alla palla',
+            desc: '2 scudi bianchi che orbitano intorno alla palla infliggendo +15 danno. Effetto visivo: scudi orbitanti',
             materials: { 'metal_fragment': 2, 'steel_fragment': 1 },
             effect: { type: 'orbital', count: 2, damage: 15 }
         },
         'pulse_wave': { 
             id: 'pulse_wave', 
             name: 'Onda Pulsante', 
-            desc: 'Onde che respingono i nemici',
+            desc: 'Onde rosa che respingono i nemici infliggendo +25 danno. Cooldown: 3s. Effetto visivo: onde multiple',
             materials: { 'cosmic_fragment': 1, 'energy_fragment': 1 },
             effect: { type: 'pulse', damage: 25, knockback: 30, cooldown: 3000 }
         },
         'void_blade': { 
             id: 'void_blade', 
             name: 'Lama del Vuoto', 
-            desc: 'Lame che tagliano i nemici e li rallentano',
+            desc: '6 lame viola che tagliano i nemici per +30 danno e li rallentano del 50% per 3s. Effetto visivo: lame rotanti',
             materials: { 'void_fragment': 1, 'metal_fragment': 2 },
             effect: { type: 'void_blade', damage: 30, slow: 0.5, duration: 3000 }
         },
         'crystal_barrier': { 
             id: 'crystal_barrier', 
             name: 'Barriera di Cristallo', 
-            desc: 'Barriera che blocca proiettili e riflette danni',
+            desc: 'Barriera azzurra che blocca l\'80% dei proiettili e riflette +15 danno. Effetto visivo: cristalli riflettenti',
             materials: { 'crystal_fragment': 2, 'stone_fragment': 3 },
             effect: { type: 'crystal_barrier', blockChance: 0.8, reflectDamage: 15 }
         }
@@ -1054,7 +1054,65 @@ class Player extends Entity {
         console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
     }
     applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr = (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
-    update(game, joystick) { let kDx = 0, kDy = 0; if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } this.x += fDx * this.stats.speed; this.y += fDy * this.stats.speed; this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); for (const key in this.powerUpTimers) { if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; } }
+    update(game, joystick) { 
+        let kDx = 0, kDy = 0; 
+        if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; 
+        if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; 
+        if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; 
+        if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; 
+        let fDx = joystick.dx !== 0 ? joystick.dx : kDx; 
+        let fDy = joystick.dy !== 0 ? joystick.dy : kDy; 
+        const m = Math.sqrt(fDx * fDx + fDy * fDy); 
+        if (m > 1) { fDx /= m; fDy /= m; } 
+        this.x += fDx * this.stats.speed; 
+        this.y += fDy * this.stats.speed; 
+        this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); 
+        this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); 
+        
+        // Gestione teletrasporto del Core del Vuoto
+        if (this.voidTeleportConfig && this.cores && this.cores.includes('void')) {
+            const healthPercentage = this.hp / this.stats.maxHp;
+            if (healthPercentage <= this.voidTeleportConfig.threshold) {
+                const now = Date.now();
+                if (!this.lastVoidTeleport || (now - this.lastVoidTeleport) > this.voidTeleportConfig.cooldown) {
+                    // Trova una posizione sicura lontana dai nemici
+                    let safeX, safeY;
+                    let attempts = 0;
+                    do {
+                        safeX = Math.random() * (CONFIG.world.width - 200) + 100;
+                        safeY = Math.random() * (CONFIG.world.height - 200) + 100;
+                        attempts++;
+                    } while (attempts < 10 && [...game.entities.enemies, ...game.entities.bosses].some(enemy => 
+                        Utils.getDistance({x: safeX, y: safeY}, enemy) < 100
+                    ));
+                    
+                    this.x = safeX;
+                    this.y = safeY;
+                    this.lastVoidTeleport = now;
+                    
+                    // Effetto visivo del teletrasporto
+                    for (let i = 0; i < 20; i++) {
+                        game.addEntity('particles', new Particle(this.x, this.y, {
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            life: 60,
+                            color: '#8A2BE2'
+                        }));
+                    }
+                    
+                    game.notifications.push({ 
+                        text: 'Teletrasporto del Vuoto!', 
+                        life: 180,
+                        color: '#8A2BE2'
+                    });
+                }
+            }
+        }
+        
+        for (const key in this.powerUpTimers) { 
+            if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; 
+        } 
+    }
     
     gainXP(amount) {
         this.xp += amount * this.modifiers.xpGain;
@@ -1102,6 +1160,12 @@ class Player extends Entity {
         } else {
             CONFIG.characterArchetypes.standard.draw(ctx, this);
         }
+        
+        // Disegna i core attivi
+        this.drawActiveCores(ctx, game);
+        
+        // Disegna le armi attive
+        this.drawActiveWeapons(ctx, game);
 
         // MODIFICA: Barra HP più visibile e sempre dentro il canvas
         const barWidth = this.stats.radius * 2.7;
@@ -1134,6 +1198,408 @@ class Player extends Entity {
             ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`; ctx.fillStyle = `rgba(255, 255, 0, ${alpha/4})`; ctx.lineWidth = 3;
             ctx.beginPath(); ctx.arc(this.x, this.y, shieldRadius, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
         }
+    }
+    
+    drawActiveCores(ctx, game) {
+        if (!this.cores || this.cores.length === 0) return;
+        
+        for (const coreId of this.cores) {
+            const core = CONFIG.cores[coreId];
+            if (!core) continue;
+            
+            switch (coreId) {
+                case 'magnetic':
+                    this.drawMagneticCore(ctx);
+                    break;
+                case 'reflection':
+                    this.drawReflectionCore(ctx);
+                    break;
+                case 'bounce':
+                    this.drawBounceCore(ctx);
+                    break;
+                case 'speed':
+                    this.drawSpeedCore(ctx);
+                    break;
+                case 'resistance':
+                    this.drawResistanceCore(ctx);
+                    break;
+                case 'amplification':
+                    this.drawAmplificationCore(ctx);
+                    break;
+                case 'void':
+                    this.drawVoidCore(ctx);
+                    break;
+            }
+        }
+    }
+    
+    drawActiveWeapons(ctx, game) {
+        if (!this.weapons || this.weapons.length === 0) return;
+        
+        for (const weaponId of this.weapons) {
+            const weapon = CONFIG.weapons[weaponId];
+            if (!weapon) continue;
+            
+            switch (weaponId) {
+                case 'spike_ring':
+                    this.drawSpikeRing(ctx);
+                    break;
+                case 'energy_field':
+                    this.drawEnergyField(ctx);
+                    break;
+                case 'orbital_shield':
+                    this.drawOrbitalShield(ctx);
+                    break;
+                case 'pulse_wave':
+                    this.drawPulseWave(ctx);
+                    break;
+                case 'void_blade':
+                    this.drawVoidBlade(ctx);
+                    break;
+                case 'crystal_barrier':
+                    this.drawCrystalBarrier(ctx);
+                    break;
+            }
+        }
+    }
+    
+    // Sprite dei Core
+    drawMagneticCore(ctx) {
+        // Anelli magnetici rotanti
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 8;
+        
+        ctx.save();
+        ctx.strokeStyle = '#4A90E2';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.8;
+        
+        // Anello esterno
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Anello interno rotante
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(time * 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        
+        ctx.restore();
+    }
+    
+    drawReflectionCore(ctx) {
+        // Scudo riflettente con scintille
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 6;
+        
+        ctx.save();
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.9;
+        
+        // Scudo principale
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Scintille riflettenti
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2 + time * 3;
+            const x = this.x + Math.cos(angle) * radius * 0.8;
+            const y = this.y + Math.sin(angle) * radius * 0.8;
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawBounceCore(ctx) {
+        // Spine rimbalzanti
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 10;
+        
+        ctx.save();
+        ctx.fillStyle = '#FF6B35';
+        ctx.globalAlpha = 0.8;
+        
+        // Spine esterne
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + time;
+            const x = this.x + Math.cos(angle) * radius;
+            const y = this.y + Math.sin(angle) * radius;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawSpeedCore(ctx) {
+        // Scie di velocità
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 5;
+        
+        ctx.save();
+        ctx.strokeStyle = '#00FFFF';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.6;
+        
+        // Scie multiple
+        for (let i = 0; i < 3; i++) {
+            const offset = (i / 3) * Math.PI * 2 + time * 4;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, radius + i * 3, offset, offset + Math.PI);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawResistanceCore(ctx) {
+        // Barriera di resistenza
+        const radius = this.stats.radius + 12;
+        
+        ctx.save();
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 4;
+        ctx.globalAlpha = 0.7;
+        
+        // Barriera esterna
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Barriera interna
+        ctx.strokeStyle = '#A0522D';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius * 0.7, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+    
+    drawAmplificationCore(ctx) {
+        // Aura di amplificazione
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 8;
+        
+        ctx.save();
+        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, radius);
+        gradient.addColorStop(0, 'rgba(255, 69, 0, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 69, 0, 0)');
+        ctx.fillStyle = gradient;
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Particelle di energia
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2 + time * 2;
+            const x = this.x + Math.cos(angle) * radius * 0.6;
+            const y = this.y + Math.sin(angle) * radius * 0.6;
+            
+            ctx.fillStyle = '#FF4500';
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawVoidCore(ctx) {
+        // Aura del vuoto
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 15;
+        
+        ctx.save();
+        ctx.strokeStyle = '#8A2BE2';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.9;
+        
+        // Anello del vuoto
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Vortice interno
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(time * -1.5);
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        
+        // Particelle del vuoto
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2 + time * 3;
+            const x = this.x + Math.cos(angle) * radius * 0.8;
+            const y = this.y + Math.sin(angle) * radius * 0.8;
+            
+            ctx.fillStyle = '#8A2BE2';
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+    
+    // Sprite delle Armi
+    drawSpikeRing(ctx) {
+        // Anello di spine
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 20;
+        
+        ctx.save();
+        ctx.fillStyle = '#8B4513';
+        ctx.globalAlpha = 0.9;
+        
+        // Spine esterne
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const x = this.x + Math.cos(angle) * radius;
+            const y = this.y + Math.sin(angle) * radius;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8);
+            ctx.lineTo(x + Math.cos(angle + 0.3) * 6, y + Math.sin(angle + 0.3) * 6);
+            ctx.lineTo(x + Math.cos(angle - 0.3) * 6, y + Math.sin(angle - 0.3) * 6);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawEnergyField(ctx) {
+        // Campo energetico
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 25;
+        
+        ctx.save();
+        ctx.strokeStyle = '#00FFFF';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.6;
+        
+        // Campo principale
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Onde energetiche
+        for (let i = 0; i < 3; i++) {
+            const waveRadius = radius + i * 5 + Math.sin(time * 2 + i) * 3;
+            ctx.globalAlpha = 0.4 - i * 0.1;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, waveRadius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawOrbitalShield(ctx) {
+        // Scudi orbitali (già implementati nella classe Orbital)
+        // Questo metodo serve solo per compatibilità
+    }
+    
+    drawPulseWave(ctx) {
+        // Onda pulsante
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 30;
+        
+        ctx.save();
+        ctx.strokeStyle = '#FF1493';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.7;
+        
+        // Onda principale
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Onde secondarie
+        for (let i = 1; i <= 2; i++) {
+            const waveRadius = radius + i * 10;
+            ctx.globalAlpha = 0.5 - i * 0.2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, waveRadius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawVoidBlade(ctx) {
+        // Lame del vuoto
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 18;
+        
+        ctx.save();
+        ctx.strokeStyle = '#8A2BE2';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.8;
+        
+        // Lame rotanti
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2 + time * 2;
+            const x1 = this.x + Math.cos(angle) * radius;
+            const y1 = this.y + Math.sin(angle) * radius;
+            const x2 = this.x + Math.cos(angle) * (radius + 12);
+            const y2 = this.y + Math.sin(angle) * (radius + 12);
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    drawCrystalBarrier(ctx) {
+        // Barriera di cristallo
+        const time = Date.now() / 1000;
+        const radius = this.stats.radius + 22;
+        
+        ctx.save();
+        ctx.strokeStyle = '#87CEEB';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.8;
+        
+        // Barriera principale
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Cristalli riflettenti
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const x = this.x + Math.cos(angle) * radius;
+            const y = this.y + Math.sin(angle) * radius;
+            
+            ctx.fillStyle = '#87CEEB';
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.restore();
     }
 }
 
@@ -1954,8 +2420,9 @@ class BallSurvivalGame {
             this.materials[materialId] -= required;
         }
         
-        // Aggiungi il core
-        this.cores.push(coreId);
+        // Aggiungi il core al player
+        if (!this.player.cores) this.player.cores = [];
+        this.player.cores.push(coreId);
         
         // Applica l'effetto del core
         this.applyCoreEffect(coreId);
@@ -1966,6 +2433,7 @@ class BallSurvivalGame {
             color: '#FFD700' 
         });
         
+        this.saveGameData();
         return true;
     }
     
@@ -1979,8 +2447,9 @@ class BallSurvivalGame {
             this.materials[materialId] -= required;
         }
         
-        // Aggiungi l'arma
-        this.weapons.push(weaponId);
+        // Aggiungi l'arma al player
+        if (!this.player.weapons) this.player.weapons = [];
+        this.player.weapons.push(weaponId);
         
         // Applica l'effetto dell'arma
         this.applyWeaponEffect(weaponId);
@@ -1991,6 +2460,7 @@ class BallSurvivalGame {
             color: '#FFD700' 
         });
         
+        this.saveGameData();
         return true;
     }
     
@@ -2016,6 +2486,10 @@ class BallSurvivalGame {
                 break;
             case 'amplify':
                 this.player.modifiers.contactMultiplier = (this.player.modifiers.contactMultiplier || 1) * core.effect.multiplier;
+                break;
+            case 'void_teleport':
+                // Il teletrasporto viene gestito nel metodo update del player
+                this.player.voidTeleportConfig = core.effect;
                 break;
         }
     }
@@ -2082,6 +2556,35 @@ class BallSurvivalGame {
                         this.createExplosion(this.player.x, this.player.y, weapon.effect.knockback, weapon.effect.damage);
                         this.player.lastPulseTime = Date.now();
                     }
+                    break;
+                    
+                case 'void_blade':
+                    // Lame del vuoto che rallentano
+                    [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+                        const dist = Utils.getDistance(this.player, enemy);
+                        if (dist < this.player.stats.radius + 30) {
+                            enemy.takeDamage(weapon.effect.damage / 60, this); // DPS
+                            enemy.slowAmount = weapon.effect.slow;
+                            enemy.slowTimer = weapon.effect.duration / 16; // Converti in frame
+                        }
+                    });
+                    break;
+                    
+                case 'crystal_barrier':
+                    // Barriera di cristallo che blocca proiettili
+                    this.entities.enemyProjectiles.forEach(proj => {
+                        const dist = Utils.getDistance(this.player, proj);
+                        if (dist < this.player.stats.radius + 25) {
+                            if (Math.random() < weapon.effect.blockChance) {
+                                proj.toRemove = true;
+                                // Riflette danno al nemico più vicino
+                                const nearestEnemy = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+                                if (nearestEnemy) {
+                                    nearestEnemy.takeDamage(weapon.effect.reflectDamage, this);
+                                }
+                            }
+                        }
+                    });
                     break;
             }
         }
