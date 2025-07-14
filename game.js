@@ -2701,9 +2701,22 @@ class BallSurvivalGame {
         });
         return true;
     }
-    castHeal(now) { const s = this.spells.heal; this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + s.amount); for(let i=0; i<10; i++) this.addEntity('particles', new Particle(this.player.x, this.player.y, {vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00'})); return true; }
+    castHeal(now) { 
+        const s = this.spells.heal; 
+        if (!this.player || !this.player.stats || typeof this.player.hp === 'undefined') {
+            console.warn('castHeal: player non ancora inizializzato');
+            return false;
+        }
+        this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + s.amount); 
+        for(let i=0; i<10; i++) this.addEntity('particles', new Particle(this.player.x, this.player.y, {vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00'})); 
+        return true; 
+    }
     castSanctuary(now) {
         const s = this.spells.heal;
+        if (!this.player || !this.player.modifiers) {
+            console.warn('castSanctuary: player non ancora inizializzato');
+            return false;
+        }
         this.addEntity('sanctuaries', new Sanctuary(this.player.x, this.player.y, {
             life: s.sanctuaryDuration, radius: 100 * this.player.modifiers.area, hps: s.sanctuaryHps
         }));
@@ -2711,6 +2724,10 @@ class BallSurvivalGame {
     }
     castLifesteal(now) {
         const s = this.spells.heal;
+        if (!this.player || !this.player.powerUpTimers) {
+            console.warn('castLifesteal: player non ancora inizializzato');
+            return false;
+        }
         this.player.powerUpTimers.lifesteal = s.lifestealDuration;
         this.notifications.push({ text: "Sacrificio Vitale Attivato!", life: 120 });
         return true;
@@ -2731,6 +2748,10 @@ class BallSurvivalGame {
     }
     castOrbital(now) {
         const s = this.spells.shield;
+        if (!this.player) {
+            console.warn('castOrbital: player non ancora inizializzato');
+            return false;
+        }
         for (let i = 0; i < s.orbitalCount; i++) {
             this.addEntity('orbitals', new Orbital(this.player.x, this.player.y, {
                 angle: (2 * Math.PI / s.orbitalCount) * i,
@@ -3423,7 +3444,21 @@ class BallSurvivalGame {
         });
     }
     buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
-    applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
+    applyItemEffect(item) { 
+        const itemInfo = CONFIG.itemTypes[item.type]; 
+        this.notifications.push({ text: itemInfo.desc, life: 300 }); 
+        if (!this.player || !this.player.stats || typeof this.player.hp === 'undefined') {
+            console.warn('applyItemEffect: player non ancora inizializzato');
+            return;
+        }
+        switch (item.type) { 
+            case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; 
+            case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; 
+            case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; 
+            case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; 
+            case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; 
+        } 
+    }
     updateCamera() { 
         if (!this.player) {
             console.warn('updateCamera: Player non ancora inizializzato');
