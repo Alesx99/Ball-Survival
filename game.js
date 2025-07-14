@@ -264,20 +264,20 @@ const CONFIG = {
     materials: {
         // Materiali per Core (rivestimenti della sfera)
         coreMaterials: {
-            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.15, enemyTypes: ['all'] },
-            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.08, enemyTypes: ['elite', 'boss'] },
-            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.05, enemyTypes: ['boss'] },
-            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.03, enemyTypes: ['boss', 'elite'] },
-            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.01, enemyTypes: ['boss'] }
+            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.25, enemyTypes: ['all'] },
+            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.15, enemyTypes: ['elite', 'boss'] },
+            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.10, enemyTypes: ['boss'] },
+            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.08, enemyTypes: ['boss', 'elite'] },
+            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.03, enemyTypes: ['boss'] }
         },
         
         // Materiali per Armi (esterne)
         weaponMaterials: {
-            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.12, enemyTypes: ['all'] },
-            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.10, enemyTypes: ['all'] },
-            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.06, enemyTypes: ['elite', 'boss'] },
-            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.04, enemyTypes: ['boss'] },
-            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.02, enemyTypes: ['boss'] }
+            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.20, enemyTypes: ['all'] },
+            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.18, enemyTypes: ['all'] },
+            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.12, enemyTypes: ['elite', 'boss'] },
+            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.08, enemyTypes: ['boss'] },
+            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.05, enemyTypes: ['boss'] }
         }
     },
     
@@ -324,6 +324,13 @@ const CONFIG = {
             desc: 'Potenzia il danno da contatto',
             materials: { 'magma_fragment': 1, 'energy_fragment': 2 },
             effect: { type: 'amplify', multiplier: 1.5 }
+        },
+        'void': { 
+            id: 'void', 
+            name: 'Core del Vuoto', 
+            desc: 'Teletrasporta la palla quando la salute è bassa',
+            materials: { 'void_fragment': 1, 'cosmic_fragment': 1 },
+            effect: { type: 'void_teleport', threshold: 0.3, cooldown: 10000 }
         }
     },
     
@@ -356,6 +363,20 @@ const CONFIG = {
             desc: 'Onde che respingono i nemici',
             materials: { 'cosmic_fragment': 1, 'energy_fragment': 1 },
             effect: { type: 'pulse', damage: 25, knockback: 30, cooldown: 3000 }
+        },
+        'void_blade': { 
+            id: 'void_blade', 
+            name: 'Lama del Vuoto', 
+            desc: 'Lame che tagliano i nemici e li rallentano',
+            materials: { 'void_fragment': 1, 'metal_fragment': 2 },
+            effect: { type: 'void_blade', damage: 30, slow: 0.5, duration: 3000 }
+        },
+        'crystal_barrier': { 
+            id: 'crystal_barrier', 
+            name: 'Barriera di Cristallo', 
+            desc: 'Barriera che blocca proiettili e riflette danni',
+            materials: { 'crystal_fragment': 2, 'stone_fragment': 3 },
+            effect: { type: 'crystal_barrier', blockChance: 0.8, reflectDamage: 15 }
         }
     },
     
