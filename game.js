@@ -2114,9 +2114,16 @@ class BallSurvivalGame {
             }
         }
         // Aggiorna le notifiche (non sono entità, quindi non usano il metodo update)
-        for (let i = this.notifications.length - 1; i >= 0; i--) {
-            this.notifications[i].life--;
-            if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
+        if (this.notifications && Array.isArray(this.notifications)) {
+            for (let i = this.notifications.length - 1; i >= 0; i--) {
+                if (this.notifications[i] && typeof this.notifications[i].life !== 'undefined') {
+                    this.notifications[i].life--;
+                    if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
+                } else {
+                    // Rimuovi notifiche non valide
+                    this.notifications.splice(i, 1);
+                }
+            }
         }
         this.spawnEnemies(); 
         this.spawnBoss(); 
@@ -2159,7 +2166,9 @@ class BallSurvivalGame {
         this.drawMerchant();
         this.ctx.restore();
         this.drawOffscreenIndicators();
-        this.drawNotifications(this.ctx); // Aggiunto disegno notifiche
+        if (this.notifications && Array.isArray(this.notifications)) {
+            this.drawNotifications(this.ctx); // Aggiunto disegno notifiche
+        }
     }
     
     drawBackground() {
@@ -3045,9 +3054,15 @@ class BallSurvivalGame {
     }
 
     updateInGameUI() {
-        // Controlli di sicurezza
+        // Controlli di sicurezza più robusti
         if (!this.dom.inGameUI || !this.player) {
             console.warn('updateInGameUI: DOM o player non ancora inizializzati');
+            return;
+        }
+
+        // Controllo aggiuntivo per le proprietà del player
+        if (!this.player.stats || typeof this.player.hp === 'undefined') {
+            console.warn('updateInGameUI: Player non completamente inizializzato');
             return;
         }
 
@@ -3706,7 +3721,12 @@ class BallSurvivalGame {
             this.player.materials = {};
         }
 
-        const container = this.dom.containers.materialsInventory || document.createElement('div');
+        const container = this.dom.containers.materialsInventory;
+        if (!container) {
+            console.warn('Container materiali non trovato nel DOM');
+            return;
+        }
+        
         container.innerHTML = '';
         container.className = 'materials-inventory';
 
@@ -3756,8 +3776,7 @@ class BallSurvivalGame {
             container.innerHTML = '<p>Nessun materiale raccolto ancora!</p>';
         }
 
-        // Mostra il popup
-        this.dom.popups.materialsInventory = container;
+        // Mostra il popup usando il sistema esistente
         this.showPopup('materialsInventory');
     }
 
