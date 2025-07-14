@@ -3524,10 +3524,10 @@ class BallSurvivalGame {
             html += `
                 <div class="crafting-item">
                     <h5>${item.name}</h5>
-                    <p>${item.description}</p>
+                    <p>${item.desc}</p>
                     <div class="materials-required">${materialsText}</div>
                     <button class="craft-btn" ${canCraft ? '' : 'disabled'} 
-                            onclick="game.craft${type.charAt(0).toUpperCase() + type.slice(1)}('${itemId}')">
+                            data-item-id="${itemId}" data-item-type="${type}">
                         ${canCraft ? 'Crea' : 'Materiali insufficienti'}
                     </button>
                 </div>
@@ -3540,6 +3540,23 @@ class BallSurvivalGame {
         }
         
         container.innerHTML = html;
+        
+        // Aggiungi event listeners ai pulsanti
+        container.querySelectorAll('.craft-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.dataset.itemId;
+                const itemType = e.target.dataset.itemType;
+                
+                if (itemType === 'core') {
+                    this.craftCore(itemId);
+                } else if (itemType === 'weapon') {
+                    this.craftWeapon(itemId);
+                }
+                
+                // Aggiorna l'inventario dopo il crafting
+                this.populateInventory();
+            });
+        });
     }
     
     getMaterialsRequiredText(itemId, type) {
