@@ -1046,6 +1046,28 @@ class Player extends Entity {
         
         this.hp = this.stats.maxHp;
         
+        // Applica gli effetti dei core salvati
+        if (this.cores && this.cores.length > 0) {
+            for (const coreId of this.cores) {
+                // Troviamo il gioco per applicare gli effetti
+                const game = window.game;
+                if (game) {
+                    game.applyCoreEffect(coreId);
+                }
+            }
+        }
+        
+        // Applica gli effetti delle armi salvate
+        if (this.weapons && this.weapons.length > 0) {
+            for (const weaponId of this.weapons) {
+                // Troviamo il gioco per applicare gli effetti
+                const game = window.game;
+                if (game) {
+                    game.applyWeaponEffect(weaponId);
+                }
+            }
+        }
+        
         // Controlli di sicurezza finali per XP
         if (this.xp < 0) this.xp = 0;
         if (this.xpNext <= 0) this.xpNext = 1;
@@ -2178,6 +2200,20 @@ class BallSurvivalGame {
                  this.spells.magicMissile.level = 1;
             }
         }
+        
+        // Applica gli effetti dei core e delle armi salvati
+        if (this.cores && this.cores.length > 0) {
+            for (const coreId of this.cores) {
+                this.applyCoreEffect(coreId);
+            }
+        }
+        
+        if (this.weapons && this.weapons.length > 0) {
+            for (const weaponId of this.weapons) {
+                this.applyWeaponEffect(weaponId);
+            }
+        }
+        
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
@@ -2447,9 +2483,11 @@ class BallSurvivalGame {
             this.materials[materialId] -= required;
         }
         
-        // Aggiungi l'arma al player
+        // Aggiungi l'arma al player (solo una volta)
         if (!this.player.weapons) this.player.weapons = [];
-        this.player.weapons.push(weaponId);
+        if (!this.player.weapons.includes(weaponId)) {
+            this.player.weapons.push(weaponId);
+        }
         
         // Applica l'effetto dell'arma
         this.applyWeaponEffect(weaponId);
@@ -2499,9 +2537,8 @@ class BallSurvivalGame {
         if (!weapon) return;
         
         // Gli effetti delle armi verranno applicati durante il gameplay
-        // Per ora li memorizziamo nel player
-        if (!this.player.weapons) this.player.weapons = [];
-        this.player.weapons.push(weaponId);
+        // Non aggiungiamo l'arma qui perché viene già aggiunta in craftWeapon
+        console.log(`Effetto arma applicato: ${weapon.name}`);
     }
     
     updateWeaponEffects() {
@@ -3699,7 +3736,9 @@ class BallSurvivalGame {
                 },
                 spells: this.spells,
                 passives: this.passives,
-                difficultyTier: this.difficultyTier
+                difficultyTier: this.difficultyTier,
+                cores: this.cores,
+                weapons: this.weapons
             };
         }
         
@@ -3754,6 +3793,15 @@ class BallSurvivalGame {
                 this.player.stats.dr = Math.min(this.player.stats.dr + (this.passives.armor.level * 0.02), 1.0);
                 this.player.modifiers.frequency *= Math.pow(0.92, this.passives.attack_speed.level);
 
+                // Carica core e armi dal salvataggio
+                if (run.cores) {
+                    this.cores = run.cores;
+                    this.player.cores = run.cores;
+                }
+                if (run.weapons) {
+                    this.weapons = run.weapons;
+                    this.player.weapons = run.weapons;
+                }
 
                 notification.textContent = "Stato di debug caricato!";
                 notification.style.color = '#2ecc71';
