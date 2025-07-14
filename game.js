@@ -1113,13 +1113,17 @@ class Player extends Entity {
         if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; 
         
         // Controllo di sicurezza per il joystick
-        if (!joystick || typeof joystick.dx === 'undefined' || typeof joystick.dy === 'undefined') {
-            console.warn('Joystick non inizializzato correttamente');
+        if (!joystick) {
+            console.warn('Joystick non fornito al player update');
             return;
         }
         
-        let fDx = joystick.dx !== 0 ? joystick.dx : kDx; 
-        let fDy = joystick.dy !== 0 ? joystick.dy : kDy; 
+        // Assicurati che dx e dy siano numeri validi
+        const joystickDx = typeof joystick.dx === 'number' ? joystick.dx : 0;
+        const joystickDy = typeof joystick.dy === 'number' ? joystick.dy : 0;
+        
+        let fDx = joystickDx !== 0 ? joystickDx : kDx; 
+        let fDy = joystickDy !== 0 ? joystickDy : kDy; 
         
         const m = Math.sqrt(fDx * fDx + fDy * fDy); 
         if (m > 1) { 
@@ -2025,7 +2029,18 @@ class BallSurvivalGame {
         this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
         this.state = 'running'; 
         this.lastFrameTime = performance.now();
-        if (!this.gameLoopId) this.gameLoop();
+        
+        // Controllo di sicurezza per assicurarsi che il player sia completamente inizializzato
+        if (this.player && this.player.stats && typeof this.player.hp !== 'undefined') {
+            if (!this.gameLoopId) this.gameLoop();
+        } else {
+            console.warn('Player non completamente inizializzato, riprovo tra 100ms');
+            setTimeout(() => {
+                if (this.state === 'running' && !this.gameLoopId) {
+                    this.gameLoop();
+                }
+            }, 100);
+        }
     }
     gameOver() {
         if (this.state === 'gameOver') return;
@@ -2082,7 +2097,15 @@ class BallSurvivalGame {
             this.totalElapsedTime += deltaTime;
             if (this.menuCooldown > 0) this.menuCooldown--;
             this.update(deltaTime);
-            this.updateInGameUI();
+            // Controllo di sicurezza più robusto per updateInGameUI
+            if (this.player && 
+                this.player.stats && 
+                typeof this.player.hp !== 'undefined' && 
+                this.player.hp !== null &&
+                this.dom && 
+                this.dom.inGameUI) {
+                this.updateInGameUI();
+            }
         }
         this.draw(); 
         this.lastFrameTime = now;
@@ -3228,9 +3251,87 @@ class BallSurvivalGame {
             this.showPopup('shop'); 
         }
     }
-    handlePointerDown(e) { if (this.state === 'gameOver' || this.state === 'startScreen') return; const rect = this.canvas.getBoundingClientRect(); const clientX = e.clientX; const clientY = e.clientY; const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { this.showPopup('shop'); return; } if (e.pointerType === 'touch' && !this.joystick.active) { e.preventDefault(); this.joystick.touchId = e.pointerId; this.joystick.active = true; this.joystick.startX = clientX; this.joystick.startY = clientY; this.dom.joystick.container.style.display = 'block'; this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; } }
-    handlePointerMove(e) { if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; e.preventDefault(); let deltaX = e.clientX - this.joystick.startX; let deltaY = e.clientY - this.joystick.startY; const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); const maxDistance = this.dom.joystick.radius; if (distance > maxDistance) { deltaX = (deltaX / distance) * maxDistance; deltaY = (deltaY / distance) * maxDistance; } this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; this.joystick.dx = deltaX / maxDistance; this.joystick.dy = deltaY / maxDistance; }
-    handlePointerEnd(e) { if (this.joystick.active && e.pointerId === this.joystick.touchId) { this.joystick.active = false; this.joystick.touchId = null; this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; this.dom.joystick.container.style.display = 'none'; this.joystick.dx = 0; this.joystick.dy = 0; } }
+    handlePointerDown(e) { 
+        if (this.state === 'gameOver' || this.state === 'startScreen') return; 
+        
+        const rect = this.canvas.getBoundingClientRect(); 
+        const clientX = e.clientX; 
+        const clientY = e.clientY; 
+        const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; 
+        const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; 
+        
+        if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { 
+            this.showPopup('shop'); 
+            return; 
+        } 
+        
+        if (e.pointerType === 'touch' && !this.joystick.active) { 
+            e.preventDefault(); 
+            e.stopPropagation();
+            
+            // Controllo di sicurezza per il joystick
+            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.container) {
+                console.warn('Joystick non inizializzato correttamente');
+                return;
+            }
+            
+            this.joystick.touchId = e.pointerId; 
+            this.joystick.active = true; 
+            this.joystick.startX = clientX; 
+            this.joystick.startY = clientY; 
+            this.joystick.dx = 0;
+            this.joystick.dy = 0;
+            
+            this.dom.joystick.container.style.display = 'block'; 
+            this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
+            this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+        } 
+    }
+    handlePointerMove(e) { 
+        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; 
+        
+        e.preventDefault(); 
+        e.stopPropagation();
+        
+        // Controllo di sicurezza per il joystick
+        if (!this.joystick || !this.dom.joystick || !this.dom.joystick.stick) {
+            console.warn('Joystick non inizializzato correttamente in handlePointerMove');
+            return;
+        }
+        
+        let deltaX = e.clientX - this.joystick.startX; 
+        let deltaY = e.clientY - this.joystick.startY; 
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
+        const maxDistance = this.dom.joystick.radius; 
+        
+        if (distance > maxDistance) { 
+            deltaX = (deltaX / distance) * maxDistance; 
+            deltaY = (deltaY / distance) * maxDistance; 
+        } 
+        
+        this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
+        this.joystick.dx = deltaX / maxDistance; 
+        this.joystick.dy = deltaY / maxDistance; 
+    }
+    handlePointerEnd(e) { 
+        if (this.joystick.active && e.pointerId === this.joystick.touchId) { 
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Controllo di sicurezza per il joystick
+            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.stick || !this.dom.joystick.container) {
+                console.warn('Joystick non inizializzato correttamente in handlePointerEnd');
+                return;
+            }
+            
+            this.joystick.active = false; 
+            this.joystick.touchId = null; 
+            this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; 
+            this.dom.joystick.container.style.display = 'none'; 
+            this.joystick.dx = 0; 
+            this.joystick.dy = 0; 
+        } 
+    }
     
     generateAndShowDebugCode() {
         this.dom.inputs.debugSaveOutput.value = this.generateSaveCode(true);
@@ -3484,16 +3585,31 @@ class BallSurvivalGame {
         
         // Usa il canvas stesso per ottenere le dimensioni
         const rect = this.dom.canvas.getBoundingClientRect();
+        
         // Limiti massimi desktop
         const maxW = window.innerWidth <= 700 ? CONFIG.world.width : Math.min(CONFIG.world.width, 1200);
         const maxH = window.innerWidth <= 700 ? CONFIG.world.height : Math.min(CONFIG.world.height, 900);
         let width = Math.min(rect.width, maxW);
         let height = Math.min(rect.height, maxH);
+        
+        // Assicurati che le dimensioni siano valide
+        if (width <= 0 || height <= 0) {
+            console.warn('Dimensioni canvas non valide:', width, height);
+            width = Math.max(100, width);
+            height = Math.max(100, height);
+        }
+        
         this.canvas.width = width;
         this.canvas.height = height;
         this.camera.width = width;
         this.camera.height = height;
-        if (this.state !== 'running' && this.entities) this.draw();
+        
+        // Forza un ridisegno se il gioco è in corso
+        if (this.state === 'running' && this.ctx) {
+            this.draw();
+        } else if (this.state !== 'running' && this.entities) {
+            this.draw();
+        }
     }
     drawOffscreenIndicators() { 
         if (!this.player) {
@@ -3542,14 +3658,24 @@ class BallSurvivalGame {
         this.ctx.restore(); 
     }
     drawNotifications(ctx) {
+        // Controllo di sicurezza per le notifiche
+        if (!this.notifications || !Array.isArray(this.notifications)) {
+            console.warn('drawNotifications: Notifications non inizializzate correttamente');
+            return;
+        }
+        
         ctx.save();
         ctx.textAlign = 'center';
         ctx.font = '16px Arial';
         
-        for (const notification of this.entities.notifications) {
+        for (const notification of this.notifications) {
+            if (!notification || typeof notification.life === 'undefined') {
+                continue; // Salta notifiche non valide
+            }
+            
             const alpha = notification.life > 60 ? 1.0 : notification.life / 60;
             ctx.globalAlpha = alpha;
-            ctx.fillStyle = notification.color;
+            ctx.fillStyle = notification.color || '#ffffff';
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3;
             
