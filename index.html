@@ -51,6 +51,7 @@
 
             <div class="menu-actions">
                 <button id="startGameBtn">Inizia Partita</button>
+                <button id="inventoryBtn" style="background: #8e44ad; margin-top: 10px;">📦 Inventario</button>
             </div>
             <div class="save-load-container">
                 <p>Carica i tuoi progressi:</p>
@@ -103,6 +104,33 @@
             <div id="permanentUpgradeOptions" class="menu-content"></div>
             <div class="menu-actions">
                 <button id="closeShopBtn">Chiudi</button>
+            </div>
+        </div>
+        <div id="inventoryMenu" class="popup-menu">
+            <h3>📦 Inventario Materiali</h3>
+            <div class="inventory-tabs">
+                <button class="tab-btn active" data-tab="materials">Materiali</button>
+                <button class="tab-btn" data-tab="cores">Core</button>
+                <button class="tab-btn" data-tab="weapons">Armi</button>
+            </div>
+            <div id="inventoryContent" class="menu-content">
+                <div id="materialsTab" class="tab-content active">
+                    <h4>Materiali per Core</h4>
+                    <div id="coreMaterialsList" class="materials-list"></div>
+                    <h4>Materiali per Armi</h4>
+                    <div id="weaponMaterialsList" class="materials-list"></div>
+                </div>
+                <div id="coresTab" class="tab-content">
+                    <h4>Core Disponibili</h4>
+                    <div id="coresList" class="crafting-list"></div>
+                </div>
+                <div id="weaponsTab" class="tab-content">
+                    <h4>Armi Disponibili</h4>
+                    <div id="weaponsList" class="crafting-list"></div>
+                </div>
+            </div>
+            <div class="menu-actions">
+                <button id="closeInventoryBtn">Chiudi</button>
             </div>
         </div>
     </div>

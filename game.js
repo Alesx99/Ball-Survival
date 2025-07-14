@@ -1586,6 +1586,7 @@ class BallSurvivalGame {
         this.lastFrameTime = 0; 
         this.totalElapsedTime = 0; 
         this.menuCooldown = 0;
+        this.materials = {}; // Inizializza l'inventario materiali
         this.loadGameData(); 
         this.loadStageProgress(); // Carica la progressione degli stage
         this.resetRunState(); 
@@ -1598,8 +1599,8 @@ class BallSurvivalGame {
     initDOM() {
         this.dom = {
             gameContainer: document.getElementById('gameContainer'),
-            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop') },
-            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn') },
+            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop'), inventory: document.getElementById('inventoryMenu') },
+            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), inventory: document.getElementById('inventoryBtn'), closeInventory: document.getElementById('closeInventoryBtn') },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
             containers: { 
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
@@ -1608,7 +1609,11 @@ class BallSurvivalGame {
                 permanentUpgradeOptions: document.getElementById('permanentUpgradeOptions'),
                 upgradeOptions: document.getElementById('upgradeOptions'),
                 pauseStatsContainer: document.getElementById('pauseStatsContainer'),
-                runStatsContainer: document.getElementById('runStatsContainer')
+                runStatsContainer: document.getElementById('runStatsContainer'),
+                coreMaterialsList: document.getElementById('coreMaterialsList'),
+                weaponMaterialsList: document.getElementById('weaponMaterialsList'),
+                coresList: document.getElementById('coresList'),
+                weaponsList: document.getElementById('weaponsList')
             },
             joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, touchId: null },
             menuOverlay: document.getElementById('menuOverlay'),
@@ -1637,6 +1642,10 @@ class BallSurvivalGame {
         this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
         this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
         this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
+        
+        // Pulsante inventario
+        this.dom.buttons.inventory.onclick = () => this.showInventory();
+        this.dom.buttons.closeInventory.onclick = () => this.hideAllPopups();
         
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
@@ -2897,6 +2906,127 @@ class BallSurvivalGame {
         if (popupKey === 'pause') { 
             this.populateStatsMenu(); 
         } 
+    }
+    
+    showInventory() {
+        this.showPopup('inventory');
+        this.populateInventory();
+        this.setupInventoryTabs();
+    }
+    
+    populateInventory() {
+        // Popola la lista dei materiali per core
+        this.populateMaterialsList('coreMaterialsList', CONFIG.materials.coreMaterials);
+        
+        // Popola la lista dei materiali per armi
+        this.populateMaterialsList('weaponMaterialsList', CONFIG.materials.weaponMaterials);
+        
+        // Popola la lista dei core disponibili
+        this.populateCraftingList('coresList', CONFIG.cores, 'core');
+        
+        // Popola la lista delle armi disponibili
+        this.populateCraftingList('weaponsList', CONFIG.weapons, 'weapon');
+    }
+    
+    populateMaterialsList(containerId, materialsConfig) {
+        const container = this.dom.containers[containerId];
+        if (!container) return;
+        
+        let html = '';
+        let hasMaterials = false;
+        
+        for (const [materialId, material] of Object.entries(materialsConfig)) {
+            const count = this.materials[materialId] || 0;
+            if (count > 0) {
+                hasMaterials = true;
+                html += `
+                    <div class="material-item">
+                        <div class="material-icon" style="background-color: ${material.color}">
+                            ${material.name.charAt(0)}
+                        </div>
+                        <div class="material-info">
+                            <div class="material-name">${material.name}</div>
+                            <div class="material-count">Quantità: ${count}</div>
+                        </div>
+                        <div class="material-rarity rarity-${material.rarity}">
+                            ${material.rarity}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        if (!hasMaterials) {
+            html = '<div class="empty-inventory">Nessun materiale disponibile</div>';
+        }
+        
+        container.innerHTML = html;
+    }
+    
+    populateCraftingList(containerId, itemsConfig, type) {
+        const container = this.dom.containers[containerId];
+        if (!container) return;
+        
+        let html = '';
+        let hasItems = false;
+        
+        for (const [itemId, item] of Object.entries(itemsConfig)) {
+            const canCraft = type === 'core' ? this.canCraftCore(itemId) : this.canCraftWeapon(itemId);
+            const materialsText = this.getMaterialsRequiredText(itemId, type);
+            
+            html += `
+                <div class="crafting-item">
+                    <h5>${item.name}</h5>
+                    <p>${item.description}</p>
+                    <div class="materials-required">${materialsText}</div>
+                    <button class="craft-btn" ${canCraft ? '' : 'disabled'} 
+                            onclick="game.craft${type.charAt(0).toUpperCase() + type.slice(1)}('${itemId}')">
+                        ${canCraft ? 'Crea' : 'Materiali insufficienti'}
+                    </button>
+                </div>
+            `;
+            hasItems = true;
+        }
+        
+        if (!hasItems) {
+            html = '<div class="empty-inventory">Nessun oggetto disponibile</div>';
+        }
+        
+        container.innerHTML = html;
+    }
+    
+    getMaterialsRequiredText(itemId, type) {
+        const item = type === 'core' ? CONFIG.cores[itemId] : CONFIG.weapons[itemId];
+        if (!item || !item.materials) return '';
+        
+        const materials = [];
+        for (const [materialId, amount] of Object.entries(item.materials)) {
+            const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
+            const current = this.materials[materialId] || 0;
+            const color = current >= amount ? '#2ecc71' : '#e74c3c';
+            materials.push(`<span style="color: ${color}">${material.name}: ${current}/${amount}</span>`);
+        }
+        
+        return materials.join(', ');
+    }
+    
+    setupInventoryTabs() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+                
+                // Rimuovi la classe active da tutti i tab
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Aggiungi la classe active al tab selezionato
+                button.classList.add('active');
+                document.getElementById(targetTab + 'Tab').classList.add('active');
+            });
+        });
     }
     hideAllPopups(forceNoResume) { 
         Object.values(this.dom.popups).forEach(p => p.style.display = 'none'); 

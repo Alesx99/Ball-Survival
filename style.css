@@ -613,4 +613,164 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     font-size: 16px;
     padding: 15px;
   }
+}
+
+/* Stili per l'Inventario */
+.inventory-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  background: var(--light-bg);
+  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tab-btn:hover {
+  background: var(--dark-bg);
+  border-color: var(--secondary-color);
+}
+
+.tab-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--highlight-color);
+}
+
+.tab-content {
+  display: none;
+  text-align: left;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.materials-list, .crafting-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.material-item, .crafting-item {
+  background: var(--light-bg);
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.material-item:hover, .crafting-item:hover {
+  background: var(--dark-bg);
+  border-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+.material-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+.material-info {
+  flex: 1;
+}
+
+.material-name {
+  font-weight: bold;
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+.material-count {
+  color: var(--text-muted-color);
+  font-size: 12px;
+}
+
+.material-rarity {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.rarity-common { background: #8B7355; color: white; }
+.rarity-uncommon { background: #708090; color: white; }
+.rarity-rare { background: #87CEEB; color: black; }
+.rarity-epic { background: #FF4500; color: white; }
+.rarity-legendary { background: #8A2BE2; color: white; }
+
+.crafting-item {
+  flex-direction: column;
+  text-align: center;
+  gap: 8px;
+}
+
+.crafting-item h5 {
+  margin: 0;
+  color: var(--secondary-color);
+  font-size: 14px;
+}
+
+.crafting-item p {
+  margin: 0;
+  color: var(--text-muted-color);
+  font-size: 12px;
+}
+
+.craft-btn {
+  background: linear-gradient(145deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.craft-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.craft-btn:disabled {
+  background: #566573;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.materials-required {
+  font-size: 10px;
+  color: var(--text-muted-color);
+  margin-top: 5px;
+}
+
+.empty-inventory {
+  text-align: center;
+  color: var(--text-muted-color);
+  font-style: italic;
+  padding: 20px;
 } 
