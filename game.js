@@ -2105,6 +2105,17 @@ class BallSurvivalGame {
                 this.dom && 
                 this.dom.inGameUI) {
                 this.updateInGameUI();
+            } else {
+                // Debug per mobile - mostra errori
+                if (window.innerWidth <= 768) {
+                    console.warn('Mobile Debug - Player state:', {
+                        player: !!this.player,
+                        stats: !!(this.player && this.player.stats),
+                        hp: this.player ? this.player.hp : 'undefined',
+                        dom: !!this.dom,
+                        inGameUI: !!(this.dom && this.dom.inGameUI)
+                    });
+                }
             }
         }
         this.draw(); 
@@ -3268,6 +3279,16 @@ class BallSurvivalGame {
         if (e.pointerType === 'touch' && !this.joystick.active) { 
             e.preventDefault(); 
             e.stopPropagation();
+            
+            // Debug per mobile
+            console.log('Mobile Debug - Touch detected:', {
+                pointerType: e.pointerType,
+                clientX: clientX,
+                clientY: clientY,
+                joystickActive: this.joystick.active,
+                joystickExists: !!this.joystick,
+                domJoystickExists: !!(this.dom && this.dom.joystick)
+            });
             
             // Controllo di sicurezza per il joystick
             if (!this.joystick || !this.dom.joystick || !this.dom.joystick.container) {
