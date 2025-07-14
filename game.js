@@ -375,168 +375,7 @@ const CONFIG = {
         luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
         xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
         defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
-    },
-    // Sistema di Materiali con Rarità
-    materials: {
-        // Materiali Comuni (Rarità 1)
-        common: {
-            'IRON_ORE': { 
-                name: "Minerale di Ferro", 
-                color: '#8B7355', 
-                desc: "Minerale comune utilizzato per armi base.",
-                rarity: 1,
-                baseDropChance: 0.15,
-                stageMultiplier: 1.0
-            },
-            'WOOD': { 
-                name: "Legno", 
-                color: '#8B4513', 
-                desc: "Legno resistente per impugnature.",
-                rarity: 1,
-                baseDropChance: 0.12,
-                stageMultiplier: 1.0
-            },
-            'STONE': { 
-                name: "Pietra", 
-                color: '#696969', 
-                desc: "Pietra solida per armi pesanti.",
-                rarity: 1,
-                baseDropChance: 0.10,
-                stageMultiplier: 1.0
-            },
-            'LEATHER': { 
-                name: "Cuoio", 
-                color: '#D2691E', 
-                desc: "Cuoio flessibile per protezioni.",
-                rarity: 1,
-                baseDropChance: 0.08,
-                stageMultiplier: 1.0
-            }
-        },
-        // Materiali Rari (Rarità 2)
-        rare: {
-            'SILVER_ORE': { 
-                name: "Minerale d'Argento", 
-                color: '#C0C0C0', 
-                desc: "Argento prezioso per armi magiche.",
-                rarity: 2,
-                baseDropChance: 0.06,
-                stageMultiplier: 1.2
-            },
-            'MAGIC_CRYSTAL': { 
-                name: "Cristallo Magico", 
-                color: '#9370DB', 
-                desc: "Cristallo che irradia energia magica.",
-                rarity: 2,
-                baseDropChance: 0.05,
-                stageMultiplier: 1.3
-            },
-            'ENCHANTED_WOOD': { 
-                name: "Legno Incantato", 
-                color: '#228B22', 
-                desc: "Legno che brilla di magia antica.",
-                rarity: 2,
-                baseDropChance: 0.04,
-                stageMultiplier: 1.2
-            },
-            'MYTHRIL_FRAGMENT': { 
-                name: "Frammento di Mithril", 
-                color: '#4169E1', 
-                desc: "Lega leggendaria per armi supreme.",
-                rarity: 2,
-                baseDropChance: 0.03,
-                stageMultiplier: 1.4
-            }
-        },
-        // Materiali Epici (Rarità 3)
-        epic: {
-            'GOLD_ORE': { 
-                name: "Minerale d'Oro", 
-                color: '#FFD700', 
-                desc: "Oro puro per armi divine.",
-                rarity: 3,
-                baseDropChance: 0.025,
-                stageMultiplier: 1.5
-            },
-            'DRAGON_SCALE': { 
-                name: "Squama di Drago", 
-                color: '#DC143C', 
-                desc: "Squama indurita di drago antico.",
-                rarity: 3,
-                baseDropChance: 0.02,
-                stageMultiplier: 1.6
-            },
-            'PHOENIX_FEATHER': { 
-                name: "Piuma di Fenice", 
-                color: '#FF4500', 
-                desc: "Piuma che brucia di fuoco eterno.",
-                rarity: 3,
-                baseDropChance: 0.015,
-                stageMultiplier: 1.7
-            },
-            'VOID_ESSENCE': { 
-                name: "Essenza del Vuoto", 
-                color: '#4B0082', 
-                desc: "Essenza che piega la realtà.",
-                rarity: 3,
-                baseDropChance: 0.01,
-                stageMultiplier: 1.8
-            }
-        },
-        // Materiali Leggendari (Rarità 4)
-        legendary: {
-            'DIAMOND_CORE': { 
-                name: "Nucleo di Diamante", 
-                color: '#00FFFF', 
-                desc: "Diamante puro che irradia potere.",
-                rarity: 4,
-                baseDropChance: 0.005,
-                stageMultiplier: 2.0
-            },
-            'CELESTIAL_STEEL': { 
-                name: "Acciaio Celestiale", 
-                color: '#FF69B4', 
-                desc: "Metallo forgiato nelle stelle.",
-                rarity: 4,
-                baseDropChance: 0.003,
-                stageMultiplier: 2.2
-            },
-            'TIME_SHARD': { 
-                name: "Scheggia del Tempo", 
-                color: '#FF00FF', 
-                desc: "Frammento che controlla il tempo.",
-                rarity: 4,
-                baseDropChance: 0.002,
-                stageMultiplier: 2.5
-            },
-            'REALITY_FRAGMENT': { 
-                name: "Frammento di Realtà", 
-                color: '#FFFFFF', 
-                desc: "Pezzo della realtà stessa.",
-                rarity: 4,
-                baseDropChance: 0.001,
-                stageMultiplier: 3.0
-            }
-        }
-    },
-    // Configurazione del sistema di drop
-    materialDrop: {
-        // Bonus per materiali già raccolti (diminuisce la probabilità di drop)
-        collectedPenalty: {
-            1: 0.1,  // -10% per materiali comuni già raccolti
-            2: 0.15, // -15% per materiali rari già raccolti
-            3: 0.2,  // -20% per materiali epici già raccolti
-            4: 0.25  // -25% per materiali leggendari già raccolti
-        },
-        // Bonus per nemici elite
-        eliteMultiplier: 2.0,
-        // Bonus per boss
-        bossMultiplier: 5.0,
-        // Bonus per stage avanzati
-        stageBonus: 0.1, // +10% per ogni stage
-        // Probabilità base di drop materiale
-        baseMaterialChance: 0.3
-    },
+    }
 };
 
 const Utils = {
@@ -1086,11 +925,6 @@ class Player extends Entity {
         
         this.hp = this.stats.maxHp;
         
-        // Inizializza il sistema di materiali se non esiste
-        if (!this.materials) {
-            this.materials = {};
-        }
-        
         // Controlli di sicurezza finali per XP
         if (this.xp < 0) this.xp = 0;
         if (this.xpNext <= 0) this.xpNext = 1;
@@ -1099,47 +933,7 @@ class Player extends Entity {
         console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
     }
     applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr = (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
-    update(game, joystick) { 
-        // Controllo di sicurezza per le statistiche
-        if (!this.stats || !this.stats.speed || !this.stats.radius) {
-            console.warn('Player stats non inizializzate correttamente');
-            return;
-        }
-        
-        let kDx = 0, kDy = 0; 
-        if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; 
-        if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; 
-        if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; 
-        if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; 
-        
-        // Controllo di sicurezza per il joystick
-        if (!joystick) {
-            console.warn('Joystick non fornito al player update');
-            return;
-        }
-        
-        // Assicurati che dx e dy siano numeri validi
-        const joystickDx = typeof joystick.dx === 'number' ? joystick.dx : 0;
-        const joystickDy = typeof joystick.dy === 'number' ? joystick.dy : 0;
-        
-        let fDx = joystickDx !== 0 ? joystickDx : kDx; 
-        let fDy = joystickDy !== 0 ? joystickDy : kDy; 
-        
-        const m = Math.sqrt(fDx * fDx + fDy * fDy); 
-        if (m > 1) { 
-            fDx /= m; 
-            fDy /= m; 
-        } 
-        
-        this.x += fDx * this.stats.speed; 
-        this.y += fDy * this.stats.speed; 
-        this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); 
-        this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); 
-        
-        for (const key in this.powerUpTimers) { 
-            if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; 
-        } 
-    }
+    update(game, joystick) { let kDx = 0, kDy = 0; if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; if (this.keys['KeyS'] || this.keys['ArrowDown']) kDy += 1; if (this.keys['KeyA'] || this.keys['ArrowLeft']) kDx -= 1; if (this.keys['KeyD'] || this.keys['ArrowRight']) kDx += 1; let fDx = joystick.dx !== 0 ? joystick.dx : kDx; let fDy = joystick.dy !== 0 ? joystick.dy : kDy; const m = Math.sqrt(fDx * fDx + fDy * fDy); if (m > 1) { fDx /= m; fDy /= m; } this.x += fDx * this.stats.speed; this.y += fDy * this.stats.speed; this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x)); this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y)); for (const key in this.powerUpTimers) { if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--; } }
     
     gainXP(amount) {
         this.xp += amount * this.modifiers.xpGain;
@@ -1265,116 +1059,12 @@ class Enemy extends Entity {
         game.enemiesKilledSinceBoss++;
         game.score += Math.floor(this.stats.maxHp);
         game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
-        
-        // Drop di gemme
         if (Math.random() < 0.1 + game.player.modifiers.luck) {
             game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 1 : 0)));
         }
-
-        // Sistema di drop materiali
-        this.dropMaterials(game);
-
-        // Particelle di morte
         for (let j = 0; j < 8; j++) {
             game.addEntity('particles', new Particle(this.x, this.y, { vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 20, color: this.color }));
         }
-    }
-
-    dropMaterials(game) {
-        // Controllo di sicurezza per il sistema di materiali
-        if (!game.player || !game.player.materials) {
-            console.warn('Sistema materiali non inizializzato');
-            return;
-        }
-        
-        // Probabilità base di drop materiale
-        let materialChance = CONFIG.materialDrop.baseMaterialChance;
-        
-        // Bonus per nemici elite
-        if (this.stats.isElite) {
-            materialChance *= CONFIG.materialDrop.eliteMultiplier;
-        }
-        
-        // Bonus per stage avanzati
-        const stageBonus = (game.currentStage - 1) * CONFIG.materialDrop.stageBonus;
-        materialChance += stageBonus;
-        
-        // Bonus per fortuna del giocatore
-        materialChance += game.player.modifiers.luck || 0;
-
-        // Controlla se droppa un materiale
-        if (Math.random() < materialChance) {
-            const materialId = this.selectMaterialToDrop(game);
-            if (materialId) {
-                // Posizione casuale intorno al nemico
-                const offsetX = (Math.random() - 0.5) * 40;
-                const offsetY = (Math.random() - 0.5) * 40;
-                game.addEntity('materialItems', new MaterialItem(this.x + offsetX, this.y + offsetY, materialId));
-            }
-        }
-    }
-
-    selectMaterialToDrop(game) {
-        // Controllo di sicurezza per il sistema di materiali
-        if (!game.player || !game.player.materials) {
-            console.warn('Sistema materiali non inizializzato in selectMaterialToDrop');
-            return null;
-        }
-        
-        const allMaterials = [];
-        
-        // Raccogli tutti i materiali disponibili
-        for (const [category, materials] of Object.entries(CONFIG.materials)) {
-            for (const [materialId, materialInfo] of Object.entries(materials)) {
-                allMaterials.push({ id: materialId, info: materialInfo, category });
-            }
-        }
-
-        if (allMaterials.length === 0) return null;
-
-        // Calcola probabilità per ogni materiale
-        const materialProbabilities = allMaterials.map(material => {
-            let probability = material.info.baseDropChance;
-            
-            // Moltiplicatore per stage
-            probability *= material.info.stageMultiplier;
-            
-            // Penalità per materiali già raccolti
-            if (game.player.materials && game.player.materials[material.id]) {
-                const collectedCount = game.player.materials[material.id];
-                const penalty = CONFIG.materialDrop.collectedPenalty[material.info.rarity] || 0;
-                probability *= Math.pow(1 - penalty, collectedCount);
-            }
-            
-            // Bonus per nemici elite
-            if (this.stats.isElite) {
-                probability *= CONFIG.materialDrop.eliteMultiplier;
-            }
-            
-            // Bonus per fortuna
-            probability *= (1 + (game.player.modifiers.luck || 0));
-            
-            return { material, probability };
-        });
-
-        // Seleziona materiale basato su probabilità
-        const totalProbability = materialProbabilities.reduce((sum, item) => sum + item.probability, 0);
-        let random = Math.random() * totalProbability;
-        
-        for (const item of materialProbabilities) {
-            random -= item.probability;
-            if (random <= 0) {
-                return item.material.id;
-            }
-        }
-
-        // Fallback: seleziona un materiale comune
-        const commonMaterials = allMaterials.filter(m => m.info.rarity === 1);
-        if (commonMaterials.length > 0) {
-            return commonMaterials[Math.floor(Math.random() * commonMaterials.length)].id;
-        }
-
-        return null;
     }
     draw(ctx, game) {
         ctx.save();
@@ -1679,166 +1369,6 @@ class Effect extends Entity {
     }
 }
 
-class MaterialItem extends Entity {
-    constructor(x, y, materialId) {
-        super(x, y);
-        this.materialId = materialId;
-        this.materialInfo = this.getMaterialInfo(materialId);
-        this.life = 900; // Durata più lunga dei materiali
-        this.bobOffset = Math.random() * Math.PI * 2;
-        this.rotation = 0;
-        this.glowIntensity = 0;
-        this.pulseDirection = 1;
-    }
-
-    getMaterialInfo(materialId) {
-        // Cerca il materiale in tutte le categorie
-        for (const category of Object.values(CONFIG.materials)) {
-            if (category[materialId]) {
-                return category[materialId];
-            }
-        }
-        return null;
-    }
-
-    update(game) {
-        this.life--;
-        if (this.life <= 0) {
-            this.toRemove = true;
-            return;
-        }
-
-        // Animazioni
-        this.rotation += 0.02;
-        this.glowIntensity += 0.1 * this.pulseDirection;
-        if (this.glowIntensity >= 1 || this.glowIntensity <= 0) {
-            this.pulseDirection *= -1;
-        }
-
-        // Controllo raccolta
-        const dist = Utils.getDistance(game.player, this);
-        if (dist < game.player.stats.radius + 15) {
-            this.collectMaterial(game);
-            this.toRemove = true;
-        }
-    }
-
-    collectMaterial(game) {
-        if (!this.materialInfo) return;
-
-        // Aggiungi al inventario del giocatore
-        if (!game.player.materials) {
-            game.player.materials = {};
-        }
-        
-        if (!game.player.materials[this.materialId]) {
-            game.player.materials[this.materialId] = 0;
-        }
-        
-        game.player.materials[this.materialId]++;
-
-        // Salva automaticamente i materiali
-        game.saveGameData();
-
-        // Mostra notifica
-        game.showNotification(`+1 ${this.materialInfo.name}`, this.materialInfo.color);
-
-        // Effetti particellari
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 * i) / 8;
-            const speed = 3 + Math.random() * 2;
-            game.addEntity('particles', new Particle(
-                this.x, 
-                this.y, 
-                { 
-                    vx: Math.cos(angle) * speed, 
-                    vy: Math.sin(angle) * speed, 
-                    life: 30, 
-                    color: this.materialInfo.color 
-                }
-            ));
-        }
-    }
-
-    draw(ctx) {
-        if (!this.materialInfo) return;
-
-        ctx.save();
-        
-        // Calcola trasparenza basata sulla vita rimanente
-        const alpha = this.life > 120 ? 1.0 : Math.max(0, this.life / 120);
-        ctx.globalAlpha = alpha;
-
-        // Posizione con effetto bob
-        const bob = Math.sin(Date.now() / 300 + this.bobOffset) * 4;
-        const drawX = this.x;
-        const drawY = this.y + bob;
-
-        // Effetto glow basato sulla rarità
-        const glowRadius = 8 + this.materialInfo.rarity * 2;
-        const glowAlpha = 0.3 + this.glowIntensity * 0.2;
-        
-        // Glow esterno
-        ctx.globalAlpha = glowAlpha * alpha;
-        ctx.fillStyle = this.materialInfo.color;
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Corpo principale
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = this.materialInfo.color;
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, 8, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Bordo luminoso
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Effetto di rarità (stelle per leggendari, scintille per epici, etc.)
-        if (this.materialInfo.rarity >= 3) {
-            this.drawRarityEffect(ctx, drawX, drawY);
-        }
-
-        ctx.restore();
-    }
-
-    drawRarityEffect(ctx, x, y) {
-        const time = Date.now() / 1000;
-        
-        if (this.materialInfo.rarity === 4) {
-            // Effetto stellare per leggendari
-            for (let i = 0; i < 4; i++) {
-                const angle = time + (i * Math.PI / 2);
-                const starX = x + Math.cos(angle) * 12;
-                const starY = y + Math.sin(angle) * 12;
-                
-                ctx.fillStyle = '#FFFFFF';
-                ctx.globalAlpha = 0.8 * Math.sin(time * 3 + i);
-                ctx.beginPath();
-                ctx.arc(starX, starY, 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        } else if (this.materialInfo.rarity === 3) {
-            // Effetto scintille per epici
-            for (let i = 0; i < 3; i++) {
-                const angle = time * 2 + (i * Math.PI * 2 / 3);
-                const sparkX = x + Math.cos(angle) * 10;
-                const sparkY = y + Math.sin(angle) * 10;
-                
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 1;
-                ctx.globalAlpha = 0.6 * Math.sin(time * 4 + i);
-                ctx.beginPath();
-                ctx.moveTo(sparkX - 3, sparkY - 3);
-                ctx.lineTo(sparkX + 3, sparkY + 3);
-                ctx.stroke();
-            }
-        }
-    }
-}
 
 class BallSurvivalGame {
     constructor(canvasId) {
@@ -1847,16 +1377,7 @@ class BallSurvivalGame {
         this.initInputHandlers();
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
-        // Inizializzazione joystick per mobile
-        this.joystick = { 
-            dx: 0, 
-            dy: 0, 
-            active: false,
-            touchId: null,
-            startX: 0,
-            startY: 0,
-            radius: 50 // Raggio fisso per il joystick
-        };
+        this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
         this.selectedStage = 1; // Stage selezionato dal giocatore
@@ -1874,50 +1395,25 @@ class BallSurvivalGame {
 
     initDOM() {
         this.dom = {
-            canvas: document.getElementById('gameCanvas'),
-            menuOverlay: document.getElementById('menuOverlay'),
-            joystick: {
-                container: document.getElementById('joystick-container'),
-                stick: document.getElementById('joystick-stick')
-            },
-            buttons: {
-                start: document.getElementById('startGameBtn'),
-                restart: document.getElementById('restartGameBtn'),
-                restartFromPause: document.getElementById('restartFromPauseBtn'),
-                pause: document.getElementById('pauseButton'),
-                returnToMenu: document.getElementById('returnToMenuBtn'),
-                returnToMenuPause: document.getElementById('returnToMenuPauseBtn'),
-                copy: document.getElementById('copyCodeBtn'),
-                load: document.getElementById('loadGameBtn'),
-                generateDebugSave: document.getElementById('generateDebugSave'),
-                copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'),
-                closeShopBtn: document.getElementById('closeShopBtn'),
-                closeMaterialsBtn: document.getElementById('closeMaterialsBtn'),
-                materialsInventory: document.createElement('button')
-            },
-            inputs: {
-                saveCode: document.getElementById('saveCodeOutput'),
-                loadCode: document.getElementById('loadCodeInput')
-            },
-            containers: {
-                characterSelection: document.getElementById('characterSelectionContainer'),
-                stageSelection: document.getElementById('stageSelectionContainer'),
-                upgradeOptions: document.getElementById('upgradeOptions'),
-                runStats: document.getElementById('runStatsContainer'),
-                pauseStats: document.getElementById('pauseStatsContainer'),
-                playerStats: document.getElementById('playerStatsColumn'),
-                weaponsStats: document.getElementById('weaponsStatsColumn'),
+            gameContainer: document.getElementById('gameContainer'),
+            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop') },
+            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn') },
+            inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
+            containers: { 
+                debugSaveContainer: document.getElementById('debugSaveContainer'),
+                characterSelectionContainer: document.getElementById('characterSelectionContainer'),
+                stageSelectionContainer: document.getElementById('stageSelectionContainer'),
                 permanentUpgradeOptions: document.getElementById('permanentUpgradeOptions'),
-                materialsInventory: document.getElementById('materialsInventoryContainer')
+                upgradeOptions: document.getElementById('upgradeOptions'),
+                pauseStatsContainer: document.getElementById('pauseStatsContainer'),
+                runStatsContainer: document.getElementById('runStatsContainer')
             },
-            popups: {
-                start: document.getElementById('startScreen'),
-                upgrade: document.getElementById('upgradeMenu'),
-                pause: document.getElementById('pauseMenu'),
-                gameOver: document.getElementById('gameOver'),
-                shop: document.getElementById('permanentUpgradeShop'),
-                materialsInventory: document.getElementById('materialsInventory')
-            },
+            joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, touchId: null },
+            menuOverlay: document.getElementById('menuOverlay'),
+            totalGemsShop: document.getElementById('totalGemsShop'),
+            playerStatsColumn: document.getElementById('playerStatsColumn'),
+            weaponsStatsColumn: document.getElementById('weaponsStatsColumn'),
+            loadNotification: document.getElementById('load-notification'),
             inGameUI: {
                 container: document.getElementById('inGameUI'),
                 timer: document.getElementById('gameTimer'),
@@ -1926,48 +1422,6 @@ class BallSurvivalGame {
                 gemCounter: document.getElementById('gemCounter')
             }
         };
-
-        // Debug per mobile - verifica inizializzazione DOM
-        if (window.innerWidth <= 768) {
-            console.log('Mobile Debug - DOM inizializzazione:', {
-                canvas: !!this.dom.canvas,
-                joystickContainer: !!this.dom.joystick.container,
-                joystickStick: !!this.dom.joystick.stick,
-                inGameUI: !!this.dom.inGameUI.container
-            });
-            
-            // Verifica che il joystick sia inizializzato correttamente
-            if (this.dom.joystick.container && this.dom.joystick.stick) {
-                // Assicurati che il joystick abbia le proprietà corrette
-                this.dom.joystick.container.style.position = 'fixed';
-                this.dom.joystick.container.style.display = 'none';
-                this.dom.joystick.container.style.zIndex = '1000';
-                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
-                
-                console.log('Mobile Debug - Joystick inizializzato correttamente');
-            } else {
-                console.warn('Mobile Debug - Joystick non trovato nel DOM');
-            }
-        }
-        
-        // Crea il pulsante per l'inventario materiali
-        this.dom.buttons.materialsInventory.innerHTML = '📦 Materiali';
-        this.dom.buttons.materialsInventory.className = 'material-inventory-btn';
-        this.dom.buttons.materialsInventory.style.cssText = `
-            position: fixed;
-            top: 12px;
-            left: 12px;
-            z-index: 1002;
-            font-size: 16px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            background: #4a90e2;
-            color: #fff;
-            border: none;
-            box-shadow: 0 2px 8px #0005;
-            display: none;
-        `;
-        document.body.appendChild(this.dom.buttons.materialsInventory);
     }
     initInputHandlers() {
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -1980,19 +1434,12 @@ class BallSurvivalGame {
         this.dom.buttons.generateDebugSave.onclick = () => this.generateAndShowDebugCode();
         this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
         this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
-        this.dom.buttons.materialsInventory.onclick = () => this.showMaterialsInventory();
-     
+        this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
         
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
         if (closeShopBtn) {
             closeShopBtn.onclick = () => this.hideAllPopups();
-        }
-        
-        // Pulsante chiudi inventario materiali
-        const closeMaterialsBtn = document.getElementById('closeMaterialsBtn');
-        if (closeMaterialsBtn) {
-            closeMaterialsBtn.onclick = () => this.hideAllPopups();
         }
         
         // Tasto pausa mobile
@@ -2015,15 +1462,6 @@ class BallSurvivalGame {
             if (e.code === 'KeyE') this.handleInteractionKey();
         });
         document.addEventListener('keyup', (e) => { this.player.keys[e.code] = false; });
-        // Debug per mobile - verifica canvas prima di aggiungere event listeners
-        if (window.innerWidth <= 768) {
-            console.log('Mobile Debug - Canvas prima degli event listeners:', {
-                canvas: !!this.canvas,
-                canvasWidth: this.canvas ? this.canvas.width : 'N/A',
-                canvasHeight: this.canvas ? this.canvas.height : 'N/A'
-            });
-        }
-        
         this.canvas.addEventListener('pointerdown', this.handlePointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this));
         this.canvas.addEventListener('pointerup', this.handlePointerEnd.bind(this));
@@ -2035,19 +1473,6 @@ class BallSurvivalGame {
             this.currentStage = this.selectedStage; // Inizia con lo stage selezionato
             this.player.resetForNewRun(this.permanentUpgrades, this.selectedArchetype);
 
-            // Carica i materiali salvati se esistono
-            try {
-                const savedData = localStorage.getItem('ballSurvivalSaveData_v4.7');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                    if (data.materials && this.player) {
-                        this.player.materials = data.materials;
-                    }
-                }
-            } catch (e) {
-                console.error("Errore nel caricamento materiali:", e);
-            }
-
             const archetype = CONFIG.characterArchetypes[this.selectedArchetype];
             if (archetype && archetype.startingWeapon && this.spells[archetype.startingWeapon]) {
                 this.spells[archetype.startingWeapon].level = 1;
@@ -2058,25 +1483,9 @@ class BallSurvivalGame {
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
-        this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
-        
-        // Reset del joystick per mobile
-        this.resetJoystick();
-        
         this.state = 'running'; 
         this.lastFrameTime = performance.now();
-        
-        // Controllo di sicurezza per assicurarsi che il player sia completamente inizializzato
-        if (this.player && this.player.stats && typeof this.player.hp !== 'undefined') {
-            if (!this.gameLoopId) this.gameLoop();
-        } else {
-            console.warn('Player non completamente inizializzato, riprovo tra 100ms');
-            setTimeout(() => {
-                if (this.state === 'running' && !this.gameLoopId) {
-                    this.gameLoop();
-                }
-            }, 100);
-        }
+        if (!this.gameLoopId) this.gameLoop();
     }
     gameOver() {
         if (this.state === 'gameOver') return;
@@ -2090,33 +1499,13 @@ class BallSurvivalGame {
         document.getElementById('finalScore').textContent = this.score;
         this.dom.inputs.saveCode.value = this.generateSaveCode();
         this.dom.buttons.pause.style.display = 'none';
-        this.dom.buttons.materialsInventory.style.display = 'none'; // Nascondi pulsante materiali
         this.dom.inGameUI.container.style.display = 'none';
         this.hideAllPopups(true); 
         this.showPopup('gameOver');
     }
     resetRunState() {
-        this.entities = {
-            enemies: [],
-            projectiles: [],
-            xpOrbs: [],
-            gemOrbs: [],
-            particles: [],
-            effects: [],
-            chests: [],
-            droppedItems: [],
-            materialItems: [], // Aggiunto supporto per materiali
-            fireTrails: [],
-            sanctuaries: [],
-            staticFields: [],
-            bosses: [],
-            enemyProjectiles: [],
-            auras: [],
-            orbitals: []
-        };
-        // Le notifiche sono gestite separatamente (non sono entità)
-        this.notifications = [];
-        this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
+        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
+        this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
         this.nextChestSpawnTime = CONFIG.chest.spawnTime; this.nextMapXpSpawnTime = 5;
         this.lastEnemySpawnTime = 0; 
@@ -2133,67 +1522,26 @@ class BallSurvivalGame {
             this.totalElapsedTime += deltaTime;
             if (this.menuCooldown > 0) this.menuCooldown--;
             this.update(deltaTime);
-            // Controllo di sicurezza più robusto per updateInGameUI
-            if (this.player && 
-                this.player.stats && 
-                typeof this.player.hp !== 'undefined' && 
-                this.player.hp !== null &&
-                this.dom && 
-                this.dom.inGameUI) {
-                this.updateInGameUI();
-            } else {
-                // Debug per mobile - mostra errori
-                if (window.innerWidth <= 768) {
-                    console.warn('Mobile Debug - Player state:', {
-                        player: !!this.player,
-                        stats: !!(this.player && this.player.stats),
-                        hp: this.player ? this.player.hp : 'undefined',
-                        dom: !!this.dom,
-                        inGameUI: !!(this.dom && this.dom.inGameUI)
-                    });
-                }
-            }
+            this.updateInGameUI();
         }
         this.draw(); 
         this.lastFrameTime = now;
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
-        
-        // Controllo di sicurezza per il player
-        if (!this.player) {
-            console.warn('update: Player non ancora inizializzato');
-            return;
-        }
-        
         this.player.update(this, this.joystick); 
         this.updateCamera();
         this.checkStage();
         for (const type in this.entities) {
             for (let i = this.entities[type].length - 1; i >= 0; i--) {
                 const entity = this.entities[type][i];
-                if (entity && typeof entity.update === 'function') {
-                    entity.update(this);
-                } else {
-                    console.warn(`Entità senza metodo update trovata in ${type}:`, entity);
-                    // Rimuovi entità non valide
-                    this.entities[type].splice(i, 1);
-                    continue;
-                }
+                entity.update(this);
                 if (entity.toRemove) this.entities[type].splice(i, 1);
             }
         }
-        // Aggiorna le notifiche (non sono entità, quindi non usano il metodo update)
-        if (this.notifications && Array.isArray(this.notifications)) {
-            for (let i = this.notifications.length - 1; i >= 0; i--) {
-                if (this.notifications[i] && typeof this.notifications[i].life !== 'undefined') {
-                    this.notifications[i].life--;
-                    if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
-                } else {
-                    // Rimuovi notifiche non valide
-                    this.notifications.splice(i, 1);
-                }
-            }
+        for (let i = this.notifications.length - 1; i >= 0; i--) {
+            this.notifications[i].life--;
+            if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
         }
         this.spawnEnemies(); 
         this.spawnBoss(); 
@@ -2201,55 +1549,34 @@ class BallSurvivalGame {
         this.spawnMapXpOrbs();
         this.castSpells();
         this.checkForLevelUp(); // Spostato qui per coerenza
-        this.updateNotifications(); // Aggiunto aggiornamento notifiche
     }
     
     draw() {
-        // Debug per mobile - verifica se il canvas è valido
-        if (window.innerWidth <= 768 && (!this.ctx || !this.canvas)) {
-            console.error('Mobile Debug - Canvas non valido:', {
-                ctx: !!this.ctx,
-                canvas: !!this.canvas,
-                canvasWidth: this.canvas ? this.canvas.width : 'N/A',
-                canvasHeight: this.canvas ? this.canvas.height : 'N/A'
-            });
-            return;
-        }
-        
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
-        
-        // Controlli di sicurezza per tutti gli array di entità
-        if (this.entities.fireTrails) this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.sanctuaries) this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.staticFields) this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.xpOrbs) this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.gemOrbs) this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.chests) this.entities.chests.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.droppedItems) this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.materialItems) this.entities.materialItems.forEach(e => e.draw(this.ctx)); // Aggiunto disegno materiali
-        if (this.entities.enemies) this.entities.enemies.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.bosses) this.entities.bosses.forEach(e => e.draw(this.ctx, this));
-        if (this.player) {
-            this.player.draw(this.ctx, this);
-        } else {
-            console.warn('draw: Player non ancora inizializzato');
-        }
-        if (this.entities.projectiles) this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.enemyProjectiles) this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.auras) this.entities.auras.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.orbitals) this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.particles) this.entities.particles.forEach(e => e.draw(this.ctx, this));
-        if (this.entities.effects) this.entities.effects.forEach(e => e.draw(this.ctx, this));
+        this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
+        this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
+        this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
+        this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
+        this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
+        this.entities.chests.forEach(e => e.draw(this.ctx, this));
+        this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
+        this.entities.enemies.forEach(e => e.draw(this.ctx, this));
+        this.entities.bosses.forEach(e => e.draw(this.ctx, this));
+        this.player.draw(this.ctx, this);
+        this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
+        this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
+        this.entities.auras.forEach(e => e.draw(this.ctx, this));
+        this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
+        this.entities.particles.forEach(e => e.draw(this.ctx, this));
+        this.entities.effects.forEach(e => e.draw(this.ctx, this));
         this.drawMerchant();
         this.ctx.restore();
         this.drawOffscreenIndicators();
-        if (this.notifications && Array.isArray(this.notifications)) {
-            this.drawNotifications(this.ctx); // Aggiunto disegno notifiche
-        }
+        this.drawNotifications();
     }
     
     drawBackground() {
@@ -2566,13 +1893,7 @@ class BallSurvivalGame {
         }
     }
 
-    getDamage(baseDamage) { 
-        if (!this.player) {
-            console.warn('getDamage: Player non ancora inizializzato');
-            return baseDamage;
-        }
-        return baseDamage * (this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * this.player.modifiers.power; 
-    }
+    getDamage(baseDamage) { return baseDamage * (this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * this.player.modifiers.power; }
     
     castMagicMissile(now) {
         const s = this.spells.magicMissile;
@@ -2782,22 +2103,9 @@ class BallSurvivalGame {
         });
         return true;
     }
-    castHeal(now) { 
-        const s = this.spells.heal; 
-        if (!this.player || !this.player.stats || typeof this.player.hp === 'undefined') {
-            console.warn('castHeal: player non ancora inizializzato');
-            return false;
-        }
-        this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + s.amount); 
-        for(let i=0; i<10; i++) this.addEntity('particles', new Particle(this.player.x, this.player.y, {vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00'})); 
-        return true; 
-    }
+    castHeal(now) { const s = this.spells.heal; this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + s.amount); for(let i=0; i<10; i++) this.addEntity('particles', new Particle(this.player.x, this.player.y, {vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*4 - 2, life: 40, color: '#00ff00'})); return true; }
     castSanctuary(now) {
         const s = this.spells.heal;
-        if (!this.player || !this.player.modifiers) {
-            console.warn('castSanctuary: player non ancora inizializzato');
-            return false;
-        }
         this.addEntity('sanctuaries', new Sanctuary(this.player.x, this.player.y, {
             life: s.sanctuaryDuration, radius: 100 * this.player.modifiers.area, hps: s.sanctuaryHps
         }));
@@ -2805,10 +2113,6 @@ class BallSurvivalGame {
     }
     castLifesteal(now) {
         const s = this.spells.heal;
-        if (!this.player || !this.player.powerUpTimers) {
-            console.warn('castLifesteal: player non ancora inizializzato');
-            return false;
-        }
         this.player.powerUpTimers.lifesteal = s.lifestealDuration;
         this.notifications.push({ text: "Sacrificio Vitale Attivato!", life: 120 });
         return true;
@@ -2829,10 +2133,6 @@ class BallSurvivalGame {
     }
     castOrbital(now) {
         const s = this.spells.shield;
-        if (!this.player) {
-            console.warn('castOrbital: player non ancora inizializzato');
-            return false;
-        }
         for (let i = 0; i < s.orbitalCount; i++) {
             this.addEntity('orbitals', new Orbital(this.player.x, this.player.y, {
                 angle: (2 * Math.PI / s.orbitalCount) * i,
@@ -3019,7 +2319,7 @@ class BallSurvivalGame {
     }
     
     populateCharacterSelection() {
-        const container = this.dom.containers.characterSelection;
+        const container = this.dom.containers.characterSelectionContainer;
         container.innerHTML = '';
         for (const key in CONFIG.characterArchetypes) {
             const archetype = CONFIG.characterArchetypes[key];
@@ -3076,7 +2376,7 @@ class BallSurvivalGame {
     }
     
     populateStageSelection() {
-        const container = this.dom.containers.stageSelection;
+        const container = this.dom.containers.stageSelectionContainer;
         container.innerHTML = '';
         
         Object.keys(CONFIG.stages).forEach(stageId => {
@@ -3156,44 +2456,23 @@ class BallSurvivalGame {
     }
 
     updateInGameUI() {
-        // Controlli di sicurezza più robusti
-        if (!this.dom.inGameUI || !this.player) {
-            console.warn('updateInGameUI: DOM o player non ancora inizializzati');
-            return;
-        }
-
-        // Controllo aggiuntivo per le proprietà del player
-        if (!this.player.stats || typeof this.player.hp === 'undefined') {
-            console.warn('updateInGameUI: Player non completamente inizializzato');
-            return;
-        }
-
         const ui = this.dom.inGameUI;
-        
-        // Controlli per ogni elemento UI
-        if (ui.timer) {
-            ui.timer.textContent = '🕒 ' + Math.floor(this.totalElapsedTime) + 's';
-        }
-        
-        if (ui.gemCounter) {
-            ui.gemCounter.textContent = '💎 ' + this.gemsThisRun;
-        }
+        ui.timer.textContent = '🕒 ' + Math.floor(this.totalElapsedTime) + 's';
+        ui.gemCounter.textContent = '💎 ' + this.gemsThisRun;
 
-        if (ui.xpBarFill && ui.xpBarText && this.player.xpNext !== undefined) {
-            if (this.player.xpNext > 0) {
-                const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
-                ui.xpBarFill.style.width = xpPercent + '%';
-            } else {
-                ui.xpBarFill.style.width = '100%';
-            }
-            ui.xpBarText.textContent = `LVL ${this.player.level}`;
+        if (this.player.xpNext > 0) {
+            const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
+            ui.xpBarFill.style.width = xpPercent + '%';
+        } else {
+            ui.xpBarFill.style.width = '100%';
         }
+        ui.xpBarText.textContent = `LVL ${this.player.level}`;
         
         // Aggiorna anche la barra XP mobile
         const xpBarMobile = document.getElementById('xpBarMobile');
         const xpBarMobileFill = document.getElementById('xpBarMobileFill');
         const xpBarMobileText = document.getElementById('xpBarMobileText');
-        if (xpBarMobile && xpBarMobileFill && xpBarMobileText && this.player.xpNext !== undefined) {
+        if (xpBarMobile && xpBarMobileFill && xpBarMobileText) {
             if (this.player.xpNext > 0) {
                 const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
                 xpBarMobileFill.style.width = xpPercent + '%';
@@ -3234,49 +2513,33 @@ class BallSurvivalGame {
     togglePause() { 
         if (this.state !== 'running' && this.state !== 'paused') return; 
         if (this.state === 'running') { 
-            this.dom.buttons.materialsInventory.style.display = 'none'; // Nascondi pulsante materiali in pausa
             this.showPopup('pause'); 
         } else { 
-            this.dom.buttons.materialsInventory.style.display = 'block'; // Mostra pulsante materiali
             this.hideAllPopups(); 
             this.dom.containers.debugSaveContainer.style.display = 'none'; 
         } 
     }
     populateStatsMenu() { 
-        const runStatsContainer = this.dom.containers.runStats;
-        if (runStatsContainer) {
-            runStatsContainer.innerHTML = `
-                <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
-                <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
-                <div class="run-stat-item">Nemici <span>${this.entities.enemies.length + this.entities.bosses.length}</span></div>
-                <div class="run-stat-item">Cristalli <span>${this.gemsThisRun} 💎</span></div>
-            `;
-        } else {
-            console.warn('Elemento runStats non trovato nel DOM');
-        }
+        const runStatsContainer = this.dom.containers.runStatsContainer;
+        runStatsContainer.innerHTML = `
+            <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
+            <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
+            <div class="run-stat-item">Nemici <span>${this.entities.enemies.length + this.entities.bosses.length}</span></div>
+            <div class="run-stat-item">Cristalli <span>${this.gemsThisRun} 💎</span></div>
+        `;
 
         const p = this.player; 
-        if (!p || !p.stats) {
-            console.warn('populateStatsMenu: Player non ancora inizializzato');
-            return;
-        }
-        
-        let playerHTML = `<div class="stats-section"><div class="stats-section-title">${p.archetype ? p.archetype.name : 'Sconosciuto'}</div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp || 0)} / ${p.stats.maxHp || 0}</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${(p.stats.speed || 0).toFixed(1)}</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.defense}<span class="stat-item-label">Rid. Danni:</span><span class="stat-item-value">${Math.round((p.stats.dr || 0) * 100)}%</span></div></div>`; 
+        let playerHTML = `<div class="stats-section"><div class="stats-section-title">${p.archetype.name}</div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp)} / ${p.stats.maxHp}</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${p.stats.speed.toFixed(1)}</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.defense}<span class="stat-item-label">Rid. Danni:</span><span class="stat-item-value">${Math.round(p.stats.dr * 100)}%</span></div></div>`; 
         playerHTML += `<div class="stats-section"><div class="stats-section-title">Modificatori</div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">${Math.round(((p.modifiers.power || 1) - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">${Math.round((1 - (p.modifiers.frequency || 1)) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round(((p.modifiers.area || 1) - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round(((p.modifiers.xpGain || 1) - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round((p.modifiers.luck || 0) * 100)}%</span></div></div>`; 
-        
-        if (this.dom.containers.playerStats) {
-            this.dom.containers.playerStats.innerHTML = playerHTML;
-        } else {
-            console.warn('Elemento playerStats non trovato nel DOM');
-        } 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">${Math.round((p.modifiers.power - 1) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">${Math.round((1 - p.modifiers.frequency) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round((p.modifiers.area - 1) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round((p.modifiers.xpGain - 1) * 100)}%</span></div>`; 
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round(p.modifiers.luck * 100)}%</span></div></div>`; 
+        this.dom.playerStatsColumn.innerHTML = playerHTML; 
         
         let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`; 
         let hasWeapons = false; 
@@ -3290,12 +2553,7 @@ class BallSurvivalGame {
         }); 
         if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`; 
         weaponsHTML += `</div>`; 
-        
-        if (this.dom.containers.weaponsStats) {
-            this.dom.containers.weaponsStats.innerHTML = weaponsHTML;
-        } else {
-            console.warn('Elemento weaponsStats non trovato nel DOM');
-        } 
+        this.dom.weaponsStatsColumn.innerHTML = weaponsHTML; 
     }
     handleEscapeKey() { const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { this.hideAllPopups(); } else { this.togglePause(); } }
     handleInteractionKey() { 
@@ -3309,186 +2567,9 @@ class BallSurvivalGame {
             this.showPopup('shop'); 
         }
     }
-    handlePointerDown(e) { 
-        if (this.state === 'gameOver' || this.state === 'startScreen') return; 
-        
-        const rect = this.canvas.getBoundingClientRect(); 
-        const clientX = e.clientX; 
-        const clientY = e.clientY; 
-        const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; 
-        const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; 
-        
-        if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { 
-            this.showPopup('shop'); 
-            return; 
-        } 
-        
-        // Gestione joystick per mobile
-        if (e.pointerType === 'touch') {
-            e.preventDefault(); 
-            e.stopPropagation();
-            
-            // Controllo di sicurezza per il joystick
-            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.container || !this.dom.joystick.stick) {
-                console.warn('Joystick non inizializzato correttamente');
-                return;
-            }
-            
-            // Se il joystick non è attivo, attivalo
-            if (!this.joystick.active) {
-                this.joystick.touchId = e.pointerId; 
-                this.joystick.active = true; 
-                this.joystick.startX = clientX; 
-                this.joystick.startY = clientY; 
-                this.joystick.dx = 0;
-                this.joystick.dy = 0;
-                
-                // Mostra e posiziona il joystick
-                this.dom.joystick.container.style.display = 'block'; 
-                this.dom.joystick.container.style.position = 'fixed';
-                
-                // Posiziona il joystick nella posizione del touch, ma con offset per centrarlo
-                const joystickX = clientX - this.dom.joystick.radius;
-                const joystickY = clientY - this.dom.joystick.radius;
-                
-                // Assicurati che il joystick rimanga visibile sullo schermo
-                const maxX = window.innerWidth - (this.dom.joystick.radius * 2);
-                const maxY = window.innerHeight - (this.dom.joystick.radius * 2);
-                
-                this.dom.joystick.container.style.left = `${Math.max(10, Math.min(joystickX, maxX))}px`; 
-                this.dom.joystick.container.style.top = `${Math.max(10, Math.min(joystickY, maxY))}px`; 
-                this.dom.joystick.container.style.zIndex = '1000';
-                
-                // Reset del stick al centro
-                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
-                
-                console.log('Mobile Debug - Joystick activated:', {
-                    active: this.joystick.active,
-                    touchId: this.joystick.touchId,
-                    startX: this.joystick.startX,
-                    startY: this.joystick.startY,
-                    joystickX: joystickX,
-                    joystickY: joystickY
-                });
-            }
-        }
-    }
-    handlePointerMove(e) { 
-        // Gestione movimento joystick
-        if (e.pointerType === 'touch' && this.joystick.active && e.pointerId === this.joystick.touchId) {
-            e.preventDefault(); 
-            e.stopPropagation();
-            
-            // Controllo di sicurezza per il joystick
-            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.stick) {
-                console.warn('Joystick non inizializzato correttamente in handlePointerMove');
-                return;
-            }
-            
-            // Calcola la posizione relativa del touch rispetto al centro del joystick
-            let deltaX = e.clientX - this.joystick.startX; 
-            let deltaY = e.clientY - this.joystick.startY; 
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
-            const maxDistance = this.dom.joystick.radius; 
-            
-            // Limita il movimento del joystick al raggio massimo
-            if (distance > maxDistance) { 
-                deltaX = (deltaX / distance) * maxDistance; 
-                deltaY = (deltaY / distance) * maxDistance; 
-            } 
-            
-            // Aggiorna la posizione visiva del stick
-            this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
-            
-            // Aggiorna i valori di input del joystick (normalizzati tra -1 e 1)
-            this.joystick.dx = deltaX / maxDistance; 
-            this.joystick.dy = deltaY / maxDistance;
-            
-            // Aggiorna la posizione del joystick per seguire il touch se necessario
-            const joystickRect = this.dom.joystick.container.getBoundingClientRect();
-            const touchDistanceFromJoystick = Math.sqrt(
-                Math.pow(e.clientX - (joystickRect.left + joystickRect.width/2), 2) + 
-                Math.pow(e.clientY - (joystickRect.top + joystickRect.height/2), 2)
-            );
-            
-            // Se il touch si è spostato troppo dal centro del joystick, aggiorna la posizione
-            if (touchDistanceFromJoystick > this.dom.joystick.radius * 1.5) {
-                const newJoystickX = e.clientX - this.dom.joystick.radius;
-                const newJoystickY = e.clientY - this.dom.joystick.radius;
-                
-                // Mantieni il joystick visibile sullo schermo
-                const maxX = window.innerWidth - (this.dom.joystick.radius * 2);
-                const maxY = window.innerHeight - (this.dom.joystick.radius * 2);
-                
-                this.dom.joystick.container.style.left = `${Math.max(10, Math.min(newJoystickX, maxX))}px`;
-                this.dom.joystick.container.style.top = `${Math.max(10, Math.min(newJoystickY, maxY))}px`;
-                
-                // Aggiorna la posizione di riferimento
-                this.joystick.startX = e.clientX;
-                this.joystick.startY = e.clientY;
-                
-                // Reset del movimento del stick
-                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
-                this.joystick.dx = 0;
-                this.joystick.dy = 0;
-            }
-            
-            console.log('Mobile Debug - Joystick moved:', {
-                dx: this.joystick.dx,
-                dy: this.joystick.dy,
-                distance: distance,
-                maxDistance: maxDistance,
-                touchDistanceFromJoystick: touchDistanceFromJoystick
-            }); 
-        }
-    }
-    handlePointerEnd(e) { 
-        // Gestione fine touch per joystick
-        if (e.pointerType === 'touch' && this.joystick.active && e.pointerId === this.joystick.touchId) { 
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Controllo di sicurezza per il joystick
-            if (!this.joystick || !this.dom.joystick || !this.dom.joystick.stick || !this.dom.joystick.container) {
-                console.warn('Joystick non inizializzato correttamente in handlePointerEnd');
-                return;
-            }
-            
-            // Disattiva il joystick
-            this.joystick.active = false; 
-            this.joystick.touchId = null; 
-            
-            // Reset visivo del joystick
-            this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; 
-            this.dom.joystick.container.style.display = 'none'; 
-            
-            // Reset dei valori di input
-            this.joystick.dx = 0; 
-            this.joystick.dy = 0;
-            
-            console.log('Mobile Debug - Joystick deactivated'); 
-        } 
-    }
-    
-    resetJoystick() {
-        if (this.joystick) {
-            this.joystick.active = false;
-            this.joystick.touchId = null;
-            this.joystick.dx = 0;
-            this.joystick.dy = 0;
-            this.joystick.startX = 0;
-            this.joystick.startY = 0;
-        }
-        
-        if (this.dom && this.dom.joystick) {
-            if (this.dom.joystick.container) {
-                this.dom.joystick.container.style.display = 'none';
-            }
-            if (this.dom.joystick.stick) {
-                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
-            }
-        }
-    }
+    handlePointerDown(e) { if (this.state === 'gameOver' || this.state === 'startScreen') return; const rect = this.canvas.getBoundingClientRect(); const clientX = e.clientX; const clientY = e.clientY; const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { this.showPopup('shop'); return; } if (e.pointerType === 'touch' && !this.joystick.active) { e.preventDefault(); this.joystick.touchId = e.pointerId; this.joystick.active = true; this.joystick.startX = clientX; this.joystick.startY = clientY; this.dom.joystick.container.style.display = 'block'; this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; } }
+    handlePointerMove(e) { if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; e.preventDefault(); let deltaX = e.clientX - this.joystick.startX; let deltaY = e.clientY - this.joystick.startY; const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); const maxDistance = this.dom.joystick.radius; if (distance > maxDistance) { deltaX = (deltaX / distance) * maxDistance; deltaY = (deltaY / distance) * maxDistance; } this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; this.joystick.dx = deltaX / maxDistance; this.joystick.dy = deltaY / maxDistance; }
+    handlePointerEnd(e) { if (this.joystick.active && e.pointerId === this.joystick.touchId) { this.joystick.active = false; this.joystick.touchId = null; this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; this.dom.joystick.container.style.display = 'none'; this.joystick.dx = 0; this.joystick.dy = 0; } }
     
     generateAndShowDebugCode() {
         this.dom.inputs.debugSaveOutput.value = this.generateSaveCode(true);
@@ -3632,12 +2713,7 @@ class BallSurvivalGame {
                     Object.keys(this.permanentUpgrades).forEach(key => { 
                         if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; 
                     }); 
-                }
-                
-                // Carica i materiali salvati
-                if (data.materials && this.player) {
-                    this.player.materials = data.materials;
-                }
+                } 
             } else { 
                 this.totalGems = 0; 
             } 
@@ -3646,18 +2722,7 @@ class BallSurvivalGame {
             this.totalGems = 0; 
         } 
     }
-    saveGameData() { 
-        try { 
-            const saveData = { 
-                totalGems: this.totalGems, 
-                upgrades: this.permanentUpgrades,
-                materials: this.player ? this.player.materials || {} : {}
-            }; 
-            localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); 
-        } catch (e) { 
-            console.error("Impossibile salvare:", e); 
-        } 
-    }
+    saveGameData() { try { const saveData = { totalGems: this.totalGems, upgrades: this.permanentUpgrades }; localStorage.setItem('ballSurvivalSaveData_v4.7', JSON.stringify(saveData)); } catch (e) { console.error("Impossibile salvare:", e); } }
     populateShop() { 
         this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
@@ -3702,182 +2767,38 @@ class BallSurvivalGame {
         });
     }
     buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
-    applyItemEffect(item) { 
-        const itemInfo = CONFIG.itemTypes[item.type]; 
-        this.notifications.push({ text: itemInfo.desc, life: 300 }); 
-        if (!this.player || !this.player.stats || typeof this.player.hp === 'undefined') {
-            console.warn('applyItemEffect: player non ancora inizializzato');
-            return;
-        }
-        switch (item.type) { 
-            case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; 
-            case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; 
-            case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; 
-            case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; 
-            case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; 
-        } 
-    }
-    updateCamera() { 
-        if (!this.player) {
-            console.warn('updateCamera: Player non ancora inizializzato');
-            return;
-        }
-        
-        // Controllo di sicurezza per la camera
-        if (!this.camera || typeof this.camera.width === 'undefined' || typeof this.camera.height === 'undefined') {
-            console.warn('updateCamera: Camera non inizializzata correttamente');
-            return;
-        }
-        
-        // Calcola la posizione target della camera (centrata sul player)
-        const targetX = this.player.x - this.camera.width / 2;
-        const targetY = this.player.y - this.camera.height / 2;
-        
-        // Applica un movimento fluido della camera (smoothing)
-        const smoothing = 0.1; // Valore più basso = movimento più fluido
-        this.camera.x += (targetX - this.camera.x) * smoothing;
-        this.camera.y += (targetY - this.camera.y) * smoothing;
-        
-        // Mantieni la camera entro i limiti del mondo
-        this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); 
-        this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); 
-        
-        // Debug per mobile
-        if (window.innerWidth <= 700) {
-            console.log('Mobile Debug - Camera:', {
-                playerX: this.player.x,
-                playerY: this.player.y,
-                cameraX: this.camera.x,
-                cameraY: this.camera.y,
-                targetX: targetX,
-                targetY: targetY
-            });
-        }
-    }
+    applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
+    updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
     resizeCanvas() {
-        if (!this.dom || !this.dom.canvas) {
-            console.warn('Canvas non disponibile per il resize');
-            return;
-        }
-        
-        // Usa il canvas stesso per ottenere le dimensioni
-        const rect = this.dom.canvas.getBoundingClientRect();
-        
+        const rect = this.dom.gameContainer.getBoundingClientRect();
         // Limiti massimi desktop
         const maxW = window.innerWidth <= 700 ? CONFIG.world.width : Math.min(CONFIG.world.width, 1200);
         const maxH = window.innerWidth <= 700 ? CONFIG.world.height : Math.min(CONFIG.world.height, 900);
         let width = Math.min(rect.width, maxW);
         let height = Math.min(rect.height, maxH);
-        
-        // Assicurati che le dimensioni siano valide
-        if (width <= 0 || height <= 0) {
-            console.warn('Dimensioni canvas non valide:', width, height);
-            width = Math.max(100, width);
-            height = Math.max(100, height);
-        }
-        
         this.canvas.width = width;
         this.canvas.height = height;
         this.camera.width = width;
         this.camera.height = height;
-        
-        // Forza un ridisegno se il gioco è in corso
-        if (this.state === 'running' && this.ctx) {
-            this.draw();
-        } else if (this.state !== 'running' && this.entities) {
-            this.draw();
-        }
+        if (this.state !== 'running') this.draw();
     }
-    drawOffscreenIndicators() { 
-        if (!this.player) {
-            console.warn('drawOffscreenIndicators: Player non ancora inizializzato');
-            return;
-        }
-        if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); 
-        this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); 
+    drawOffscreenIndicators() { if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); }
+    drawOffscreenIndicator(target, color, shape) { const screenX = target.x - this.camera.x; const screenY = target.y - this.camera.y; if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; const pScreenX = this.player.x - this.camera.x; const pScreenY = this.player.y - this.camera.y; const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); const padding = 30; let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); this.ctx.save(); this.ctx.translate(arrowX, arrowY); this.ctx.rotate(angle); this.ctx.fillStyle = color; this.ctx.strokeStyle = "white"; this.ctx.lineWidth = 1; this.ctx.beginPath(); if (shape === 'arrow') { this.ctx.moveTo(15, 0); this.ctx.lineTo(-15, -10); this.ctx.lineTo(-10, 0); this.ctx.lineTo(-15, 10); } else { this.ctx.moveTo(0, -10); this.ctx.lineTo(10, 10); this.ctx.lineTo(-10, 10); } this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke(); this.ctx.restore(); }
+    drawNotifications() {
+        this.ctx.save();
+        this.ctx.textAlign = 'center';
+        this.ctx.font = 'bold clamp(14px, 2.5vw, 18px) "Courier New", monospace';
+        const startY = 80; // Posizione Y iniziale abbassata
+        this.notifications.forEach((n, index) => {
+            const opacity = n.life > 30 ? 1.0 : n.life / 30;
+            this.ctx.fillStyle = `rgba(255, 215, 0, ${opacity})`;
+            this.ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+            this.ctx.shadowBlur = 5;
+            this.ctx.fillText(n.text, this.canvas.width / 2, startY + (index * 30));
+        });
+        this.ctx.restore();
     }
-    drawOffscreenIndicator(target, color, shape) { 
-        if (!this.player) {
-            console.warn('drawOffscreenIndicator: Player non ancora inizializzato');
-            return;
-        }
-        const screenX = target.x - this.camera.x; 
-        const screenY = target.y - this.camera.y; 
-        if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; 
-        const pScreenX = this.player.x - this.camera.x; 
-        const pScreenY = this.player.y - this.camera.y; 
-        const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); 
-        const padding = 30; 
-        let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
-        let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
-        arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); 
-        arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); 
-        this.ctx.save(); 
-        this.ctx.translate(arrowX, arrowY); 
-        this.ctx.rotate(angle); 
-        this.ctx.fillStyle = color; 
-        this.ctx.strokeStyle = "white"; 
-        this.ctx.lineWidth = 1; 
-        this.ctx.beginPath(); 
-        if (shape === 'arrow') { 
-            this.ctx.moveTo(15, 0); 
-            this.ctx.lineTo(-15, -10); 
-            this.ctx.lineTo(-10, 0); 
-            this.ctx.lineTo(-15, 10); 
-        } else { 
-            this.ctx.moveTo(0, -10); 
-            this.ctx.lineTo(10, 10); 
-            this.ctx.lineTo(-10, 10); 
-        } 
-        this.ctx.closePath(); 
-        this.ctx.fill(); 
-        this.ctx.stroke(); 
-        this.ctx.restore(); 
-    }
-    drawNotifications(ctx) {
-        // Controllo di sicurezza per le notifiche
-        if (!this.notifications || !Array.isArray(this.notifications)) {
-            console.warn('drawNotifications: Notifications non inizializzate correttamente');
-            return;
-        }
-        
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.font = '16px Arial';
-        
-        for (const notification of this.notifications) {
-            if (!notification || typeof notification.life === 'undefined') {
-                continue; // Salta notifiche non valide
-            }
-            
-            const alpha = notification.life > 60 ? 1.0 : notification.life / 60;
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = notification.color || '#ffffff';
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 3;
-            
-            // Testo con outline
-            ctx.strokeText(notification.text, notification.x, notification.y);
-            ctx.fillText(notification.text, notification.x, notification.y);
-        }
-        
-        ctx.restore();
-    }
-    drawMerchant() { 
-        const m = CONFIG.merchant; 
-        this.ctx.fillStyle = '#9b59b6'; 
-        this.ctx.fillRect(m.x, m.y, m.size, m.size); 
-        this.ctx.strokeStyle = '#f1c40f'; 
-        this.ctx.lineWidth = 3; 
-        this.ctx.strokeRect(m.x, m.y, m.size, m.size); 
-        if (this.state === 'running' && this.player && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { 
-            this.ctx.font = 'bold 14px "Courier New"'; 
-            this.ctx.fillStyle = 'white'; 
-            this.ctx.textAlign = 'center'; 
-            this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); 
-            this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); 
-        } 
-    }
+    drawMerchant() { const m = CONFIG.merchant; this.ctx.fillStyle = '#9b59b6'; this.ctx.fillRect(m.x, m.y, m.size, m.size); this.ctx.strokeStyle = '#f1c40f'; this.ctx.lineWidth = 3; this.ctx.strokeRect(m.x, m.y, m.size, m.size); if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { this.ctx.font = 'bold 14px "Courier New"'; this.ctx.fillStyle = 'white'; this.ctx.textAlign = 'center'; this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); } }
 
     showInGameUI() {
         this.dom.inGameUI.style.display = 'flex';
@@ -3976,164 +2897,6 @@ class BallSurvivalGame {
         this.populateShop();
         
         console.log('=== FINE TEST ===');
-    }
-
-    showNotification(text, color = '#ffffff') {
-        // Controllo di sicurezza per le notifiche
-        if (!this.notifications || !Array.isArray(this.notifications)) {
-            console.warn('showNotification: Notifications non inizializzate correttamente');
-            return;
-        }
-        
-        // Controllo di sicurezza per il player
-        if (!this.player) {
-            console.warn('showNotification: Player non ancora inizializzato');
-            return;
-        }
-        
-        const notification = {
-            text: text,
-            color: color,
-            life: 120, // 2 secondi a 60 FPS
-            y: this.player.y - 50,
-            x: this.player.x
-        };
-        this.notifications.push(notification);
-    }
-
-    updateNotifications() {
-        // Controllo di sicurezza per le notifiche
-        if (!this.notifications || !Array.isArray(this.notifications)) {
-            console.warn('updateNotifications: Notifications non inizializzate correttamente');
-            return;
-        }
-        
-        for (let i = this.notifications.length - 1; i >= 0; i--) {
-            const notification = this.notifications[i];
-            if (!notification || typeof notification.life === 'undefined') {
-                this.notifications.splice(i, 1); // Rimuovi notifiche non valide
-                continue;
-            }
-            
-            notification.life--;
-            notification.y -= 0.5; // Movimento verso l'alto
-            
-            if (notification.life <= 0) {
-                this.notifications.splice(i, 1);
-            }
-        }
-    }
-
-    drawNotifications(ctx) {
-        // Controllo di sicurezza per le notifiche
-        if (!this.notifications || !Array.isArray(this.notifications)) {
-            console.warn('drawNotifications: Notifications non inizializzate correttamente');
-            return;
-        }
-        
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.font = '16px Arial';
-        
-        for (const notification of this.notifications) {
-            if (!notification || typeof notification.life === 'undefined') {
-                continue; // Salta notifiche non valide
-            }
-            
-            const alpha = notification.life > 60 ? 1.0 : notification.life / 60;
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = notification.color || '#ffffff';
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 3;
-            
-            // Testo con outline
-            ctx.strokeText(notification.text, notification.x, notification.y);
-            ctx.fillText(notification.text, notification.x, notification.y);
-        }
-        
-        ctx.restore();
-    }
-
-    showMaterialsInventory() {
-        if (!this.player.materials) {
-            this.player.materials = {};
-        }
-
-        const container = this.dom.containers.materialsInventory;
-        if (!container) {
-            console.warn('Container materiali non trovato nel DOM');
-            return;
-        }
-        
-        container.innerHTML = '';
-        container.className = 'materials-inventory';
-
-        // Raccogli tutti i materiali per categoria
-        const categories = ['common', 'rare', 'epic', 'legendary'];
-        const categoryNames = {
-            common: 'Comuni',
-            rare: 'Rari', 
-            epic: 'Epici',
-            legendary: 'Leggendari'
-        };
-
-        categories.forEach(category => {
-            const categoryMaterials = [];
-            
-            // Trova tutti i materiali di questa categoria che il giocatore ha
-            for (const [materialId, count] of Object.entries(this.player.materials)) {
-                const materialInfo = this.getMaterialInfo(materialId);
-                if (materialInfo && this.getMaterialCategory(materialId) === category && count > 0) {
-                    categoryMaterials.push({ id: materialId, info: materialInfo, count });
-                }
-            }
-
-            if (categoryMaterials.length > 0) {
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = `material-category ${category}`;
-                categoryDiv.innerHTML = `<h3>${categoryNames[category]}</h3>`;
-                
-                categoryMaterials.forEach(material => {
-                    const materialDiv = document.createElement('div');
-                    materialDiv.className = 'material-item';
-                    materialDiv.innerHTML = `
-                        <div class="material-icon" style="background-color: ${material.info.color}"></div>
-                        <div class="material-info">
-                            <div class="material-name">${material.info.name}</div>
-                            <div class="material-count">x${material.count}</div>
-                        </div>
-                    `;
-                    categoryDiv.appendChild(materialDiv);
-                });
-                
-                container.appendChild(categoryDiv);
-            }
-        });
-
-        if (container.children.length === 0) {
-            container.innerHTML = '<p>Nessun materiale raccolto ancora!</p>';
-        }
-
-        // Mostra il popup usando il sistema esistente
-        this.showPopup('materialsInventory');
-    }
-
-    getMaterialInfo(materialId) {
-        for (const category of Object.values(CONFIG.materials)) {
-            if (category[materialId]) {
-                return category[materialId];
-            }
-        }
-        return null;
-    }
-
-    getMaterialCategory(materialId) {
-        for (const [categoryName, category] of Object.entries(CONFIG.materials)) {
-            if (category[materialId]) {
-                return categoryName;
-            }
-        }
-        return null;
     }
 }
 
