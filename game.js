@@ -27,10 +27,10 @@ const CONFIG = {
         'steel': {
             id: 'steel',
             name: "Palla d'Acciaio",
-            desc: "Lenta ma incredibilmente resistente. Ideale per chi ama la mischia.",
+            desc: "Incredibilmente resistente ma molto lenta. Ideale per chi ama la mischia.",
             startingWeapon: 'shockwave',
             bonus: "+70% Riduzione Danno (DR) base. Shockwave: +20% danno, +30% knockback.",
-            malus: "-25% Velocità di movimento.",
+            malus: "-40% Velocità di movimento, -30% Velocità di attacco.",
             color: '#bdc3c7',
             cost: 200,
             weaponBonuses: {
@@ -1048,8 +1048,9 @@ class Player extends Entity {
         if (this.archetype) {
             switch(this.archetype.id) {
                 case 'steel':
-                    this.stats.dr += 0.7;
-                    this.stats.speed *= 0.75;
+                    this.stats.dr += 0.7;  // Aggiunge +70% DR
+                    this.stats.speed *= 0.6;  // -40% velocità movimento
+                    this.modifiers.frequency *= 0.7;  // -30% velocità attacco
                     break;
                 case 'magma':
                     this.modifiers.contactBurn = true;
@@ -1187,10 +1188,13 @@ class Player extends Entity {
         const shieldSpell = game.spells.shield;
         if ((shieldSpell && shieldSpell.active && shieldSpell.evolution !== 'reflect') || this.powerUpTimers.invincibility > 0) return;
         
-        let damageReduction = this.stats.dr;
-        // Penetrazione DR del 10% da elite e boss
-        if (sourceEnemy && (sourceEnemy.stats.isElite || sourceEnemy instanceof Boss)) {
+        let damageReduction = Math.min(1.0, this.stats.dr);  // Cap DR al 100%
+        // Penetrazione DR del 10% da elite, 25% da boss
+        if (sourceEnemy && sourceEnemy.stats.isElite) {
             damageReduction = Math.max(0, damageReduction - 0.10);
+        }
+        if (sourceEnemy && sourceEnemy instanceof Boss) {
+            damageReduction = Math.max(0, damageReduction - 0.25);
         }
         if (shieldSpell && shieldSpell.active && shieldSpell.evolution === 'reflect') {
             damageReduction += shieldSpell.dr;
