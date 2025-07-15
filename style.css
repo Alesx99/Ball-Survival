@@ -569,66 +569,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
   color: var(--secondary-color);
 }
 
-/* Container dropdown negozio */
-.shop-dropdown-container {
-  margin-bottom: 20px;
-}
 
-.shop-category-selector {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.category-btn {
-  background: var(--light-bg);
-  border: 1px solid var(--primary-color);
-  color: var(--text-color);
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.category-btn:hover {
-  background: var(--dark-bg);
-  border-color: var(--secondary-color);
-}
-
-.category-btn.active {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--highlight-color);
-}
-
-.shop-search-container {
-  margin-bottom: 15px;
-}
-
-.shop-search-input {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--primary-color);
-  background: var(--light-bg);
-  color: var(--text-color);
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.shop-search-input:focus {
-  outline: none;
-  border-color: var(--secondary-color);
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-}
-
-.shop-search-input::placeholder {
-  color: var(--text-muted-color);
-}
 
 /* Contenuto del negozio */
 .shop-content {
@@ -642,18 +583,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
   border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
-/* Footer del negozio */
-.shop-footer {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(74, 144, 226, 0.3);
-}
 
-.shop-stats {
-  text-align: center;
-  color: var(--text-muted-color);
-  font-size: 14px;
-}
 
 #permanentUpgradeOptions {
   max-height: 50vh;
@@ -708,20 +638,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     font-size: 20px;
   }
   
-  .shop-category-selector {
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  
-  .category-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-  
-  .shop-search-input {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
+
   
   #permanentUpgradeOptions {
     max-height: 45vh;
@@ -775,9 +692,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     padding: 12px;
   }
   
-  .shop-stats {
-    font-size: 12px;
-  }
+
   
   /* Miglioramenti per schermi molto piccoli */
   @media (max-width: 480px) {
@@ -789,19 +704,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
       font-size: 18px;
     }
     
-    .shop-category-selector {
-      gap: 4px;
-    }
     
-    .category-btn {
-      padding: 4px 8px;
-      font-size: 11px;
-    }
-    
-    .shop-search-input {
-      padding: 8px 10px;
-      font-size: 12px;
-    }
     
     .permanent-upgrade-option {
       padding: 10px;
