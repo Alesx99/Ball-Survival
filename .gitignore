@@ -1,0 +1,41 @@
+# File di sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# File temporanei
+*.tmp
+*.temp
+*.log
+
+# File di backup
+*.bak
+*.backup
+*~
+
+# File di IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# File di build (se presenti)
+dist/
+build/
+node_modules/
+
+# File di configurazione locale
+.env
+.env.local
+.env.production
+
+# File di debug
+debug.log
+error.log
+
+# File di salvataggio del gioco (se presenti)
+saves/
+*.save
+
+# File di cache
+.cache/ 
