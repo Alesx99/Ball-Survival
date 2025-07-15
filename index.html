@@ -125,11 +125,35 @@
             </div>
         </div>
         <div id="permanentUpgradeShop" class="popup-menu">
-            <h3>Negozio Permanente</h3>
-            <p>I tuoi cristalli: <span id="totalGemsShop">0</span> 💎</p>
-            <div id="permanentUpgradeOptions" class="menu-content"></div>
-            <div class="menu-actions">
-                <button id="closeShopBtn">Chiudi</button>
+            <div class="shop-header">
+                <h3>Negozio Permanente</h3>
+                <button id="closeShopBtn" class="close-shop-btn">✕</button>
+            </div>
+            <div class="shop-gems-display">
+                <span class="gems-icon">💎</span>
+                <span id="totalGemsShop">0</span>
+            </div>
+            
+            <!-- NUOVO SISTEMA DROPDOWN PER NEGOZIO -->
+            <div class="shop-dropdown-container">
+                <div class="shop-category-selector">
+                    <button class="category-btn active" data-category="all">Tutti</button>
+                    <button class="category-btn" data-category="combat">Combattimento</button>
+                    <button class="category-btn" data-category="survival">Sopravvivenza</button>
+                    <button class="category-btn" data-category="utility">Utilità</button>
+                </div>
+                
+                <div class="shop-search-container">
+                    <input type="text" id="shopSearchInput" placeholder="Cerca upgrade..." class="shop-search-input">
+                </div>
+            </div>
+            
+            <div id="permanentUpgradeOptions" class="menu-content shop-content"></div>
+            
+            <div class="shop-footer">
+                <div class="shop-stats">
+                    <span id="shopStatsText">0 upgrade disponibili</span>
+                </div>
             </div>
         </div>
         <div id="inventoryMenu" class="popup-menu">

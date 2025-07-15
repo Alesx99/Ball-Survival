@@ -454,6 +454,7 @@ const CONFIG = {
             baseCost: 15, 
             costGrowth: 1.35, 
             maxLevel: 10,
+            category: 'survival',
             effect: (level) => `+${level * 10} HP massimi`
         },
         speed: { 
@@ -461,6 +462,7 @@ const CONFIG = {
             baseCost: 15, 
             costGrowth: 1.5, 
             maxLevel: 5,
+            category: 'survival',
             effect: (level) => `+${level * 0.1} Velocità`
         },
         defense: { 
@@ -468,6 +470,7 @@ const CONFIG = {
             baseCost: 20, 
             costGrowth: 1.5, 
             maxLevel: 10,
+            category: 'survival',
             effect: (level) => `+${level * 1}% Riduzione Danno`
         },
         xpGain: { 
@@ -475,6 +478,7 @@ const CONFIG = {
             baseCost: 10, 
             costGrowth: 1.4, 
             maxLevel: 10,
+            category: 'utility',
             effect: (level) => `+${level * 5}% Guadagno XP`
         },
         luck: { 
@@ -482,6 +486,7 @@ const CONFIG = {
             baseCost: 10, 
             costGrowth: 1.4, 
             maxLevel: 10,
+            category: 'utility',
             effect: (level) => `+${level * 2}% Fortuna`
         },
         power: { 
@@ -489,6 +494,7 @@ const CONFIG = {
             baseCost: 20, 
             costGrowth: 1.5, 
             maxLevel: 10,
+            category: 'combat',
             effect: (level) => `+${level * 5}% Danno`
         },
         frequency: { 
@@ -496,6 +502,7 @@ const CONFIG = {
             baseCost: 20, 
             costGrowth: 1.5, 
             maxLevel: 10,
+            category: 'combat',
             effect: (level) => `-${level * 3}% Tempo di Ricarica`
         },
         area: { 
@@ -503,6 +510,7 @@ const CONFIG = {
             baseCost: 20, 
             costGrowth: 1.5, 
             maxLevel: 10,
+            category: 'combat',
             effect: (level) => `+${level * 4}% Area d'Effetto`
         },
     },
@@ -4587,6 +4595,9 @@ class BallSurvivalGame {
         this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
         
+        // Inizializza il sistema dropdown se non è già stato fatto
+        this.initShopDropdown();
+        
         container.innerHTML = ''; 
         
         // Aggiungi messaggio se non ci sono cristalli
@@ -4594,15 +4605,39 @@ class BallSurvivalGame {
             container.innerHTML = `<div class="zero-gems-message">
                 💎 Non hai ancora cristalli! Completa partite per guadagnarne.
             </div>`;
+            this.updateShopStats(0);
             return;
         }
+        
+        // Ottieni filtri attivi
+        const activeCategory = this.shopState?.activeCategory || 'all';
+        const searchTerm = this.shopState?.searchTerm || '';
+        
+        let availableUpgrades = 0;
+        let displayedUpgrades = 0;
         
         for (const key in this.permanentUpgrades) { 
             const upg = this.permanentUpgrades[key]; 
             const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
             
+            // Conta upgrade disponibili
+            if (upg.level < upg.maxLevel) {
+                availableUpgrades++;
+            }
+            
+            // Applica filtri
+            if (activeCategory !== 'all' && upg.category !== activeCategory) {
+                continue;
+            }
+            
+            if (searchTerm && !upg.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+                continue;
+            }
+            
+            displayedUpgrades++;
+            
             let costColor = this.totalGems < cost ? '#e74c3c' : '#fff';
-            let optionHTML = `<div class="permanent-upgrade-option">
+            let optionHTML = `<div class="permanent-upgrade-option" data-category="${upg.category}">
                 <div>
                     <div class="upgrade-title">${upg.name}</div>
                     <div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div>
@@ -4625,6 +4660,59 @@ class BallSurvivalGame {
         container.querySelectorAll('.buy-button').forEach(btn => { 
             btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key); 
         });
+        
+        this.updateShopStats(displayedUpgrades);
+    }
+    
+    initShopDropdown() {
+        if (this.shopState) return; // Già inizializzato
+        
+        this.shopState = {
+            activeCategory: 'all',
+            searchTerm: ''
+        };
+        
+        // Setup category buttons
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                categoryButtons.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                this.shopState.activeCategory = btn.dataset.category;
+                this.populateShop();
+            });
+        });
+        
+        // Setup search input
+        const searchInput = document.getElementById('shopSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.shopState.searchTerm = e.target.value;
+                this.populateShop();
+            });
+        }
+        
+        // Setup close button
+        const closeBtn = document.getElementById('closeShopBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.hideAllPopups();
+            });
+        }
+    }
+    
+    updateShopStats(count) {
+        const statsElement = document.getElementById('shopStatsText');
+        if (statsElement) {
+            if (count === 0) {
+                statsElement.textContent = 'Nessun upgrade trovato';
+            } else {
+                statsElement.textContent = `${count} upgrade disponibili`;
+            }
+        }
     }
     buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
