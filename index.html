@@ -43,11 +43,26 @@
                 <p><strong>Controlli:</strong> Joystick (Mobile), WASD/Frecce (PC), E/Tocca (Negozio), ESC/Pausa</p>
             </div>
             
-            <h4 style="text-align: center; color: var(--secondary-color); margin-bottom: 10px; margin-top: 20px;">Scegli la tua Sfera:</h4>
-            <div id="characterSelectionContainer" class="menu-content"></div>
+            <!-- NUOVO SISTEMA DROPDOWN PER STAGE -->
+            <div class="stage-selection-section">
+                <h4 style="text-align: center; color: var(--secondary-color); margin-bottom: 10px; margin-top: 20px;">Scegli lo Stage:</h4>
+                <div class="dropdown-container">
+                    <select id="stageDropdown" class="stage-dropdown">
+                        <!-- Le opzioni verranno popolate da JavaScript -->
+                    </select>
+                </div>
+            </div>
 
-            <h4 style="text-align: center; color: var(--secondary-color); margin-bottom: 10px; margin-top: 20px;">Scegli lo Stage:</h4>
-            <div id="stageSelectionContainer" class="menu-content"></div>
+            <!-- NUOVO SISTEMA POPUP PER PERSONAGGI -->
+            <div class="character-selection-section">
+                <h4 style="text-align: center; color: var(--secondary-color); margin-bottom: 10px; margin-top: 20px;">Scegli la tua Sfera:</h4>
+                <div class="character-preview">
+                    <div id="selectedCharacterPreview" class="character-preview-card">
+                        <!-- Anteprima del personaggio selezionato -->
+                    </div>
+                    <button id="openCharacterPopupBtn" class="character-select-btn">Cambia Personaggio</button>
+                </div>
+            </div>
 
             <div class="menu-actions">
                 <button id="startGameBtn">Inizia Partita</button>
@@ -58,6 +73,17 @@
                 <input type="text" id="loadCodeInput" placeholder="Incolla il codice di salvataggio...">
                 <button id="loadGameBtn">Carica</button>
                 <div id="load-notification"></div>
+            </div>
+        </div>
+
+        <!-- NUOVO POPUP PER SELEZIONE PERSONAGGI -->
+        <div id="characterSelectionPopup" class="popup-menu character-popup">
+            <div class="character-popup-header">
+                <h3>Scegli il tuo Archetipo</h3>
+                <button id="closeCharacterPopupBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="characterSelectionContainer" class="character-popup-content">
+                <!-- I personaggi verranno popolati qui -->
             </div>
         </div>
         <div id="upgradeMenu" class="popup-menu">

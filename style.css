@@ -877,3 +877,208 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     text-align: center;
     padding: 20px;
 } 
+
+/* NUOVO SISTEMA DROPDOWN E POPUP */
+.stage-selection-section, .character-selection-section {
+    margin: 20px 0;
+}
+
+.dropdown-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.stage-dropdown {
+    background: var(--light-bg);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text-color);
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    min-width: 200px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stage-dropdown:hover {
+    border-color: var(--secondary-color);
+    background: var(--dark-bg);
+}
+
+.stage-dropdown:focus {
+    outline: none;
+    border-color: var(--highlight-color);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+.stage-dropdown option {
+    background: var(--dark-bg);
+    color: var(--text-color);
+    padding: 8px;
+}
+
+.stage-dropdown option:disabled {
+    color: #666;
+    font-style: italic;
+}
+
+/* CHARACTER PREVIEW */
+.character-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.character-preview-card {
+    background: var(--dark-bg);
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 280px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.character-preview-card h5 {
+    color: var(--highlight-color);
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.character-preview-card p {
+    margin: 8px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.character-bonus {
+    color: #2ecc71;
+}
+
+.character-malus {
+    color: #e74c3c;
+}
+
+.character-select-btn {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.character-select-btn:hover {
+    background: var(--highlight-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* CHARACTER POPUP */
+.character-popup {
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.character-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.character-popup-header h3 {
+    margin: 0;
+    color: var(--highlight-color);
+}
+
+.close-popup-btn {
+    background: var(--dark-bg);
+    color: var(--text-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.close-popup-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.character-popup-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .stage-dropdown {
+        min-width: 150px;
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .character-preview-card {
+        min-width: 250px;
+        padding: 15px;
+    }
+    
+    .character-popup-content {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .character-popup {
+        max-width: 95vw;
+        max-height: 85vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .stage-dropdown {
+        min-width: 120px;
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+    
+    .character-preview-card {
+        min-width: 200px;
+        padding: 12px;
+    }
+    
+    .character-preview-card h5 {
+        font-size: 16px;
+    }
+    
+    .character-preview-card p {
+        font-size: 12px;
+    }
+    
+    .character-select-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+} 

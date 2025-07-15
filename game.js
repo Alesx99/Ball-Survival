@@ -2410,14 +2410,15 @@ class BallSurvivalGame {
         this.resizeCanvas();
         this.populateCharacterSelection();
         this.populateStageSelection();
+        this.updateCharacterPreview(); // Inizializza l'anteprima del personaggio
         this.showPopup('start');
     }
 
     initDOM() {
         this.dom = {
             gameContainer: document.getElementById('gameContainer'),
-            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop'), inventory: document.getElementById('inventoryMenu') },
-            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), inventory: document.getElementById('inventoryBtn'), closeInventory: document.getElementById('closeInventoryBtn') },
+            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop'), inventory: document.getElementById('inventoryMenu'), characterSelection: document.getElementById('characterSelectionPopup') },
+            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), inventory: document.getElementById('inventoryBtn'), closeInventory: document.getElementById('closeInventoryBtn'), openCharacterPopup: document.getElementById('openCharacterPopupBtn'), closeCharacterPopup: document.getElementById('closeCharacterPopupBtn') },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
             containers: { 
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
@@ -2430,7 +2431,9 @@ class BallSurvivalGame {
                 coreMaterialsList: document.getElementById('coreMaterialsList'),
                 weaponMaterialsList: document.getElementById('weaponMaterialsList'),
                 coresList: document.getElementById('coresList'),
-                weaponsList: document.getElementById('weaponsList')
+                weaponsList: document.getElementById('weaponsList'),
+                selectedCharacterPreview: document.getElementById('selectedCharacterPreview'),
+                stageDropdown: document.getElementById('stageDropdown')
             },
             joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, touchId: null },
             menuOverlay: document.getElementById('menuOverlay'),
@@ -2464,11 +2467,20 @@ class BallSurvivalGame {
         this.dom.buttons.inventory.onclick = () => this.showInventory();
         this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
         
+        // Pulsanti popup personaggi
+        this.dom.buttons.openCharacterPopup.onclick = () => this.showCharacterPopup();
+        this.dom.buttons.closeCharacterPopup.onclick = () => this.hideCharacterPopup();
+        
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
         if (closeShopBtn) {
             closeShopBtn.onclick = () => this.hideAllPopups();
         }
+        
+        // Dropdown stage
+        this.dom.containers.stageDropdown.onchange = (e) => {
+            this.selectStage(parseInt(e.target.value));
+        };
         
         // Tasto pausa mobile
         const pauseBtnMobile = document.getElementById('pauseButtonMobile');
@@ -2480,6 +2492,13 @@ class BallSurvivalGame {
             if (this.state === 'gameOver' || this.state === 'startScreen') {
                 return; 
             }
+            
+            // Se il popup dei personaggi è aperto, torna al menù principale
+            if (this.dom.popups.characterSelection.style.display === 'flex') {
+                this.hideCharacterPopup();
+                return;
+            }
+            
             this.hideAllPopups();
         };
 
@@ -3701,11 +3720,18 @@ class BallSurvivalGame {
     populateCharacterSelection() {
         const container = this.dom.containers.characterSelectionContainer;
         container.innerHTML = '';
+        const unlockedArchetypes = new Set(['standard']); // Standard sempre sbloccato
+        if (this.totalGems >= 200) unlockedArchetypes.add('steel');
+        if (this.totalGems >= 300) unlockedArchetypes.add('magma');
+        if (this.totalGems >= 300) unlockedArchetypes.add('frost');
+        if (this.totalGems >= 400) unlockedArchetypes.add('shadow');
+        if (this.totalGems >= 500) unlockedArchetypes.add('tech');
+        
         for (const key in CONFIG.characterArchetypes) {
             const archetype = CONFIG.characterArchetypes[key];
             const unlocked = unlockedArchetypes.has(archetype.id);
             const div = document.createElement('div');
-            div.className = 'character-option' + (unlocked ? '' : ' locked');
+            div.className = `character-option ${unlocked ? '' : 'locked'}`;
             div.dataset.id = archetype.id;
             div.innerHTML = `
                 <h5>${archetype.name}</h5>
@@ -3718,6 +3744,7 @@ class BallSurvivalGame {
             div.onclick = () => {
                 if (unlockedArchetypes.has(archetype.id)) {
                     this.selectCharacter(archetype.id);
+                    this.hideCharacterPopup();
                 }
             };
             // Gestione acquisto
@@ -3729,6 +3756,7 @@ class BallSurvivalGame {
                         this.totalGems -= archetype.cost;
                         unlockedArchetypes.add(archetype.id);
                         this.populateCharacterSelection();
+                        this.updateCharacterPreview();
                         this.notifications.push({ text: `${archetype.name} sbloccato!`, life: 120 });
                         this.dom.totalGemsShop.textContent = this.totalGems;
                     } else {
@@ -3744,6 +3772,13 @@ class BallSurvivalGame {
     }
 
     selectCharacter(archetypeId) {
+        const unlockedArchetypes = new Set(['standard']); // Standard sempre sbloccato
+        if (this.totalGems >= 200) unlockedArchetypes.add('steel');
+        if (this.totalGems >= 300) unlockedArchetypes.add('magma');
+        if (this.totalGems >= 300) unlockedArchetypes.add('frost');
+        if (this.totalGems >= 400) unlockedArchetypes.add('shadow');
+        if (this.totalGems >= 500) unlockedArchetypes.add('tech');
+        
         if (!unlockedArchetypes.has(archetypeId)) return;
         this.selectedArchetype = archetypeId;
         document.querySelectorAll('.character-option').forEach(el => {
@@ -3753,54 +3788,58 @@ class BallSurvivalGame {
         if (selectedElement) {
             selectedElement.classList.add('selected');
         }
+        this.updateCharacterPreview();
+    }
+    
+    updateCharacterPreview() {
+        const preview = this.dom.containers.selectedCharacterPreview;
+        const archetype = CONFIG.characterArchetypes[this.selectedArchetype];
+        
+        if (preview && archetype) {
+            preview.innerHTML = `
+                <h5>${archetype.name}</h5>
+                <p>${archetype.desc}</p>
+                <p class="character-bonus"><strong>Bonus:</strong> ${archetype.bonus}</p>
+                <p class="character-malus"><strong>Malus:</strong> ${archetype.malus}</p>
+            `;
+        }
+    }
+    
+    showCharacterPopup() {
+        this.showPopup('characterSelection');
+        this.populateCharacterSelection();
+    }
+    
+    hideCharacterPopup() {
+        this.hideAllPopups();
+        this.showPopup('start'); // Torna al menù principale
     }
     
     populateStageSelection() {
-        const container = this.dom.containers.stageSelectionContainer;
-        container.innerHTML = '';
+        const dropdown = this.dom.containers.stageDropdown;
+        dropdown.innerHTML = '';
         
         Object.keys(CONFIG.stages).forEach(stageId => {
             const stage = CONFIG.stages[stageId];
-            const stageDiv = document.createElement('div');
-            stageDiv.className = 'character-option';
-            stageDiv.style.cssText = `
-                display: inline-block;
-                margin: 5px;
-                padding: 10px;
-                border: 2px solid ${stage.unlocked ? '#4a90e2' : '#666'};
-                border-radius: 8px;
-                cursor: ${stage.unlocked ? 'pointer' : 'not-allowed'};
-                background: ${stage.unlocked ? 'rgba(74, 144, 226, 0.1)' : 'rgba(100, 100, 100, 0.3)'};
-                color: ${stage.unlocked ? '#fff' : '#666'};
-                text-align: center;
-                min-width: 120px;
-                position: relative;
-            `;
+            const option = document.createElement('option');
+            option.value = stageId;
+            option.textContent = stage.name;
+            option.disabled = !stage.unlocked;
             
-            if (this.selectedStage == stageId) {
-                stageDiv.style.borderColor = '#f39c12';
-                stageDiv.style.background = 'rgba(243, 156, 18, 0.2)';
+            if (!stage.unlocked) {
+                option.textContent += ` (${this.getUnlockRequirementText(stage.unlockRequirement)})`;
             }
             
-            stageDiv.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">${stage.name}</div>
-                <div style="font-size: 12px; opacity: 0.8;">
-                    ${stage.unlocked ? 'Disponibile' : this.getUnlockRequirementText(stage.unlockRequirement)}
-                </div>
-                ${!stage.unlocked ? '<div style="position: absolute; top: 5px; right: 5px; font-size: 16px;">🔒</div>' : ''}
-            `;
-            
-            if (stage.unlocked) {
-                stageDiv.onclick = () => this.selectStage(stageId);
-            }
-            
-            container.appendChild(stageDiv);
+            dropdown.appendChild(option);
         });
+        
+        // Imposta il valore selezionato
+        dropdown.value = this.selectedStage;
     }
     
     selectStage(stageId) {
         this.selectedStage = parseInt(stageId);
-        this.populateStageSelection();
+        this.dom.containers.stageDropdown.value = this.selectedStage;
     }
     
     getUnlockRequirementText(requirement) {
@@ -3827,6 +3866,7 @@ class BallSurvivalGame {
         this.state = 'startScreen';
         this.populateCharacterSelection(); 
         this.populateStageSelection(); // Ricarica anche la selezione stage
+        this.updateCharacterPreview(); // Aggiorna l'anteprima del personaggio
         this.showPopup('start');
         if (this.gameLoopId) {
             cancelAnimationFrame(this.gameLoopId);
@@ -4313,7 +4353,21 @@ class BallSurvivalGame {
         weaponsHTML += `</div>`; 
         this.dom.weaponsStatsColumn.innerHTML = weaponsHTML; 
     }
-    handleEscapeKey() { const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { this.hideAllPopups(); } else { this.togglePause(); } }
+    handleEscapeKey() { 
+        const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); 
+        
+        // Se il popup dei personaggi è aperto, torna al menù principale
+        if (this.dom.popups.characterSelection.style.display === 'flex') {
+            this.hideCharacterPopup();
+            return;
+        }
+        
+        if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { 
+            this.hideAllPopups(); 
+        } else { 
+            this.togglePause(); 
+        } 
+    }
     handleInteractionKey() { 
         if (this.menuCooldown > 0 || this.state !== 'running') {
             return; 
