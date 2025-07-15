@@ -2567,6 +2567,11 @@ class BallSurvivalGame {
         this.dom.inGameUI.container.style.display = 'none';
         this.hideAllPopups(true); 
         this.showPopup('gameOver');
+        
+        // Pulisci il canvas dopo aver mostrato il popup di game over
+        setTimeout(() => {
+            this.clearCanvas();
+        }, 100);
     }
     resetRunState() {
         this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
@@ -2626,6 +2631,12 @@ class BallSurvivalGame {
     draw() {
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Se siamo nel menu principale, non disegnare elementi di gioco
+        if (this.state === 'startScreen') {
+            return;
+        }
+        
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
@@ -3864,6 +3875,10 @@ class BallSurvivalGame {
         this.dom.inGameUI.container.style.display = 'none';
         this.dom.buttons.pause.style.display = 'none';
         this.state = 'startScreen';
+        
+        // Pulisci completamente il canvas
+        this.clearCanvas();
+        
         this.populateCharacterSelection(); 
         this.populateStageSelection(); // Ricarica anche la selezione stage
         this.updateCharacterPreview(); // Aggiorna l'anteprima del personaggio
@@ -3873,6 +3888,59 @@ class BallSurvivalGame {
             this.gameLoopId = null;
         }
         this.draw(); 
+    }
+    
+    clearCanvas() {
+        // Pulisci tutti gli array di entità
+        for (const type in this.entities) {
+            this.entities[type] = [];
+        }
+        
+        // Pulisci le notifiche
+        this.notifications = [];
+        
+        // Reset della camera al centro
+        this.camera.x = 0;
+        this.camera.y = 0;
+        
+        // Pulisci il canvas con sfondo nero
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Reset del giocatore alla posizione centrale
+        this.player.x = CONFIG.world.width / 2;
+        this.player.y = CONFIG.world.height / 2;
+        
+        // Reset di tutti i timer e stati di gioco
+        this.totalElapsedTime = 0;
+        this.enemiesKilled = 0;
+        this.gemsThisRun = 0;
+        this.score = 0;
+        this.enemiesKilledSinceBoss = 0;
+        this.nextChestSpawnTime = CONFIG.chest.spawnTime;
+        this.nextMapXpSpawnTime = 5;
+        this.lastEnemySpawnTime = 0;
+        this.difficultyTier = 0;
+        this.currentStage = 1;
+        this.stageStartTime = 0;
+        this.bossesKilledThisStage = 0;
+        
+        // Reset degli spell
+        this.resetSpells();
+        
+        // Reset dei power-up del giocatore
+        this.player.powerUpTimers = {
+            invincibility: 0,
+            damageBoost: 0
+        };
+        
+        // Reset della salute del giocatore
+        this.player.hp = this.player.stats.maxHp;
+        this.player.level = 1;
+        this.player.xp = 0;
+        this.player.xpNext = 100;
+        
+        console.log('Canvas pulito completamente');
     }
 
     updateInGameUI() {
