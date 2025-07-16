@@ -29,12 +29,12 @@ const CONFIG = {
             name: "Palla d'Acciaio",
             desc: "Incredibilmente resistente ma molto lenta. Ideale per chi ama la mischia.",
             startingWeapon: 'shockwave',
-            bonus: "+70% Riduzione Danno (DR) base. Shockwave: +20% danno, +30% knockback.",
-            malus: "-40% Velocità di movimento, -30% Velocità di attacco.",
+            bonus: "+70% Riduzione Danno (DR) base. Shockwave: +40% danno, +50% knockback, +25% area.",
+            malus: "-50% Velocità di movimento, -40% Velocità di attacco.",
             color: '#bdc3c7',
             cost: 200,
             weaponBonuses: {
-                shockwave: { damage: 1.2, knockback: 1.3 }
+                shockwave: { damage: 1.4, knockback: 1.5, radius: 1.25 }
             },
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 300) * 1;
@@ -51,12 +51,12 @@ const CONFIG = {
             name: "Nucleo Magmatico",
             desc: "Una sfera volatile che incenerisce chiunque si avvicini troppo.",
             startingWeapon: 'fireball',
-            bonus: "Infligge danni da bruciatura potenziati ai nemici al contatto. Fireball: +30% danno da bruciatura.",
-            malus: "+5% tempo di ricarica per tutte le abilità.",
+            bonus: "Infligge danni da bruciatura potenziati ai nemici al contatto. Fireball: +60% danno da bruciatura, +25% danno diretto.",
+            malus: "+15% tempo di ricarica per tutte le abilità.",
             color: '#e67e22',
             cost: 300,
             weaponBonuses: {
-                fireball: { burnDamage: 1.3 }
+                fireball: { burnDamage: 1.6, damage: 1.25 }
             },
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 150) * 2;
@@ -73,12 +73,12 @@ const CONFIG = {
             name: "Cristallo di Gelo",
             desc: "Fragile ma capace di controllare il campo di battaglia con il suo freddo glaciale.",
             startingWeapon: 'frostbolt',
-            bonus: "Rallenta fortemente i nemici che entrano in contatto. Frostbolt: +20% slow, +10% danno.",
-            malus: "-8 Salute massima.",
+            bonus: "Rallenta fortemente i nemici che entrano in contatto. Frostbolt: +40% slow, +25% danno, +30% penetrazione.",
+            malus: "-15 Salute massima.",
             color: '#3498db',
             cost: 300,
             weaponBonuses: {
-                frostbolt: { slow: 1.2, damage: 1.1 }
+                frostbolt: { slow: 1.4, damage: 1.25, penetration: 1.3 }
             },
             draw: (ctx, player) => {
                 const pulse = Math.sin(Date.now() / 250) * 2;
@@ -94,12 +94,12 @@ const CONFIG = {
             name: "Sfera d'Ombra",
             desc: "Veloce e letale, ma non può incassare molti colpi. Per giocatori audaci.",
             startingWeapon: 'shotgun',
-            bonus: "+18% Velocità di movimento. Shotgun: +1 proiettile, +10% critico.",
-            malus: "-8% Salute massima.",
+            bonus: "+35% Velocità di movimento. Shotgun: +2 proiettili, +25% critico, +15% danno.",
+            malus: "-20% Salute massima.",
             color: '#8e44ad',
             cost: 400,
             weaponBonuses: {
-                shotgun: { count: 1, critChance: 0.1 }
+                shotgun: { count: 2, critChance: 0.25, damage: 1.15 }
             },
             draw: (ctx, player) => {
                 const radius = player.stats.radius;
@@ -115,12 +115,12 @@ const CONFIG = {
             name: "Giroscopio Tecnologico",
             desc: "Un congegno preciso che amplifica l'area d'effetto a discapito della potenza pura.",
             startingWeapon: 'lightning',
-            bonus: "+15% Area d'effetto. Lightning: +1 rimbalzo, +10% area.",
-            malus: "-3% Danno globale.",
+            bonus: "+50% Area d'effetto. Lightning: +3 rimbalzi, +40% area, +25% danno. Tutte le armi: +15% area bonus.",
+            malus: "-5% Danno globale.",
             color: '#1abc9c',
-            cost: 500,
+            cost: 800,
             weaponBonuses: {
-                lightning: { chains: 1, area: 1.1 }
+                lightning: { chains: 3, area: 1.4, damage: 1.25 }
             },
             draw: (ctx, player) => {
                 const radius = player.stats.radius;
@@ -143,20 +143,20 @@ const CONFIG = {
         spawnImmunity: 90, 
         scaling: { 
             timeFactor: 10, 
-            hpPerFactor: 8, 
-            speedPerFactor: 0.03, 
-            damagePerFactor: 1.0, // ancora più dolce
-            xpPerFactor: 1,
-            xpPowerFactor: 1.05, 
-            levelFactorMultiplier: 0.7,
-            drPerFactor: 0.0007
+            hpPerFactor: 12, // Aumentato da 8
+            speedPerFactor: 0.05, // Aumentato da 0.03
+            damagePerFactor: 2.0, // Aumentato da 1.0
+            xpPerFactor: 1.5, // Aumentato da 1
+            xpPowerFactor: 1.08, // Aumentato da 1.05
+            levelFactorMultiplier: 0.8, // Aumentato da 0.7
+            drPerFactor: 0.001 // Aumentato da 0.0007
         },
-        base: { hp: 15, speed: 0.8, radius: 12, damage: 3, xp: 2, dr: 0 }
+        base: { hp: 20, speed: 1.0, radius: 12, damage: 5, xp: 3, dr: 0 } // HP e danno aumentati
     },
     difficultyTiers: {
-        '1': { time: 300, dr: 0.15, speed: 0.1, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" }, // 5 min
-        '2': { time: 600, dr: 0.30, speed: 0.2, championChance: 0.05, message: "ALLARME: Campioni nemici individuati!" }, // 10 min
-        '3': { time: 900, dr: 0.50, speed: 0.3, eliteChanceMultiplier: 2, message: "ALLARME ROSSO: Convergenza Planare!" } // 15 min
+        '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" }, // 5 min
+        '2': { time: 600, dr: 0.45, speed: 0.25, championChance: 0.08, message: "ALLARME: Campioni nemici individuati!" }, // 10 min
+        '3': { time: 900, dr: 0.70, speed: 0.40, eliteChanceMultiplier: 3, message: "ALLARME ROSSO: Convergenza Planare!" } // 15 min
     },
     stages: {
         '1': { 
@@ -175,7 +175,11 @@ const CONFIG = {
                 shape: 'circle'
             },
             difficulty: { dr: 0, speed: 0, eliteChance: 0.05 },
-            message: "Benvenuto nella Pianura Eterna!"
+            message: "Benvenuto nella Pianura Eterna!",
+            effects: {
+                xpBonus: 1.0, // Nessun bonus
+                dropBonus: 1.0 // Nessun bonus
+            }
         },
         '2': { 
             name: "Foresta Oscura", 
@@ -192,8 +196,12 @@ const CONFIG = {
                 eliteColor: '#229954',
                 shape: 'triangle'
             },
-            difficulty: { dr: 0.15, speed: 0.1, eliteChance: 0.08 },
-            message: "Entri nella Foresta Oscura..."
+            difficulty: { dr: 0.25, speed: 0.15, eliteChance: 0.12 },
+            message: "Entri nella Foresta Oscura...",
+            effects: {
+                xpBonus: 1.2, // +20% XP
+                dropBonus: 1.1 // +10% drop
+            }
         },
         '3': { 
             name: "Deserto Infuocato", 
@@ -210,8 +218,12 @@ const CONFIG = {
                 eliteColor: '#e67e22',
                 shape: 'square'
             },
-            difficulty: { dr: 0.30, speed: 0.2, eliteChance: 0.12 },
-            message: "Il Deserto Infuocato ti attende!"
+            difficulty: { dr: 0.40, speed: 0.25, eliteChance: 0.18 },
+            message: "Il Deserto Infuocato ti attende!",
+            effects: {
+                xpBonus: 1.4, // +40% XP
+                dropBonus: 1.25 // +25% drop
+            }
         },
         '4': { 
             name: "Ghiacciaio Perduto", 
@@ -228,8 +240,12 @@ const CONFIG = {
                 eliteColor: '#00bfff',
                 shape: 'diamond'
             },
-            difficulty: { dr: 0.45, speed: 0.3, eliteChance: 0.15 },
-            message: "Il Ghiacciaio Perduto ti congela!"
+            difficulty: { dr: 0.55, speed: 0.35, eliteChance: 0.25 },
+            message: "Il Ghiacciaio Perduto ti congela!",
+            effects: {
+                xpBonus: 1.6, // +60% XP
+                dropBonus: 1.4 // +40% drop
+            }
         },
         '5': { 
             name: "Abisso Cosmico", 
@@ -246,15 +262,19 @@ const CONFIG = {
                 eliteColor: '#9932cc',
                 shape: 'star'
             },
-            difficulty: { dr: 0.60, speed: 0.4, eliteChance: 0.20 },
-            message: "L'Abisso Cosmico ti risucchia!"
+            difficulty: { dr: 0.75, speed: 0.50, eliteChance: 0.35 },
+            message: "L'Abisso Cosmico ti risucchia!",
+            effects: {
+                xpBonus: 2.0, // +100% XP
+                dropBonus: 1.8 // +80% drop
+            }
         }
     },
     boss: {
         spawnThreshold: 150,
-        base: { hp: 1000, speed: 1.5, radius: 40, damage: 25 },
-        scaling: { timeFactor: 60, hpPerFactor: 500 },
-        attack: { cooldown: 2000, projectileSpeed: 4, projectileRadius: 8 }
+        base: { hp: 1500, speed: 1.8, radius: 45, damage: 35 },
+        scaling: { timeFactor: 60, hpPerFactor: 800 },
+        attack: { cooldown: 1800, projectileSpeed: 5, projectileRadius: 10 }
     },
     chest: { spawnTime: 20, respawnTime: 30, size: 25, gemDrop: { min: 5, random: 6 } },
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
@@ -264,20 +284,20 @@ const CONFIG = {
     materials: {
         // Materiali per Core (rivestimenti della sfera)
         coreMaterials: {
-            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.25, enemyTypes: ['all'] },
-            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.15, enemyTypes: ['elite', 'boss'] },
-            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.10, enemyTypes: ['boss'] },
-            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.08, enemyTypes: ['boss', 'elite'] },
-            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.03, enemyTypes: ['boss'] }
+            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.35, enemyTypes: ['all'] },
+            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.25, enemyTypes: ['elite', 'boss'] },
+            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.18, enemyTypes: ['boss'] },
+            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.15, enemyTypes: ['boss', 'elite'] },
+            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.08, enemyTypes: ['boss'] }
         },
         
         // Materiali per Armi (esterne)
         weaponMaterials: {
-            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.20, enemyTypes: ['all'] },
-            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.18, enemyTypes: ['all'] },
-            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.12, enemyTypes: ['elite', 'boss'] },
-            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.08, enemyTypes: ['boss'] },
-            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.05, enemyTypes: ['boss'] }
+            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.30, enemyTypes: ['all'] },
+            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.28, enemyTypes: ['all'] },
+            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.20, enemyTypes: ['elite', 'boss'] },
+            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.15, enemyTypes: ['boss'] },
+            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.12, enemyTypes: ['boss'] }
         }
     },
     
@@ -286,9 +306,9 @@ const CONFIG = {
         'magnetic': { 
             id: 'magnetic', 
             name: 'Core Magnetico', 
-            desc: 'Anelli magnetici rotanti che attirano gemme e XP da +50% distanza. Effetto visivo: anelli blu rotanti',
+            desc: 'Anelli magnetici rotanti che attirano gemme e XP da +25% distanza. Effetto visivo: anelli blu rotanti',
             materials: { 'iron_fragment': 3, 'steel_fragment': 1 },
-            effect: { type: 'magnet', range: 1.5 },
+            effect: { type: 'magnet', range: 1.25 },
             maxLevel: 1, // Solo 1 livello
             upgradeCost: null // Non potenziabile
         },
@@ -304,36 +324,36 @@ const CONFIG = {
         'bounce': { 
             id: 'bounce', 
             name: 'Core Rimbalzante', 
-            desc: 'Spine arancioni che rimbalzano sui nemici infliggendo +15 danno. Effetto visivo: spine rotanti',
+            desc: 'Spine arancioni che rimbalzano sui nemici infliggendo +8 danno. Effetto visivo: spine rotanti',
             materials: { 'iron_fragment': 2, 'wood_fragment': 2 },
-            effect: { type: 'bounce', damage: 15 },
+            effect: { type: 'bounce', damage: 8 },
             maxLevel: 1,
             upgradeCost: null
         },
         'speed': { 
             id: 'speed', 
             name: 'Core di Velocità', 
-            desc: 'Scie ciano che aumentano la velocità di +15%. Effetto visivo: scie multiple rotanti',
+            desc: 'Scie ciano che aumentano la velocità di +8%. Effetto visivo: scie multiple rotanti',
             materials: { 'crystal_fragment': 1, 'energy_fragment': 1 },
-            effect: { type: 'speed', bonus: 0.15 },
+            effect: { type: 'speed', bonus: 0.08 },
             maxLevel: 1,
             upgradeCost: null
         },
         'resistance': { 
             id: 'resistance', 
             name: 'Core di Resistenza', 
-            desc: 'Barriera marrone che riduce i danni ricevuti del 10%. Effetto visivo: doppia barriera',
+            desc: 'Barriera marrone che riduce i danni ricevuti del 5%. Effetto visivo: doppia barriera',
             materials: { 'steel_fragment': 3, 'stone_fragment': 2 },
-            effect: { type: 'resistance', dr: 0.1 },
+            effect: { type: 'resistance', dr: 0.05 },
             maxLevel: 1,
             upgradeCost: null
         },
         'amplification': { 
             id: 'amplification', 
             name: 'Core di Amplificazione', 
-            desc: 'Aura rossa che potenzia il danno da contatto del 50%. Effetto visivo: aura con particelle',
+            desc: 'Aura rossa che potenzia il danno da contatto del 25%. Effetto visivo: aura con particelle',
             materials: { 'magma_fragment': 1, 'energy_fragment': 2 },
-            effect: { type: 'amplify', multiplier: 1.5 },
+            effect: { type: 'amplify', multiplier: 1.25 },
             maxLevel: 1,
             upgradeCost: null
         },
@@ -353,54 +373,54 @@ const CONFIG = {
         'spike_ring': { 
             id: 'spike_ring', 
             name: 'Anello di Spine', 
-            desc: '12 spine marroni che danneggiano i nemici per +20 danno al contatto. Raggio: 25px. Effetto visivo: spine triangolari',
+            desc: '3 spine marroni che danneggiano i nemici per +8 danno al contatto. Raggio: 25px. Effetto visivo: spine triangolari',
             materials: { 'wood_fragment': 3, 'stone_fragment': 2 },
-            effect: { type: 'spikes', damage: 20, radius: 25 },
+            effect: { type: 'spikes', damage: 8, radius: 25, count: 3 },
             maxLevel: 3,
             upgradeCost: { 'wood_fragment': 2, 'stone_fragment': 1 } // Costo per potenziamento
         },
         'energy_field': { 
             id: 'energy_field', 
             name: 'Campo Energetico', 
-            desc: 'Campo ciano che rallenta nemici del 30% e infligge 10 DPS. Raggio: 40px. Effetto visivo: onde energetiche',
+            desc: 'Campo ciano che rallenta nemici del 15% e infligge 4 DPS. Raggio: 40px. Effetto visivo: onde energetiche',
             materials: { 'energy_fragment': 2, 'crystal_fragment': 1 },
-            effect: { type: 'field', damage: 10, slow: 0.3, radius: 40 },
+            effect: { type: 'field', damage: 4, slow: 0.15, radius: 40 },
             maxLevel: 3,
             upgradeCost: { 'energy_fragment': 1, 'crystal_fragment': 1 }
         },
         'orbital_shield': { 
             id: 'orbital_shield', 
             name: 'Scudo Orbitale', 
-            desc: '2 scudi bianchi che orbitano intorno alla palla infliggendo +15 danno. Effetto visivo: scudi orbitanti',
+            desc: '1 scudo bianco che orbita intorno alla palla infliggendo +8 danno. Effetto visivo: scudo orbitante',
             materials: { 'metal_fragment': 2, 'steel_fragment': 1 },
-            effect: { type: 'orbital', count: 2, damage: 15 },
+            effect: { type: 'orbital', count: 1, damage: 8 },
             maxLevel: 3,
             upgradeCost: { 'metal_fragment': 1, 'steel_fragment': 1 }
         },
         'pulse_wave': { 
             id: 'pulse_wave', 
             name: 'Onda Pulsante', 
-            desc: 'Onde rosa che respingono i nemici infliggendo +25 danno. Cooldown: 3s. Effetto visivo: onde multiple',
+            desc: 'Onde rosa che respingono i nemici infliggendo +15 danno. Cooldown: 3s. Effetto visivo: onde multiple',
             materials: { 'cosmic_fragment': 1, 'energy_fragment': 1 },
-            effect: { type: 'pulse', damage: 25, knockback: 30, cooldown: 3000 },
+            effect: { type: 'pulse', damage: 15, knockback: 30, cooldown: 3000 },
             maxLevel: 3,
             upgradeCost: { 'cosmic_fragment': 1, 'energy_fragment': 1 }
         },
         'void_blade': { 
             id: 'void_blade', 
             name: 'Lama del Vuoto', 
-            desc: '6 lame viola che tagliano i nemici per +30 danno e li rallentano del 50% per 3s. Effetto visivo: lame rotanti',
+            desc: '3 lame viola che tagliano i nemici per +12 danno e li rallentano del 20% per 3s. Effetto visivo: lame rotanti',
             materials: { 'void_fragment': 1, 'metal_fragment': 2 },
-            effect: { type: 'void_blade', damage: 30, slow: 0.5, duration: 3000 },
+            effect: { type: 'void_blade', damage: 12, slow: 0.2, duration: 3000, count: 3 },
             maxLevel: 3,
             upgradeCost: { 'void_fragment': 1, 'metal_fragment': 1 }
         },
         'crystal_barrier': { 
             id: 'crystal_barrier', 
             name: 'Barriera di Cristallo', 
-            desc: 'Barriera azzurra che blocca l\'80% dei proiettili e riflette +15 danno. Effetto visivo: cristalli riflettenti',
+            desc: 'Barriera azzurra che blocca il 60% dei proiettili e riflette +10 danno. Effetto visivo: cristalli riflettenti',
             materials: { 'crystal_fragment': 2, 'stone_fragment': 3 },
-            effect: { type: 'crystal_barrier', blockChance: 0.8, reflectDamage: 15 },
+            effect: { type: 'crystal_barrier', blockChance: 0.6, reflectDamage: 10 },
             maxLevel: 3,
             upgradeCost: { 'crystal_fragment': 1, 'stone_fragment': 2 }
         }
@@ -433,8 +453,8 @@ const CONFIG = {
         'shotgun_mastery_explosive': { id: 'shotgun_mastery_explosive', name: 'Maestria: Raffica Esplosiva', desc: 'Aumenta il raggio delle esplosioni e applica una breve bruciatura.', type: 'mastery' },
         'shotgun_mastery_cannon': { id: 'shotgun_mastery_cannon', name: 'Maestria: Cannone Rotante', desc: 'Aumenta la durata e la velocità dei proiettili.', type: 'mastery' },
         'shockwave': { id: 'shockwave', name: 'Onda d\'Urto', desc: 'Respinge e danneggia i nemici.', details: "+10 Danni, +15 Raggio, +5 Respinta", maxLevel: 4 },
-        'shockwave_evolve_resonant': { id: 'shockwave_evolve_resonant', name: 'EVO: Epicentro Risonante', desc: 'L\'onda d\'urto viene emessa tre volte in rapida successione.', type: 'evolution' },
-        'shockwave_evolve_implosion': { id: 'shockwave_evolve_implosion', name: 'EVO: Implosione Gravitazionale', desc: 'Invece di respingere, attira a te i nemici.', type: 'evolution' },
+        'shockwave_evolve_resonant': { id: 'shockwave_evolve_resonant', name: 'EVO: Epicentro Risonante', desc: 'Onda d\'urto potenziata con knockback devastante.', type: 'evolution' },
+        'shockwave_evolve_implosion': { id: 'shockwave_evolve_implosion', name: 'EVO: Onda Distruttiva', desc: 'Onda d\'urto potenziata che respinge i nemici con forza devastante.', type: 'evolution' },
         'shockwave_mastery_resonant': { id: 'shockwave_mastery_resonant', name: 'Maestria: Epicentro', desc: 'L\'ultima onda stordisce brevemente i nemici colpiti.', type: 'mastery' },
         'shockwave_mastery_implosion': { id: 'shockwave_mastery_implosion', name: 'Maestria: Implosione', desc: 'L\'implosione infligge danni bonus basati sulla salute mancante dei nemici.', type: 'mastery' },
         'heal': { id: 'heal', name: 'Impulso Curativo', desc: 'Emette un impulso che rigenera salute.', details: "+10 Salute Curata, -1s Ricarica", maxLevel: 5 },
@@ -451,59 +471,59 @@ const CONFIG = {
     permanentUpgrades: {
         health: { 
             name: 'Salute', 
-            baseCost: 15, 
-            costGrowth: 1.35, 
+            baseCost: 10, 
+            costGrowth: 1.25, 
             maxLevel: 10,
-            effect: (level) => `+${level * 10} HP massimi`
+            effect: (level) => `+${level * 20} HP massimi`
         },
         speed: { 
             name: 'Velocità', 
-            baseCost: 15, 
-            costGrowth: 1.5, 
+            baseCost: 10, 
+            costGrowth: 1.3, 
             maxLevel: 5,
-            effect: (level) => `+${level * 0.1} Velocità`
+            effect: (level) => `+${level * 0.2} Velocità`
         },
         defense: { 
             name: 'Difesa', 
-            baseCost: 20, 
-            costGrowth: 1.5, 
+            baseCost: 12, 
+            costGrowth: 1.3, 
             maxLevel: 10,
-            effect: (level) => `+${level * 1}% Riduzione Danno`
+            effect: (level) => `+${level * 2}% Riduzione Danno`
         },
         xpGain: { 
             name: 'XP', 
-            baseCost: 10, 
-            costGrowth: 1.4, 
+            baseCost: 8, 
+            costGrowth: 1.25, 
             maxLevel: 10,
-            effect: (level) => `+${level * 5}% Guadagno XP`
+            effect: (level) => `+${level * 8}% Guadagno XP`
         },
         luck: { 
             name: 'Fortuna', 
-            baseCost: 10, 
-            costGrowth: 1.4, 
+            baseCost: 8, 
+            costGrowth: 1.25, 
             maxLevel: 10,
-            effect: (level) => `+${level * 2}% Fortuna`
+            effect: (level) => `+${level * 4}% Fortuna`
         },
         power: { 
             name: 'Potenza', 
-            baseCost: 20, 
-            costGrowth: 1.5, 
+            baseCost: 15, 
+            costGrowth: 1.3, 
             maxLevel: 10,
-            effect: (level) => `+${level * 5}% Danno`
+            effect: (level) => `+${level * 8}% Danno`
         },
         frequency: { 
             name: 'Frequenza', 
-            baseCost: 20, 
-            costGrowth: 1.5, 
+            baseCost: 15, 
+            costGrowth: 1.3, 
             maxLevel: 10,
-            effect: (level) => `-${level * 3}% Tempo di Ricarica`
+            effect: (level) => `-${level * 5}% Tempo di Ricarica`
         },
         area: { 
             name: 'Area', 
-            baseCost: 20, 
-            costGrowth: 1.5, 
+            baseCost: 15, 
+            costGrowth: 1.3, 
             maxLevel: 10,
-            effect: (level) => `+${level * 4}% Area d'Effetto`
+            effect: (level) => `+${level * 6}% Area d'Effetto`
         },
     },
     itemTypes: {
@@ -1048,25 +1068,25 @@ class Player extends Entity {
         if (this.archetype) {
             switch(this.archetype.id) {
                 case 'steel':
-                    this.stats.dr += 0.7;  // Aggiunge +70% DR
-                    this.stats.speed *= 0.6;  // -40% velocità movimento
-                    this.modifiers.frequency *= 0.7;  // -30% velocità attacco
+                    this.stats.dr += 0.70;  // Aggiunge +70% DR
+                    this.stats.speed *= 0.5;  // -50% velocità movimento
+                    this.modifiers.frequency *= 0.6;  // -40% velocità attacco
                     break;
                 case 'magma':
                     this.modifiers.contactBurn = true;
-                    this.modifiers.frequency *= 1.05;
+                    this.modifiers.frequency *= 1.15;  // +15% tempo ricarica
                     break;
                 case 'frost':
-                    this.stats.maxHp -= 8;
+                    this.stats.maxHp -= 15;  // -15 HP
                     this.modifiers.contactSlow = true;
                     break;
                 case 'shadow':
-                    this.stats.speed *= 1.18;
-                    this.stats.maxHp *= 0.92;
+                    this.stats.speed *= 1.35;  // +35% velocità
+                    this.stats.maxHp *= 0.8;  // -20% salute
                     break;
                 case 'tech':
-                    this.modifiers.area *= 1.15;
-                    this.modifiers.power *= 0.97;
+                    this.modifiers.area *= 1.50;  // +50% area
+                    this.modifiers.power *= 0.95;  // -5% danno
                     break;
             }
         }
@@ -1102,7 +1122,7 @@ class Player extends Entity {
         
         console.log(`Reset completato - Livello: ${this.level}, XP: ${this.xp}, XP necessario: ${this.xpNext}`);
     }
-    applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 10); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.1); this.stats.dr += (p.defense.level * 0.01); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.05); this.modifiers.luck = p.luck.level * 0.02; this.modifiers.power = 1 + (p.power.level * 0.05); this.modifiers.frequency = 1 - (p.frequency.level * 0.03); this.modifiers.area = 1 + (p.area.level * 0.04); }
+    applyPermanentUpgrades(p) { this.stats.maxHp = this.baseStats.hp + (p.health.level * 20); this.stats.speed = this.baseStats.speed + (p.speed.level * 0.2); this.stats.dr += (p.defense.level * 0.02); this.modifiers.xpGain = 1 + (p.xpGain.level * 0.08); this.modifiers.luck = p.luck.level * 0.04; this.modifiers.power = 1 + (p.power.level * 0.08); this.modifiers.frequency = 1 - (p.frequency.level * 0.05); this.modifiers.area = 1 + (p.area.level * 0.06); }
     update(game, joystick) { 
         let kDx = 0, kDy = 0; 
         if (this.keys['KeyW'] || this.keys['ArrowUp']) kDy -= 1; 
@@ -1676,9 +1696,16 @@ class Player extends Entity {
         ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
         ctx.stroke();
         
-        // Spine dinamiche rotanti
-        for (let i = 0; i < 16; i++) {
-            const angle = (i / 16) * Math.PI * 2 + time * 2;
+        // Spine dinamiche rotanti - numero basato sul livello dell'arma
+        const game = window.game;
+        let spikeCount = 3; // Default
+        if (game && game.weapons && game.weapons.spike_ring) {
+            const level = game.weapons.spike_ring.level || 1;
+            spikeCount = level === 1 ? 3 : level === 2 ? 7 : 10;
+        }
+        
+        for (let i = 0; i < spikeCount; i++) {
+            const angle = (i / spikeCount) * Math.PI * 2 + time * 2;
             const spikeRadius = radius + Math.sin(time * 4 + i) * 3;
             const x = this.x + Math.cos(angle) * spikeRadius;
             const y = this.y + Math.sin(angle) * spikeRadius;
@@ -1972,8 +1999,8 @@ class Enemy extends Entity {
         game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
         
         // Drop di gemme
-        if (Math.random() < 0.1 + game.player.modifiers.luck) {
-            game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 1 : 0)));
+        if (Math.random() < 0.15 + game.player.modifiers.luck) {
+            game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 2 : 0)));
         }
         
         // Drop di materiali basato su tipo di nemico
@@ -1987,10 +2014,14 @@ class Enemy extends Entity {
     dropMaterials(game) {
         const enemyType = this.isElite ? 'elite' : (this.isBoss ? 'boss' : 'normal');
         
+        // Ottieni i bonus dello stage corrente
+        const stageInfo = CONFIG.stages[game.currentStage];
+        const dropBonus = stageInfo && stageInfo.effects ? stageInfo.effects.dropBonus : 1.0;
+        
         // Drop di materiali per core
         for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
             if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
-                const dropChance = material.dropChance * (1 + game.player.modifiers.luck);
+                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus;
                 if (Math.random() < dropChance) {
                     game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
                 }
@@ -2000,7 +2031,7 @@ class Enemy extends Entity {
         // Drop di materiali per armi
         for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
             if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
-                const dropChance = material.dropChance * (1 + game.player.modifiers.luck);
+                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus;
                 if (Math.random() < dropChance) {
                     game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
                 }
@@ -2070,7 +2101,7 @@ class Boss extends Enemy {
         // Cura il giocatore del 50% HP max
         game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);
         // Bonus gemme
-        game.gemsThisRun += 50;
+        game.gemsThisRun += 100;
         // Mostra popup scelta upgrade passivo extra (overcap)
         game.showBossUpgradePopup();
     }
@@ -2307,7 +2338,7 @@ class Chest extends Entity {
             const itemKeys = Object.keys(CONFIG.itemTypes).filter(k => k !== 'LEGENDARY_ORB');
             const randomType = itemKeys[Math.floor(Math.random() * itemKeys.length)];
             game.addEntity('droppedItems', new DroppedItem(this.x + this.size / 2, this.y - 10, randomType));
-            if (Math.random() < 0.5 + game.player.modifiers.luck) {
+            if (Math.random() < 0.7 + game.player.modifiers.luck) {
                 let c = CONFIG.chest.gemDrop;
                 let gemsFound = c.min + Math.floor(Math.random() * c.random * (1 + game.player.modifiers.luck));
                 game.gemsThisRun += gemsFound;
@@ -2984,13 +3015,59 @@ class BallSurvivalGame {
             const weaponData = this.weapons[weaponId];
             if (!weapon || !weaponData) continue;
             
+            // Calcola i valori basati sul livello dell'arma
+            const level = weaponData.level || 1;
+            let damage = weapon.effect.damage;
+            let count = weapon.effect.count || 1;
+            let slow = weapon.effect.slow || 0;
+            let radius = weapon.effect.radius || 25;
+            
+            // Progressione basata sul livello
+            switch (weaponId) {
+                case 'spike_ring':
+                    // Progressione spine: 3 -> 7 -> 10
+                    count = level === 1 ? 3 : level === 2 ? 7 : 10;
+                    damage = 8 + (level - 1) * 2; // 8 -> 10 -> 12
+                    break;
+                    
+                case 'energy_field':
+                    // Progressione DPS: 4 -> 6 -> 8
+                    damage = 4 + (level - 1) * 2;
+                    slow = 0.15 + (level - 1) * 0.05; // 15% -> 20% -> 25%
+                    break;
+                    
+                case 'orbital_shield':
+                    // Progressione scudi: 1 -> 2 -> 3
+                    count = level;
+                    damage = 8 + (level - 1) * 3; // 8 -> 11 -> 14
+                    break;
+                    
+                case 'void_blade':
+                    // Progressione lame: 3 -> 5 -> 7
+                    count = 3 + (level - 1) * 2;
+                    damage = 12 + (level - 1) * 3; // 12 -> 15 -> 18
+                    slow = 0.2 + (level - 1) * 0.05; // 20% -> 25% -> 30%
+                    break;
+                    
+                case 'pulse_wave':
+                    // Progressione danno: 15 -> 20 -> 25
+                    damage = 15 + (level - 1) * 5;
+                    break;
+                    
+                case 'crystal_barrier':
+                    // Progressione blocco: 60% -> 70% -> 80%
+                    const blockChance = 0.6 + (level - 1) * 0.1;
+                    const reflectDamage = 10 + (level - 1) * 3; // 10 -> 13 -> 16
+                    break;
+            }
+            
             switch (weapon.effect.type) {
                 case 'spikes':
                     // Danno da contatto con spine
                     [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
                         const dist = Utils.getDistance(this.player, enemy);
-                        if (dist < this.player.stats.radius + weapon.effect.radius) {
-                            enemy.takeDamage(weapon.effect.damage, this);
+                        if (dist < this.player.stats.radius + radius) {
+                            enemy.takeDamage(damage, this);
                         }
                     });
                     break;
@@ -2999,9 +3076,9 @@ class BallSurvivalGame {
                     // Campo energetico che rallenta e danneggia
                     [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
                         const dist = Utils.getDistance(this.player, enemy);
-                        if (dist < weapon.effect.radius) {
-                            enemy.takeDamage(weapon.effect.damage / 60, this); // DPS
-                            enemy.slowAmount = weapon.effect.slow;
+                        if (dist < radius) {
+                            enemy.takeDamage(damage / 60, this); // DPS
+                            enemy.slowAmount = slow;
                             enemy.slowTimer = 60; // 1 secondo
                         }
                     });
@@ -3010,13 +3087,13 @@ class BallSurvivalGame {
                 case 'orbital':
                     // Scudi orbitali
                     if (!this.player.orbitals) this.player.orbitals = [];
-                    if (this.player.orbitals.length < weapon.effect.count) {
-                        const angle = (this.player.orbitals.length / weapon.effect.count) * Math.PI * 2;
+                    if (this.player.orbitals.length < count) {
+                        const angle = (this.player.orbitals.length / count) * Math.PI * 2;
                         this.addEntity('orbitals', new Orbital(this.player.x, this.player.y, {
                             angle: angle,
                             distance: 40,
                             rotationSpeed: 0.05,
-                            damage: weapon.effect.damage,
+                            damage: damage,
                             radius: 8
                         }));
                     }
@@ -3026,7 +3103,7 @@ class BallSurvivalGame {
                     // Onda pulsante (una volta ogni cooldown)
                     if (!this.player.lastPulseTime) this.player.lastPulseTime = 0;
                     if (Date.now() - this.player.lastPulseTime > weapon.effect.cooldown) {
-                        this.createExplosion(this.player.x, this.player.y, weapon.effect.knockback, weapon.effect.damage);
+                        this.createExplosion(this.player.x, this.player.y, weapon.effect.knockback, damage);
                         this.player.lastPulseTime = Date.now();
                     }
                     break;
@@ -3035,10 +3112,10 @@ class BallSurvivalGame {
                     // Lame del vuoto che rallentano
                     [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
                         const dist = Utils.getDistance(this.player, enemy);
-                        if (dist < this.player.stats.radius + 30) {
-                            enemy.takeDamage(weapon.effect.damage / 60, this); // DPS
-                            enemy.slowAmount = weapon.effect.slow;
-                            enemy.slowTimer = weapon.effect.duration / 16; // Converti in frame
+                        if (dist < this.player.stats.radius + 35) {
+                            enemy.takeDamage(damage / 60, this); // DPS
+                            enemy.slowAmount = slow;
+                            enemy.slowTimer = weapon.effect.duration / 16.67; // Converti ms in frame
                         }
                     });
                     break;
@@ -3204,6 +3281,11 @@ class BallSurvivalGame {
                 finalStats.speed *= (1 + stageInfo.difficulty.speed);
             }
             
+            // Applica i bonus degli stage
+            if (stageInfo && stageInfo.effects) {
+                finalStats.xp = Math.floor(finalStats.xp * stageInfo.effects.xpBonus);
+            }
+            
             let eliteChance = 0.05 + Math.min(0.20, this.totalElapsedTime / 600); 
             if (stageInfo && stageInfo.difficulty && stageInfo.difficulty.eliteChance) {
                 eliteChance = stageInfo.difficulty.eliteChance;
@@ -3318,20 +3400,23 @@ class BallSurvivalGame {
     }
     castFireball(now) {
         const s = this.spells.fireball;
-        let burnDamage = s.burnDamage;
+        let burnDamage = s.burnDamage, damage = this.getDamage(s.damage);
         const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.fireball;
-        if (bonuses && bonuses.burnDamage) burnDamage *= bonuses.burnDamage;
+        if (bonuses) {
+            if (bonuses.burnDamage) burnDamage *= bonuses.burnDamage;
+            if (bonuses.damage) damage *= bonuses.damage;
+        }
         const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
-            angle, damage: this.getDamage(s.damage), type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, burnDamage,
+            angle, damage, type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, burnDamage,
             drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 1.5); g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2); ctx.fill(); }
         }));
         return true;
     }
-    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 4), type: 'great_fireball', life: 200, speed: s.speed * 0.5, size: s.size * 3 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; }
-    castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = [...this.entities.enemies, ...this.entities.bosses].filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 1.5)); for(let k=0; k<10; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 30, color: '#ffaa00' })); }, 750); } return true; }
+    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; }
+    castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = [...this.entities.enemies, ...this.entities.bosses].filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 2.5)); for(let k=0; k<15; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 40, color: '#ffaa00' })); }, 750); } return true; }
     castLightning(now) {
         const s = this.spells.lightning;
         let chains = s.chains, area = 1;
@@ -3380,17 +3465,18 @@ class BallSurvivalGame {
     }
     castFrostbolt(now) {
         const s = this.spells.frostbolt;
-        let slow = s.slow, damage = this.getDamage(s.damage);
+        let slow = s.slow, damage = this.getDamage(s.damage), penetration = s.penetration;
         const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.frostbolt;
         if (bonuses) {
             if (bonuses.slow) slow *= bonuses.slow;
             if (bonuses.damage) damage *= bonuses.damage;
+            if (bonuses.penetration) penetration *= bonuses.penetration;
         }
         const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
-            angle, damage, speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration: s.penetration, slow, slowDuration: s.slowDuration,
+            angle, damage, speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration, slow, slowDuration: s.slowDuration,
             drawFunc: (ctx, p) => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6, outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
         }));
         return true;
@@ -3419,21 +3505,22 @@ class BallSurvivalGame {
     }
     castShotgun(now) {
         const s = this.spells.shotgun;
-        let count = s.count, critChance = 0;
+        let count = s.count, critChance = 0, damage = this.getDamage(s.damage);
         const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.shotgun;
         if (bonuses) {
             if (bonuses.count) count += bonuses.count;
             if (bonuses.critChance) critChance = bonuses.critChance;
+            if (bonuses.damage) damage *= bonuses.damage;
         }
         const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
         if (!nearest) return false;
         const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         for (let i = 0; i < count; i++) {
             const offset = (i - (count-1) / 2) * (s.angleSpread / count);
-            let damage = this.getDamage(s.damage);
-            if (critChance && Math.random() < critChance) damage *= 2;
+            let finalDamage = damage;
+            if (critChance && Math.random() < critChance) finalDamage *= 2;
             this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
-                angle: angleBase + offset, damage, speed: 10, life: 30, size: 4 * this.player.modifiers.area, penetration: 1, color: '#ffaa00'
+                angle: angleBase + offset, damage: finalDamage, speed: 10, life: 30, size: 4 * this.player.modifiers.area, penetration: 1, color: '#ffaa00'
             }));
         }
         return true;
@@ -3470,12 +3557,13 @@ class BallSurvivalGame {
         const s = this.spells.shockwave;
         let damage = this.getDamage(s.damage);
         let knockback = s.knockback;
+        let radius = s.radius * this.player.modifiers.area;
         const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.shockwave;
         if (bonuses) {
             if (bonuses.damage) damage *= bonuses.damage;
             if (bonuses.knockback) knockback *= bonuses.knockback;
+            if (bonuses.radius) radius *= bonuses.radius;
         }
-        const radius = s.radius * this.player.modifiers.area;
         for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(damage, this);
@@ -3494,8 +3582,8 @@ class BallSurvivalGame {
         [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(this.getDamage(s.damage), this);
-                const kAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
-                enemy.x += Math.cos(kAngle) * s.knockback * 1.5; enemy.y += Math.sin(kAngle) * s.knockback * 1.5;
+                const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
+                enemy.x += Math.cos(kAngle) * s.knockback * 4.0; enemy.y += Math.sin(kAngle) * s.knockback * 4.0;
             }
         });
         return true;
@@ -3507,8 +3595,8 @@ class BallSurvivalGame {
         [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(this.getDamage(s.damage), this);
-                const kAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
-                enemy.x += Math.cos(kAngle) * s.knockback * 1.5; enemy.y += Math.sin(kAngle) * s.knockback * 1.5;
+                const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
+                enemy.x += Math.cos(kAngle) * s.knockback * 4.0; enemy.y += Math.sin(kAngle) * s.knockback * 4.0;
             }
         });
         return true;
@@ -3694,12 +3782,12 @@ class BallSurvivalGame {
         if(upgrade.type === 'mastery') {
              if (this.spells[baseId]) {
                 this.spells[baseId].mastered = true;
-                if (upgradeId === 'fireball_mastery_giant') { this.spells.fireball.damage += 30; this.spells.fireball.burnDamage += 5; }
-                if (upgradeId === 'fireball_mastery_meteor') { this.spells.fireball.meteorCount++; this.spells.fireball.explosionRadius += 10; }
-                if (upgradeId === 'lightning_mastery_storm') { this.spells.lightning.fieldDuration += 120; this.spells.lightning.fieldTickRate = Math.max(10, this.spells.lightning.fieldTickRate - 5); }
-                if (upgradeId === 'lightning_mastery_spear') { this.spells.lightning.damage *= 1.25; this.spells.lightning.stunChance += 0.1; }
-                if (upgradeId === 'frostbolt_mastery_glacial') { this.spells.frostbolt.auraDps += 3; this.spells.frostbolt.auraSlow += 0.1; }
-                if (upgradeId === 'frostbolt_mastery_comet') { this.spells.frostbolt.leavesIcePatch = true; } 
+                if (upgradeId === 'fireball_mastery_giant') { this.spells.fireball.damage += 50; this.spells.fireball.burnDamage += 10; }
+                if (upgradeId === 'fireball_mastery_meteor') { this.spells.fireball.meteorCount += 2; this.spells.fireball.explosionRadius += 20; }
+                if (upgradeId === 'lightning_mastery_storm') { this.spells.lightning.fieldDuration += 200; this.spells.lightning.fieldTickRate = Math.max(8, this.spells.lightning.fieldTickRate - 8); }
+                if (upgradeId === 'lightning_mastery_spear') { this.spells.lightning.damage *= 1.5; this.spells.lightning.stunChance += 0.2; }
+                if (upgradeId === 'frostbolt_mastery_glacial') { this.spells.frostbolt.auraDps += 8; this.spells.frostbolt.auraSlow += 0.2; }
+                if (upgradeId === 'frostbolt_mastery_comet') { this.spells.frostbolt.leavesIcePatch = true; this.spells.frostbolt.icePatchDamage = 15; } 
              }
             return;
         }
@@ -3736,7 +3824,7 @@ class BallSurvivalGame {
         if (this.totalGems >= 300) unlockedArchetypes.add('magma');
         if (this.totalGems >= 300) unlockedArchetypes.add('frost');
         if (this.totalGems >= 400) unlockedArchetypes.add('shadow');
-        if (this.totalGems >= 500) unlockedArchetypes.add('tech');
+        if (this.totalGems >= 800) unlockedArchetypes.add('tech');
         
         for (const key in CONFIG.characterArchetypes) {
             const archetype = CONFIG.characterArchetypes[key];
@@ -3788,7 +3876,7 @@ class BallSurvivalGame {
         if (this.totalGems >= 300) unlockedArchetypes.add('magma');
         if (this.totalGems >= 300) unlockedArchetypes.add('frost');
         if (this.totalGems >= 400) unlockedArchetypes.add('shadow');
-        if (this.totalGems >= 500) unlockedArchetypes.add('tech');
+        if (this.totalGems >= 800) unlockedArchetypes.add('tech');
         
         if (!unlockedArchetypes.has(archetypeId)) return;
         this.selectedArchetype = archetypeId;
