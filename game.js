@@ -1,8 +1,8 @@
 const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
-        base: { hp: 120, speed: 3, radius: 15, dr: 0 },
-        xpCurve: { base: 10, growth: 1.12, levelFactor: 8, power: 1.0 }
+        base: { hp: 150, speed: 3, radius: 15, dr: 0 },
+        xpCurve: { base: 8, growth: 1.08, levelFactor: 6, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
@@ -143,15 +143,15 @@ const CONFIG = {
         spawnImmunity: 90, 
         scaling: { 
             timeFactor: 10, 
-            hpPerFactor: 12, // Aumentato da 8
-            speedPerFactor: 0.05, // Aumentato da 0.03
-            damagePerFactor: 2.0, // Aumentato da 1.0
-            xpPerFactor: 1.5, // Aumentato da 1
-            xpPowerFactor: 1.08, // Aumentato da 1.05
-            levelFactorMultiplier: 0.8, // Aumentato da 0.7
-            drPerFactor: 0.001 // Aumentato da 0.0007
+            hpPerFactor: 8, // Ridotto da 12
+            speedPerFactor: 0.03, // Ridotto da 0.05
+            damagePerFactor: 1.2, // Ridotto da 2.0
+            xpPerFactor: 1.2, // Ridotto da 1.5
+            xpPowerFactor: 1.05, // Ridotto da 1.08
+            levelFactorMultiplier: 0.7, // Ridotto da 0.8
+            drPerFactor: 0.0005 // Ridotto da 0.001
         },
-        base: { hp: 20, speed: 1.0, radius: 12, damage: 5, xp: 3, dr: 0 } // HP e danno aumentati
+        base: { hp: 20, speed: 1.0, radius: 12, damage: 5, xp: 3, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" }, // 5 min
@@ -427,27 +427,27 @@ const CONFIG = {
     },
     
     upgradeTree: {
-        'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 40.', maxLevel: 10, type: 'passive' },
+        'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 10, type: 'passive' },
         'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
-        'armor': { id: 'armor', name: 'Armatura', desc: 'Aumenta la Riduzione Danno del 2%.', maxLevel: 10, type: 'passive' },
+        'armor': { id: 'armor', name: 'Armatura', desc: 'Aumenta la Riduzione Danno del 3%.', maxLevel: 10, type: 'passive' },
         'attack_speed': { id: 'attack_speed', name: 'Velocità d\'attacco', desc: 'Riduce la ricarica di tutte le abilità del 8%.', maxLevel: 5, type: 'passive' },
         'magicMissile': { id: 'magicMissile', name: 'Proiettile Magico', desc: 'L\'attacco base, non potenziabile.', type: 'active' },
-        'fireball': { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', details: "+5 Danni, +5 Raggio Esplosione", maxLevel: 4 },
+        'fireball': { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', details: "+8 Danni, +8 Raggio Esplosione", maxLevel: 4 },
         'fireball_evolve_giant': { id: 'fireball_evolve_giant', name: 'EVO: Palla di Fuoco Gigante', desc: 'Palla di fuoco lenta ma devastante che trapassa nemici e lascia una scia ardente.', type: 'evolution' },
         'fireball_evolve_meteor': { id: 'fireball_evolve_meteor', name: 'EVO: Pioggia di Meteore', desc: 'Fa piovere meteore dal cielo sui nemici.', type: 'evolution' },
         'fireball_mastery_giant': { id: 'fireball_mastery_giant', name: 'Maestria: Palla Gigante', desc: 'Aumenta i danni della Palla Gigante (+30) e della scia (+5).', type: 'mastery' },
         'fireball_mastery_meteor': { id: 'fireball_mastery_meteor', name: 'Maestria: Pioggia di Meteore', desc: 'Aggiunge una meteora extra e aumenta il raggio d\'impatto.', type: 'mastery' },
-        'lightning': { id: 'lightning', name: 'Fulmine a Catena', desc: 'Un fulmine che rimbalza tra i nemici.', details: "+4 Danni, +1 Rimbalzo", maxLevel: 4 },
+        'lightning': { id: 'lightning', name: 'Fulmine a Catena', desc: 'Un fulmine che rimbalza tra i nemici.', details: "+6 Danni, +1 Rimbalzo", maxLevel: 4 },
         'lightning_evolve_storm': { id: 'lightning_evolve_storm', name: 'EVO: Tempesta di Fulmini', desc: 'Evoca una tempesta stazionaria che colpisce i nemici.', type: 'evolution' },
         'lightning_evolve_spear': { id: 'lightning_evolve_spear', name: 'EVO: Lancia del Fulmine', desc: 'Un potente fulmine che trapassa tutti e può stordire.', type: 'evolution' },
         'lightning_mastery_storm': { id: 'lightning_mastery_storm', name: 'Maestria: Tempesta', desc: 'Aumenta la durata e la frequenza dei fulmini della tempesta.', type: 'mastery' },
         'lightning_mastery_spear': { id: 'lightning_mastery_spear', name: 'Maestria: Lancia', desc: 'Aumenta i danni (+25%) e la probabilità di stordire.', type: 'mastery' },
-        'frostbolt': { id: 'frostbolt', name: 'Dardo di Gelo', desc: 'Un dardo che trapassa e rallenta.', details: "+3 Danni, +1 Perforazione", maxLevel: 4 },
+        'frostbolt': { id: 'frostbolt', name: 'Dardo di Gelo', desc: 'Un dardo che trapassa e rallenta.', details: "+5 Danni, +1 Perforazione", maxLevel: 4 },
         'frostbolt_evolve_glacial': { id: 'frostbolt_evolve_glacial', name: 'EVO: Tormenta Glaciale', desc: 'Crea un\'aura di gelo che danneggia e rallenta i nemici.', type: 'evolution' },
         'frostbolt_evolve_comet': { id: 'frostbolt_evolve_comet', name: 'EVO: Cometa di Ghiaccio', desc: 'Evoca una cometa che esplode, congelando i nemici.', type: 'evolution' },
         'frostbolt_mastery_glacial': { id: 'frostbolt_mastery_glacial', name: 'Maestria: Tormenta', desc: 'Aumenta i danni e l\'effetto di rallentamento dell\'aura.', type: 'mastery' },
         'frostbolt_mastery_comet': { id: 'frostbolt_mastery_comet', name: 'Maestria: Cometa', desc: 'La cometa lascia un\'area di ghiaccio che infligge danni nel tempo.', type: 'mastery' },
-        'shotgun': { id: 'shotgun', name: 'Fucile Arcano', desc: 'Una rosa di proiettili a corto raggio.', details: "+2 Danni, +2 Proiettili", maxLevel: 4 },
+        'shotgun': { id: 'shotgun', name: 'Fucile Arcano', desc: 'Una rosa di proiettili a corto raggio.', details: "+4 Danni, +2 Proiettili", maxLevel: 4 },
         'shotgun_evolve_explosive': { id: 'shotgun_evolve_explosive', name: 'EVO: Raffica Esplosiva', desc: 'I proiettili ora esplodono, infliggendo danni ad area.', type: 'evolution' },
         'shotgun_evolve_cannon': { id: 'shotgun_evolve_cannon', name: 'EVO: Cannone a Rotazione', desc: 'Spara un flusso costante di proiettili in direzioni casuali.', type: 'evolution' },
         'shotgun_mastery_explosive': { id: 'shotgun_mastery_explosive', name: 'Maestria: Raffica Esplosiva', desc: 'Aumenta il raggio delle esplosioni e applica una breve bruciatura.', type: 'mastery' },
@@ -538,7 +538,7 @@ const CONFIG = {
         speed: `<svg class="icon" viewBox="0 0 24 24"><path d="M15.58 11.5l-3.5-3.5a1 1 0 00-1.41 1.41L12.17 11H5a1 1 0 000 2h7.17l-1.5 1.5a1 1 0 101.41 1.41l3.5-3.5c.19-.2.3-.45.3-.71s-.11-.51-.3-.71zM19 3a1 1 0 00-1 1v16a1 1 0 002 0V4a1 1 0 00-1-1z"/></svg>`,
         power: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L9.19 8.63L2 9.24l5.46 4.73L5.82 21L12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>`,
         frequency: `<svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`,
-        area: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 11h2v2H3v-2zm2-2h2v2H5V9zm2-2h2v2H7V7zM3 3h2v2H3V3zm16 0h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm-4 4h2v2h-2v-2zM7 17h2v2H7v-2zm-2 2h2v2H5v-2zm-2-4h2v2H3v-2zm16-4h2v2h-2v-2zM15 5h2v2h-2V5zm-4 0h2v2h-2V5zm-4 0h2v2H7V5zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
+        area: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 11h2v2H3v-2zm2-2h2v2H5V9zm2-2h2v2H7V7zM3 3h2v2H3V3zm16 0h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm-4 4h2v2h-2v-2zM7 17h2v2H7v-2zm-2 2h2v2H5v-2zm-2-4h2v2H3v-2zm16-4h2v2h-2v-2zM15 5h2v2h-2V5zm-4 0h2v2H7V5zm-4 0h2v2H3V5zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
         luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
         xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zm-4-4H3v2h2v-2z"/></svg>`,
         defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
@@ -1998,9 +1998,11 @@ class Enemy extends Entity {
         game.score += Math.floor(this.stats.maxHp);
         game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
         
-        // Drop di gemme
-        if (Math.random() < 0.15 + game.player.modifiers.luck) {
-            game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1 + (Math.random() < game.player.modifiers.luck ? 2 : 0)));
+        // Drop di gemme (aumentato)
+        const gemChance = this.stats.isElite ? 0.8 : (this.isBoss ? 1.0 : 0.3);
+        if (Math.random() < gemChance) {
+            const gemValue = this.stats.isElite ? 3 : (this.isBoss ? 8 : 1);
+            game.addEntity('gemOrbs', new GemOrb(this.x, this.y, gemValue));
         }
         
         // Drop di materiali basato su tipo di nemico
@@ -3803,16 +3805,16 @@ class BallSurvivalGame {
         
         target.level++;
 
-        if (upgrade.id === 'fireball') { target.damage += 5; target.explosionRadius += 5; }
-        else if (upgrade.id === 'lightning') { target.damage += 4; target.chains++; }
-        else if (upgrade.id === 'frostbolt') { target.damage += 3; target.penetration++; }
-        else if (upgrade.id === 'shotgun') { target.damage += 2; target.count += 2; }
+        if (upgrade.id === 'fireball') { target.damage += 8; target.explosionRadius += 8; }
+        else if (upgrade.id === 'lightning') { target.damage += 6; target.chains++; }
+        else if (upgrade.id === 'frostbolt') { target.damage += 5; target.penetration++; }
+        else if (upgrade.id === 'shotgun') { target.damage += 4; target.count += 2; }
         else if (upgrade.id === 'shockwave') { target.damage += 10; target.radius += 15; target.knockback += 5; }
         else if (upgrade.id === 'heal') { target.amount += 10; target.cooldown = Math.max(4000, target.cooldown - 1000); }
         else if (upgrade.id === 'shield') { target.duration += 500; target.cooldown = Math.max(10000, target.cooldown - 1000); }
-        else if (upgrade.id === 'health') { this.player.stats.maxHp += 25; this.player.hp += 25; }
+        else if (upgrade.id === 'health') { this.player.stats.maxHp += 60; this.player.hp += 60; }
         else if (upgrade.id === 'speed') { this.player.stats.speed += 0.4; }
-        else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.02, 1.0); }
+        else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.03, 1.0); }
         else if (upgrade.id === 'attack_speed') { this.player.modifiers.frequency *= 0.92; }
     }
     
