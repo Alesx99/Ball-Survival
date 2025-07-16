@@ -25,7 +25,9 @@
         speedHack: false,
         autoCollect: false,
         showDebugInfo: false,
-        drFixApplied: false
+        drFixApplied: false,
+        slowXP: false,
+        reduceMaterials: false
     };
     
     // ========================================
@@ -352,6 +354,91 @@
             });
             
             log('Tutti i cheat sono stati disattivati!', 'warning');
+        },
+        
+        // SLOW XP - Rallenta la crescita XP
+        toggleSlowXP() {
+            const player = getPlayer();
+            if (!player) {
+                log('Giocatore non trovato!', 'error');
+                return;
+            }
+            
+            CHEAT_CONFIG.slowXP = !CHEAT_CONFIG.slowXP;
+            
+            if (CHEAT_CONFIG.slowXP) {
+                // Salva la funzione originale
+                if (!player._originalGainXP) {
+                    player._originalGainXP = player.gainXP;
+                }
+                
+                // Sostituisci con versione che riduce XP
+                player.gainXP = function(amount) {
+                    const reducedAmount = amount * 0.3; // Riduce XP al 30%
+                    this.xp += reducedAmount * this.modifiers.xpGain;
+                };
+                
+                log('Slow XP ATTIVATO - XP ridotto al 30%!', 'success');
+            } else {
+                // Ripristina funzione originale
+                if (player._originalGainXP) {
+                    player.gainXP = player._originalGainXP;
+                    delete player._originalGainXP;
+                }
+                log('Slow XP DISATTIVATO', 'warning');
+            }
+        },
+        
+        // REDUCE MATERIALS - Riduce drop materiali
+        toggleReduceMaterials() {
+            CHEAT_CONFIG.reduceMaterials = !CHEAT_CONFIG.reduceMaterials;
+            
+            if (CHEAT_CONFIG.reduceMaterials) {
+                log('Reduce Materials ATTIVATO - Drop materiali ridotto!', 'success');
+            } else {
+                log('Reduce Materials DISATTIVATO', 'warning');
+            }
+        },
+        
+        // SHOW XP INFO - Mostra informazioni XP
+        showXPInfo() {
+            const player = getPlayer();
+            if (!player) {
+                log('Giocatore non trovato!', 'error');
+                return;
+            }
+            
+            console.log(`%c[XP INFO]`, 'color: #ff00ff; font-weight: bold;');
+            console.log(`Livello: ${player.level}`);
+            console.log(`XP Attuale: ${player.xp}`);
+            console.log(`XP Necessario: ${player.xpNext}`);
+            console.log(`Progresso: ${((player.xp / player.xpNext) * 100).toFixed(1)}%`);
+            console.log(`Modificatore XP: ${player.modifiers.xpGain.toFixed(2)}x`);
+        },
+        
+        // SET XP CURVE - Modifica curva XP
+        setXPCurve(base = 15, growth = 1.2, levelFactor = 12) {
+            const game = getGame();
+            if (!game) {
+                log('Gioco non trovato!', 'error');
+                return;
+            }
+            
+            // Modifica la configurazione XP
+            CONFIG.player.xpCurve.base = base;
+            CONFIG.player.xpCurve.growth = growth;
+            CONFIG.player.xpCurve.levelFactor = levelFactor;
+            
+            // Ricalcola XP necessario per il livello corrente
+            const player = getPlayer();
+            if (player) {
+                const c = CONFIG.player.xpCurve;
+                const baseXP = c.base * Math.pow(c.growth, player.level - 1);
+                const levelXP = c.levelFactor * player.level;
+                player.xpNext = Math.max(1, Math.floor(baseXP + levelXP));
+            }
+            
+            log(`Curva XP modificata: base=${base}, growth=${growth}, levelFactor=${levelFactor}`, 'success');
         }
     };
     
@@ -438,6 +525,55 @@
     }
     
     // ========================================
+    // REDUCE MATERIALS PATCH
+    // ========================================
+    
+    function patchReduceMaterials() {
+        if (!CHEAT_CONFIG.reduceMaterials) return;
+        
+        const game = getGame();
+        if (!game) return;
+        
+        // Intercetta la funzione dropMaterials degli enemy
+        const enemies = [...game.entities.enemies, ...game.entities.bosses];
+        enemies.forEach(enemy => {
+            if (enemy.dropMaterials && !enemy._originalDropMaterials) {
+                enemy._originalDropMaterials = enemy.dropMaterials;
+                enemy.dropMaterials = function(game) {
+                    // Riduce le probabilità di drop al 40%
+                    const originalDropChance = 0.4;
+                    
+                    const enemyType = this.isElite ? 'elite' : (this.isBoss ? 'boss' : 'normal');
+                    
+                    // Ottieni i bonus dello stage corrente
+                    const stageInfo = CONFIG.stages[game.currentStage];
+                    const dropBonus = stageInfo && stageInfo.effects ? stageInfo.effects.dropBonus : 1.0;
+                    
+                    // Drop di materiali per core (ridotto)
+                    for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
+                        if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
+                            const dropChance = material.dropChance * originalDropChance * (1 + game.player.modifiers.luck) * dropBonus;
+                            if (Math.random() < dropChance) {
+                                game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                            }
+                        }
+                    }
+                    
+                    // Drop di materiali per armi (ridotto)
+                    for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
+                        if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
+                            const dropChance = material.dropChance * originalDropChance * (1 + game.player.modifiers.luck) * dropBonus;
+                            if (Math.random() < dropChance) {
+                                game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                            }
+                        }
+                    }
+                };
+            }
+        });
+    }
+    
+    // ========================================
     // INTERFACE
     // ========================================
     
@@ -463,9 +599,16 @@
 ║  • cheat.fixDR()             - Corregge DR Eccessivo        ║
 ║  • cheat.reset()             - Disattiva Tutti i Cheat      ║
 ║                                                              ║
+║  NUOVE FUNZIONI PER BILANCIAMENTO:                          ║
+║  • cheat.slowXP()            - Rallenta Crescita XP (30%)   ║
+║  • cheat.reduceMaterials()   - Riduce Drop Materiali        ║
+║  • cheat.showXPInfo()        - Mostra Info XP               ║
+║  • cheat.setXPCurve(15,1.2,12) - Modifica Curva XP         ║
+║                                                              ║
 ║  ESEMPI:                                                     ║
 ║  • cheat.addGems(5000)       - Aggiungi 5000 gemme          ║
 ║  • cheat.addMaterials('iron', 50) - 50 frammenti ferro      ║
+║  • cheat.setXPCurve(20,1.3,15) - Curva XP più difficile    ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
         `, 'color: #00ffff; font-family: monospace;');
@@ -491,6 +634,10 @@
             debugInfo: () => Cheats.toggleDebugInfo(),
             fixDR: () => Cheats.fixDR(),
             reset: () => Cheats.resetCheats(),
+            slowXP: () => Cheats.toggleSlowXP(),
+            reduceMaterials: () => Cheats.toggleReduceMaterials(),
+            showXPInfo: () => Cheats.showXPInfo(),
+            setXPCurve: (base, growth, levelFactor) => Cheats.setXPCurve(base, growth, levelFactor),
             menu: () => showCheatMenu(),
             status: () => console.log('Cheat Status:', CHEAT_CONFIG),
             debug: () => {
@@ -518,6 +665,13 @@
                 startAutoCollectLoop();
             }
         }, 100);
+        
+        // Avvia loop per reduce materials
+        setInterval(() => {
+            if (CHEAT_CONFIG.reduceMaterials) {
+                patchReduceMaterials();
+            }
+        }, 500);
         
         // Applica automaticamente il fix DR
         setInterval(() => {
