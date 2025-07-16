@@ -2,7 +2,7 @@ const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
         base: { hp: 150, speed: 3, radius: 15, dr: 0 },
-        xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
+        xpCurve: { base: 25, growth: 1.35, levelFactor: 25, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
@@ -284,20 +284,20 @@ const CONFIG = {
     materials: {
         // Materiali per Core (rivestimenti della sfera)
         coreMaterials: {
-            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.20, enemyTypes: ['all'] },
-            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.12, enemyTypes: ['elite', 'boss'] },
-            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.08, enemyTypes: ['boss'] },
-            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.06, enemyTypes: ['boss', 'elite'] },
-            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.03, enemyTypes: ['boss'] }
+            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.08, enemyTypes: ['all'] },
+            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.04, enemyTypes: ['elite', 'boss'] },
+            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.02, enemyTypes: ['elite', 'boss'] },
+            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.01, enemyTypes: ['boss', 'elite'] },
+            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.005, enemyTypes: ['boss'] }
         },
         
         // Materiali per Armi (esterne)
         weaponMaterials: {
-            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.18, enemyTypes: ['all'] },
-            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.16, enemyTypes: ['all'] },
-            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.10, enemyTypes: ['elite', 'boss'] },
-            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.08, enemyTypes: ['boss'] },
-            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.05, enemyTypes: ['boss'] }
+            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.06, enemyTypes: ['all'] },
+            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.05, enemyTypes: ['all'] },
+            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.03, enemyTypes: ['elite', 'boss'] },
+            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.015, enemyTypes: ['elite', 'boss'] },
+            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.008, enemyTypes: ['boss'] }
         }
     },
     
@@ -2020,10 +2020,13 @@ class Enemy extends Entity {
         const stageInfo = CONFIG.stages[game.currentStage];
         const dropBonus = stageInfo && stageInfo.effects ? stageInfo.effects.dropBonus : 1.0;
         
+        // Bonus speciale per elite e boss (garantisce drop rari)
+        const eliteBonus = this.isElite ? 1.5 : (this.isBoss ? 2.0 : 1.0);
+        
         // Drop di materiali per core
         for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
             if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
-                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus;
+                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
                 if (Math.random() < dropChance) {
                     game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
                 }
@@ -2033,7 +2036,7 @@ class Enemy extends Entity {
         // Drop di materiali per armi
         for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
             if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
-                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus;
+                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
                 if (Math.random() < dropChance) {
                     game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
                 }

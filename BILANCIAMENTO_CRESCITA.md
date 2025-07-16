@@ -5,115 +5,59 @@ Il personaggio cresceva troppo velocemente e la raccolta di materiali era troppo
 
 ## Modifiche Implementate
 
-### 1. **Curva XP Modificata**
+### 1. **Curva XP Drasticamente Rallentata**
 **Prima:**
-```javascript
-xpCurve: { base: 8, growth: 1.08, levelFactor: 6, power: 1.0 }
-```
-
-**Dopo:**
 ```javascript
 xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
 ```
 
-**Effetti:**
-- **Base XP**: Aumentato da 8 a 12 (+50%)
-- **Growth**: Aumentato da 1.08 a 1.15 (+6.5%)
-- **Level Factor**: Aumentato da 6 a 10 (+67%)
-
-Questo rende la crescita **circa 2-3 volte più lenta** rispetto alla versione precedente.
-
-### 2. **Drop Rate Materiali Ridotto**
-
-**Materiali Core:**
-- Iron Fragment: 35% → 20% (-43%)
-- Steel Fragment: 25% → 12% (-52%)
-- Crystal Fragment: 18% → 8% (-56%)
-- Magma Fragment: 15% → 6% (-60%)
-- Void Fragment: 8% → 3% (-63%)
-
-**Materiali Armi:**
-- Wood Fragment: 30% → 18% (-40%)
-- Stone Fragment: 28% → 16% (-43%)
-- Metal Fragment: 20% → 10% (-50%)
-- Energy Fragment: 15% → 8% (-47%)
-- Cosmic Fragment: 12% → 5% (-58%)
-
-### 3. **Nuove Funzioni Cheat per Test**
-
-#### `cheat.slowXP()`
-- Rallenta ulteriormente la crescita XP al 30%
-- Utile per testare progressioni molto lente
-
-#### `cheat.reduceMaterials()`
-- Riduce ulteriormente i drop di materiali al 40%
-- Utile per testare economie più scarse
-
-#### `cheat.showXPInfo()`
-- Mostra informazioni dettagliate su XP e progressione
-- Utile per monitorare la crescita
-
-#### `cheat.setXPCurve(base, growth, levelFactor)`
-- Permette di modificare dinamicamente la curva XP
-- Esempi:
-  - `cheat.setXPCurve(15, 1.2, 12)` - Curva moderata
-  - `cheat.setXPCurve(20, 1.3, 15)` - Curva difficile
-  - `cheat.setXPCurve(10, 1.1, 8)` - Curva facile
-
-## Confronto Crescita
-
-### Livello 1 → 2
-**Prima:** 8 XP
-**Dopo:** 12 XP (+50%)
-
-### Livello 5 → 6
-**Prima:** ~15 XP
-**Dopo:** ~35 XP (+133%)
-
-### Livello 10 → 11
-**Prima:** ~25 XP
-**Dopo:** ~75 XP (+200%)
-
-## Impatto sul Gameplay
-
-### ✅ **Vantaggi:**
-1. **Progressione più soddisfacente** - Ogni livello ha più valore
-2. **Maggiore sfida** - Il gioco rimane difficile più a lungo
-3. **Economia più bilanciata** - I materiali sono più preziosi
-4. **Maggiore longevità** - Più tempo per completare il gioco
-
-### ⚠️ **Considerazioni:**
-1. **Progressione più lenta** - Potrebbe frustrare alcuni giocatori
-2. **Materiali più rari** - Potrebbe rendere il crafting più difficile
-3. **Bilanciamento necessario** - Potrebbero servire ulteriori aggiustamenti
-
-## Comandi per Test
-
+**Dopo:**
 ```javascript
-// Attiva modalità test lenta
-cheat.slowXP()
-cheat.reduceMaterials()
-
-// Mostra informazioni
-cheat.showXPInfo()
-
-// Modifica curva XP
-cheat.setXPCurve(15, 1.2, 12)
-
-// Menu completo
-cheat.menu()
+xpCurve: { base: 25, growth: 1.35, levelFactor: 25, power: 1.0 }
 ```
 
-## Prossimi Passi
+**Effetti:**
+- **Base XP**: Aumentato da 12 a 25 (+108%)
+- **Growth**: Aumentato da 1.15 a 1.35 (+17%)
+- **Level Factor**: Aumentato da 10 a 25 (+150%)
 
-1. **Monitorare il feedback** dei giocatori
-2. **Aggiustare ulteriormente** se necessario
-3. **Considerare curve diverse** per diversi livelli di difficoltà
-4. **Bilanciare i materiali** in base alla nuova progressione
+Questo rende la crescita **circa 4-5 volte più lenta** rispetto alla versione precedente!
+
+### 2. **Drop Rate Materiali Drasticamente Ridotto**
+
+**Materiali Core:**
+- Iron Fragment: 20% → 8% (-60%)
+- Steel Fragment: 12% → 4% (-67%)
+- Crystal Fragment: 8% → 2% (-75%)
+- Magma Fragment: 6% → 1% (-83%)
+- Void Fragment: 3% → 0.5% (-83%)
+
+**Materiali Armi:**
+- Wood Fragment: 18% → 6% (-67%)
+- Stone Fragment: 16% → 5% (-69%)
+- Metal Fragment: 10% → 3% (-70%)
+- Energy Fragment: 8% → 1.5% (-81%)
+- Cosmic Fragment: 5% → 0.8% (-84%)
+
+### 3. **Bonus Elite/Boss per Materiali Rari**
+- **Elite**: +50% drop rate per materiali rari
+- **Boss**: +100% drop rate per materiali rari
+- **Crystal/Energy**: Ora droppano anche da elite (non solo boss)
+
+### 4. **Risultati Attesi**
+- **Livellamento**: 4-5 volte più lento
+- **Materiali**: 60-84% meno abbondanti
+- **Materiali Rari**: Più accessibili da elite, ma comunque rari
+- **Progressione**: Molto più graduale e soddisfacente
+
+## Test e Verifica
+Per testare le modifiche:
+1. Avvia una nuova partita
+2. Verifica che il livellamento sia molto più lento
+3. Controlla che i materiali siano molto più rari
+4. Verifica che i materiali rari droppino anche dagli elite
 
 ## Note Tecniche
-
-- Le modifiche sono applicate in `game.js` nella configurazione CONFIG
-- Le funzioni cheat sono in `cheat_script.js`
-- Tutte le modifiche sono retrocompatibili
-- È possibile tornare ai valori originali usando i cheat 
+- Tutte le modifiche sono implementate direttamente nel gioco
+- Non richiedono cheat per funzionare
+- Compatibili con il sistema di salvataggio esistente 
