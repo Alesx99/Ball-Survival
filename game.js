@@ -2,7 +2,7 @@ const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
         base: { hp: 150, speed: 3, radius: 15, dr: 0 },
-        xpCurve: { base: 25, growth: 1.35, levelFactor: 25, power: 1.0 }
+        xpCurve: { base: 18, growth: 1.25, levelFactor: 18, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
@@ -139,19 +139,19 @@ const CONFIG = {
         }
     },
     enemies: {
-        spawnInterval: 0.35, 
-        spawnImmunity: 90, 
+        spawnInterval: 0.25, 
+        spawnImmunity: 60, 
         scaling: { 
-            timeFactor: 10, 
-            hpPerFactor: 8, // Ridotto da 12
-            speedPerFactor: 0.03, // Ridotto da 0.05
-            damagePerFactor: 1.2, // Ridotto da 2.0
-            xpPerFactor: 1.2, // Ridotto da 1.5
-            xpPowerFactor: 1.05, // Ridotto da 1.08
-            levelFactorMultiplier: 0.7, // Ridotto da 0.8
-            drPerFactor: 0.0005 // Ridotto da 0.001
+            timeFactor: 8, 
+            hpPerFactor: 10, // Aumentato da 8
+            speedPerFactor: 0.04, // Aumentato da 0.03
+            damagePerFactor: 1.4, // Aumentato da 1.2
+            xpPerFactor: 1.3, // Aumentato da 1.2
+            xpPowerFactor: 1.06, // Aumentato da 1.05
+            levelFactorMultiplier: 0.8, // Aumentato da 0.7
+            drPerFactor: 0.0008 // Aumentato da 0.0005
         },
-        base: { hp: 20, speed: 1.0, radius: 12, damage: 5, xp: 3, dr: 0 }
+        base: { hp: 25, speed: 1.2, radius: 12, damage: 7, xp: 4, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" }, // 5 min
@@ -174,7 +174,7 @@ const CONFIG = {
                 eliteColor: '#c0392b',
                 shape: 'circle'
             },
-            difficulty: { dr: 0, speed: 0, eliteChance: 0.05 },
+            difficulty: { dr: 0, speed: 0, eliteChance: 0.08 },
             message: "Benvenuto nella Pianura Eterna!",
             effects: {
                 xpBonus: 1.0, // Nessun bonus
@@ -284,20 +284,19 @@ const CONFIG = {
     materials: {
         // Materiali per Core (rivestimenti della sfera)
         coreMaterials: {
-            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.08, enemyTypes: ['all'] },
-            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.04, enemyTypes: ['elite', 'boss'] },
-            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.02, enemyTypes: ['elite', 'boss'] },
-            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.01, enemyTypes: ['boss', 'elite'] },
-            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.005, enemyTypes: ['boss'] }
+            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.0525, enemyTypes: ['all'] }, // 0.05 + 5%
+            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.02625, enemyTypes: ['elite', 'boss'] }, // 0.025 + 5%
+            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.0189, enemyTypes: ['elite', 'boss'] }, // 0.018 + 5%
+            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.0126, enemyTypes: ['boss', 'elite'] }, // 0.012 + 5%
+            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.0063, enemyTypes: ['boss'] } // 0.006 + 5%
         },
-        
         // Materiali per Armi (esterne)
         weaponMaterials: {
-            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.06, enemyTypes: ['all'] },
-            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.05, enemyTypes: ['all'] },
-            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.03, enemyTypes: ['elite', 'boss'] },
-            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.015, enemyTypes: ['elite', 'boss'] },
-            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.008, enemyTypes: ['boss'] }
+            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.042, enemyTypes: ['all'] }, // 0.04 + 5%
+            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.0315, enemyTypes: ['all'] }, // 0.03 + 5%
+            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.02625, enemyTypes: ['elite', 'boss'] }, // 0.025 + 5%
+            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.01575, enemyTypes: ['elite', 'boss'] }, // 0.015 + 5%
+            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.00945, enemyTypes: ['boss'] } // 0.009 + 5%
         }
     },
     
@@ -540,7 +539,7 @@ const CONFIG = {
         frequency: `<svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`,
         area: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 11h2v2H3v-2zm2-2h2v2H5V9zm2-2h2v2H7V7zM3 3h2v2H3V3zm16 0h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm-4 4h2v2h-2v-2zM7 17h2v2H7v-2zm-2 2h2v2H5v-2zm-2-4h2v2H3v-2zm16-4h2v2h-2v-2zM15 5h2v2h-2V5zm-4 0h2v2H7V5zm-4 0h2v2H3V5zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
         luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
-        xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zM7 8V6H5v2h2zm12-4h-2v2h2V4zm-2 14h-2v2h2v-2zm-4 0h-2v2h2v-2zm-4 0H7v2h2v-2zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
+        xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zm-4 0h2v2H5v-2zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
         defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
     }
 };
@@ -1899,7 +1898,6 @@ class Player extends Entity {
     drawVoidBlade(ctx) {
         // Lame del vuoto
         const time = Date.now() / 1000;
-        const radius = this.stats.radius + 18;
         
         ctx.save();
         ctx.strokeStyle = '#8A2BE2';
@@ -2023,10 +2021,28 @@ class Enemy extends Entity {
         // Bonus speciale per elite e boss (garantisce drop rari)
         const eliteBonus = this.isElite ? 1.5 : (this.isBoss ? 2.0 : 1.0);
         
+        // Tempo di gioco in secondi
+        const gameTime = game.gameTime || 0;
+        // Soglie di sblocco (in secondi)
+        const rareUnlockTime = 60; // 1 minuto
+        const epicUnlockTime = 180; // 3 minuti
+        const legendaryUnlockTime = 300; // 5 minuti
+        
         // Drop di materiali per core
         for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
-            if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
-                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
+            let canDrop = material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType);
+            // Permetti drop rari da nemici normali dopo tempo specifico
+            if (enemyType === 'normal') {
+                if (material.rarity === 'rare' && gameTime >= rareUnlockTime) canDrop = true;
+                if (material.rarity === 'epic' && gameTime >= epicUnlockTime) canDrop = true;
+                if (material.rarity === 'legendary' && gameTime >= legendaryUnlockTime) canDrop = true;
+            }
+            if (canDrop) {
+                let dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
+                // Riduci drasticamente le chance per materiali rari da nemici normali
+                if (enemyType === 'normal' && material.rarity !== 'common') {
+                    dropChance *= 0.1; // 90% riduzione per rari da nemici normali
+                }
                 if (Math.random() < dropChance) {
                     game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
                 }
@@ -2035,8 +2051,18 @@ class Enemy extends Entity {
         
         // Drop di materiali per armi
         for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
-            if (material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType)) {
-                const dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
+            let canDrop = material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType);
+            // Permetti drop rari da nemici normali dopo tempo specifico
+            if (enemyType === 'normal') {
+                if (material.rarity === 'rare' && gameTime >= rareUnlockTime) canDrop = true;
+                if (material.rarity === 'epic' && gameTime >= epicUnlockTime) canDrop = true;
+            }
+            if (canDrop) {
+                let dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
+                // Riduci drasticamente le chance per materiali rari da nemici normali
+                if (enemyType === 'normal' && material.rarity !== 'common') {
+                    dropChance *= 0.1; // 90% riduzione per rari da nemici normali
+                }
                 if (Math.random() < dropChance) {
                     game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
                 }
@@ -4530,7 +4556,7 @@ class BallSurvivalGame {
         } 
     }
     handleInteractionKey() { 
-        if (this.menuCooldown > 0 || this.state !== 'running') {
+        if (this.menuCooldown > 0 || this.state !== 'running') { 
             return; 
         }
         
