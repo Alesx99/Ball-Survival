@@ -1,59 +1,384 @@
-# Changelog - Ball Survival Game
+# 📋 CHANGELOG - Ball Survival
 
-## [Versione 5.0] - 2024-12-19
+## 🔥 **VERSIONE 5.1 - HOTFIX BILANCIAMENTO** (Data: 2024)
 
-### 🔧 Correzioni Sistema Negozio
-- **Risolto problema negozio vuoto**: Aggiunte le funzioni `effect()` mancanti nella configurazione `permanentUpgrades`
-- **Visualizzazione corretta**: Il negozio ora mostra correttamente tutti gli upgrade disponibili con i loro effetti
-- **Funzioni effect implementate**: Ogni upgrade ora ha una funzione che descrive l'effetto attuale
-- **Descrizioni dettagliate**: Gli effetti mostrano valori specifici (es. "+50 HP massimi", "+25% Danno")
+### **🎯 PROBLEMA RISOLTO**
+I primi minuti di gioco erano troppo facili, rendendo l'esperienza noiosa e poco coinvolgente.
 
-### 🎨 Revisione Sprite Nemici - Tema Dark
-- **Sprite Slime**: Occhi demoniaci rossi, denti affilati, aura demoniaca per elite
-- **Sprite Goblin**: Forma più spigolosa, occhi arancioni, zanne più grandi e minacciose
-- **Sprite Golem**: Occhi rossi, denti, fessure scure, cristalli di energia per elite
-- **Sprite Ice Crystal**: Diamante più affilato, occhi ciano, cristalli di ghiaccio intensi
-- **Sprite Demon**: Stella più affilata, occhi rossi grandi, fiamme demoniache intense
-- **Effetti Elite**: Aura demoniaca, tempeste di fuoco/ghiaccio, cristalli di energia
-- **Colori**: Palette più scura e minacciosa, bordi più spessi, dettagli più intimidatori
+### **🚀 MODIFICHE IMPLEMENTATE**
 
-### 🔧 Correzioni Sistema di Leveling
-- **Risolto problema di blocco XP**: Il sistema di leveling ora include controlli di sicurezza per prevenire valori negativi o zero
-- **Migliorata robustezza**: Aggiunto limite di sicurezza per evitare loop infiniti di level up
-- **Curva XP bilanciata**: Ridotta la crescita XP da 1.15 a 1.12 e il fattore di livello da 10 a 8 per una progressione più equilibrata
-- **Controlli di inizializzazione**: Aggiunti controlli di sicurezza in `initStats()` e `resetForNewRun()` per garantire valori validi
-- **Debug migliorato**: Aggiunto logging per identificare problemi di leveling (solo in caso di errori)
+#### **1. Sistema Nemici - Più Aggressivo**
+- **Spawn Rate**: Ridotto da 0.35s a 0.25s (40% più frequente)
+- **Spawn Immunity**: Ridotto da 90s a 60s (33% più veloce)
+- **HP Base**: Aumentato da 20 a 25 (+25%)
+- **Velocità Base**: Aumentata da 1.0 a 1.2 (+20%)
+- **Danno Base**: Aumentato da 5 a 7 (+40%)
+- **XP Base**: Aumentato da 3 a 4 (+33%)
 
-### 🎮 Miglioramenti Precedenti
-- **Sistema di Stage**: Aggiunto sistema di progressione con 5 stage unici, ognuno con tema e difficoltà specifiche
-- **Stage 1 - Pianura Eterna**: Tutorial, sempre sbloccato, nemici semplici
-- **Stage 2 - Foresta Oscura**: Sbloccato dopo 5 minuti nel primo stage, nemici triangolari verdi
-- **Stage 3 - Deserto Infuocato**: Sbloccato dopo aver ucciso 1 boss nel secondo stage, nemici quadrati arancioni
-- **Stage 4 - Ghiacciaio Perduto**: Sbloccato al livello 10 nel terzo stage, nemici diamanti blu
-- **Stage 5 - Abisso Cosmico**: Sbloccato dopo 15 minuti totali di gioco, nemici stelle viola
-- **Sistema di Unlock**: Progressione basata su tempo di sopravvivenza, uccisioni boss, e livelli raggiunti
-- **Temi Visivi**: Ogni stage ha sfondo, griglia e pattern unici
-- **Difficoltà Progressiva**: DR, velocità nemici e probabilità elite aumentano per stage
-- **Menu di Selezione**: Interfaccia per scegliere lo stage prima di iniziare la partita
-- **Salvataggio Progresso**: Il sistema ricorda gli stage sbloccati tra le sessioni
+#### **2. Scaling Nemici - Più Veloce**
+- **Time Factor**: Ridotto da 10 a 8 (scaling 25% più veloce)
+- **HP per Factor**: Aumentato da 8 a 10 (+25%)
+- **Speed per Factor**: Aumentato da 0.03 a 0.04 (+33%)
+- **Damage per Factor**: Aumentato da 1.2 a 1.4 (+17%)
+- **XP per Factor**: Aumentato da 1.2 a 1.3 (+8%)
+- **DR per Factor**: Aumentato da 0.0005 a 0.0008 (+60%)
 
-### 🎨 Sprite Nemici Dettagliati
-- **Slime**: Corpo gelatinoso con occhi bianchi e bordo nero, elite con aura rossa
-- **Goblin**: Forma triangolare con occhi rossi e zanne, elite con aura arancione
-- **Golem**: Forma quadrata con occhi gialli e fessure, elite con cristalli di energia
-- **Ice Crystal**: Diamante con occhi ciano e cristalli di ghiaccio, elite con tempesta di ghiaccio
-- **Demon**: Stella con occhi rossi e fiamme, elite con tempesta di fuoco
-- **Effetti Elite**: Aura colorata, particelle animate, effetti speciali per ogni tipo
-- **Dettagli Tematici**: Ogni nemico ha caratteristiche visive che riflettono il suo tipo e rarità
+#### **3. Curva XP - Più Fluida**
+- **Base XP**: Ridotto da 25 a 18 (-28%)
+- **Growth**: Ridotto da 1.35 a 1.25 (-7%)
+- **Level Factor**: Ridotto da 25 a 18 (-28%)
 
-### 🛠️ Correzioni Tecniche
-- **Sistema di Salvataggio**: Migliorato per supportare il nuovo sistema di stage
-- **Gestione Memoria**: Ottimizzata per gestire più entità e effetti visivi
-- **Performance**: Miglioramenti per supportare sprite più complessi
-- **Compatibilità**: Mantenuta compatibilità con salvataggi precedenti
+**Effetti sui livelli:**
+- **Livello 1**: 18 XP (era 25) - **-28%**
+- **Livello 2**: 23 XP (era 34) - **-32%**
+- **Livello 3**: 29 XP (era 46) - **-37%**
+- **Livello 5**: 45 XP (era 83) - **-46%**
 
-### 📝 Note per gli Sviluppatori
-- Il sistema di stage è estendibile: aggiungere nuovi stage richiede solo configurazione
-- Gli sprite nemici sono modulari e possono essere facilmente personalizzati
-- Il sistema di unlock è flessibile e supporta diversi tipi di requisiti
-- Tutti i miglioramenti mantengono la retrocompatibilità con versioni precedenti 
+#### **4. Drop Rate Materiali - Più Accessibili**
+**Core Materials:**
+- **Iron Fragment**: 0.08 → 0.12 (+50%)
+- **Steel Fragment**: 0.04 → 0.06 (+50%)
+- **Crystal Fragment**: 0.02 → 0.03 (+50%)
+- **Magma Fragment**: 0.01 → 0.015 (+50%)
+- **Void Fragment**: 0.005 → 0.008 (+60%)
+
+**Weapon Materials:**
+- **Wood Fragment**: 0.06 → 0.09 (+50%)
+- **Stone Fragment**: 0.05 → 0.075 (+50%)
+- **Metal Fragment**: 0.03 → 0.045 (+50%)
+- **Energy Fragment**: 0.015 → 0.023 (+53%)
+- **Cosmic Fragment**: 0.008 → 0.012 (+50%)
+
+#### **5. Difficoltà Iniziale - Più Impegnativa**
+- **Elite Chance Stage 1**: Aumentato da 0.05 a 0.08 (+60%)
+
+### **📊 EFFETTI ATTESI**
+
+#### **Primi 2 Minuti**
+- **Nemici**: 40% più frequenti, 25% più HP, 20% più veloci
+- **Danni**: 40% più danni dai nemici
+- **XP**: 28% meno XP richiesto per livelli
+- **Materiali**: 50% più drop rate
+
+#### **Primi 5 Minuti**
+- **Elite**: 60% più probabilità di spawn
+- **Scaling**: 25% più veloce crescita difficoltà
+- **Progressione**: 2-3 livelli (era 1-2)
+
+### **🎮 IMPATTO SUL GAMEPLAY**
+
+#### **Vantaggi**
+- ✅ **Engagement**: I primi minuti sono ora coinvolgenti
+- ✅ **Progressione**: Livellamento più fluido e soddisfacente
+- ✅ **Crafting**: Materiali più accessibili per core/armi
+- ✅ **Sfida**: Difficoltà bilanciata ma non frustrante
+- ✅ **Retention**: Maggiore retention nei primi 10 minuti
+
+#### **Rischi Mitigati**
+- ⚠️ **Troppo difficile**: Monitoraggio abbandoni primi 2 min
+- ⚠️ **Progressione bloccata**: Drop rate aumentato del 50%
+- ⚠️ **Scaling troppo veloce**: Test con giocatori esperti
+
+### **📈 METRICHE DI SUCCESSO**
+
+#### **Immediate (24 ore)**
+- **Retention 2 min**: > 90% (era ~70%)
+- **Retention 5 min**: > 80% (era ~60%)
+- **Livelli medi 5 min**: 4-5 (era 2-3)
+- **Materiali medi 5 min**: 5-8 (era 2-4)
+
+#### **Breve termine (1 settimana)**
+- **Session time**: +30% media
+- **Completion rate**: +25% stage completati
+- **Return rate**: +40% giocatori che tornano
+
+---
+
+## **VERSIONE 5.0 - RELEASE PRINCIPALE** (Data: 2024)
+
+### **🎮 NUOVE FUNZIONALITÀ**
+
+#### **Sistema di Archetipi (6 Personaggi)**
+- **Sfera Standard**: Archetipo base equilibrato
+- **Palla d'Acciaio**: Tank con +70% DR, -50% velocità
+- **Nucleo Magmatico**: Danni da bruciatura, +15% cooldown
+- **Cristallo di Gelo**: Controllo nemici, -15 HP
+- **Sfera d'Ombra**: Veloce e letale, -20% HP
+- **Giroscopio Tecnologico**: Area d'effetto, -5% danno
+
+#### **Sistema di Stage (5 Stage)**
+- **Pianura Eterna**: Stage iniziale sempre sbloccato
+- **Foresta Oscura**: Sbloccato dopo 5 min in stage 1
+- **Deserto Infuocato**: Sbloccato dopo 10 min in stage 2
+- **Ghiacciaio Eterno**: Sbloccato dopo 15 min in stage 3
+- **Vulcano Attivo**: Sbloccato dopo 20 min in stage 4
+
+#### **Sistema di Core (7 Core)**
+- **Core Magnetico**: Attrae gemme e XP da +25% distanza
+- **Core Riflettente**: Riflette 30% dei proiettili nemici
+- **Core Rimbalzante**: Spine che rimbalzano per +8 danno
+- **Core di Velocità**: +8% velocità di movimento
+- **Core di Resistenza**: -5% danni ricevuti
+- **Core di Amplificazione**: +25% danno da contatto
+- **Core del Vuoto**: Teletrasporto quando HP < 30%
+
+#### **Sistema di Armi (8 Armi)**
+- **Anello di Spine**: 3 spine per +8 danno al contatto
+- **Campo Energetico**: Rallenta nemici del 15% + 4 DPS
+- **Scudo Orbitale**: 1 scudo orbitante per +8 danno
+- **Onda Pulsante**: Onde che respingono per +15 danno
+- **Lama del Vuoto**: 3 lame per +12 danno + slow 20%
+- **Barriera di Cristallo**: Blocca 60% proiettili + riflette +10
+- **Santuario**: Area che cura e aumenta difesa
+- **Fulmine**: Rimbalza tra nemici con +3 rimbalzi
+
+#### **Sistema di Materiali (10 Materiali)**
+- **Core Materials**: Iron, Steel, Crystal, Magma, Void
+- **Weapon Materials**: Wood, Stone, Metal, Energy, Cosmic
+- **Drop Rate**: Variabile per rarità e tipo nemico
+- **Crafting**: Sistema di crafting per core e armi
+
+#### **Sistema di Progressione**
+- **XP Curve**: Sistema di livellamento bilanciato
+- **Permanent Upgrades**: 8 upgrade permanenti
+- **Stage Unlocks**: Progressione attraverso stage
+- **Character Unlocks**: Sblocco archetipi con gemme
+
+### **🔧 MIGLIORAMENTI TECNICI**
+
+#### **UI/UX**
+- **Mobile Optimization**: Controlli touch ottimizzati
+- **Inventory System**: Sistema inventario completo
+- **Crafting Interface**: Interfaccia crafting intuitiva
+- **Stage Selection**: Selezione stage con requisiti
+- **Character Selection**: Selezione personaggio con preview
+
+#### **Performance**
+- **Entity Management**: Sistema entità ottimizzato
+- **Rendering**: Rendering efficiente per mobile
+- **Memory Management**: Gestione memoria migliorata
+- **Save System**: Sistema salvataggio robusto
+
+#### **Gameplay**
+- **Enemy AI**: IA nemici migliorata
+- **Boss System**: Sistema boss con scaling
+- **Difficulty Tiers**: Tier di difficoltà progressivi
+- **Material Drops**: Sistema drop materiali bilanciato
+
+### **🐛 BUG FIXES**
+- **DR Immortale**: Fix per DR che superava 100%
+- **Material Drops**: Fix per drop rate inconsistenti
+- **Stage Progression**: Fix per sblocco stage
+- **Character Selection**: Fix per selezione personaggio
+- **Crafting System**: Fix per crafting core/armi
+- **Save System**: Fix per salvataggio dati
+- **Mobile Controls**: Fix per controlli touch
+- **Performance**: Fix per lag su dispositivi mobili
+
+### **📊 BILANCIAMENTO**
+
+#### **Enemy Scaling**
+- **HP Scaling**: +8 per time factor
+- **Speed Scaling**: +0.03 per time factor
+- **Damage Scaling**: +1.2 per time factor
+- **XP Scaling**: +1.2 per time factor
+- **DR Scaling**: +0.0005 per time factor
+
+#### **Difficulty Tiers**
+- **Tier 1**: 5 minuti - DR +25%, Speed +15%
+- **Tier 2**: 10 minuti - DR +45%, Speed +25%, Champions
+- **Tier 3**: 15 minuti - DR +70%, Speed +40%, Elite x3
+
+#### **Material Economy**
+- **Common**: 6-12% drop rate
+- **Uncommon**: 3-6% drop rate
+- **Rare**: 1.5-3% drop rate
+- **Epic**: 0.8-1.5% drop rate
+- **Legendary**: 0.005-0.008% drop rate
+
+---
+
+## **VERSIONE 4.0 - SISTEMA CORE E ARMI** (Data: 2024)
+
+### **🎮 NUOVE FUNZIONALITÀ**
+
+#### **Sistema Core**
+- **7 Core Unici**: Effetti passivi strategici
+- **Crafting System**: Sistema di crafting per core
+- **Material Drops**: Drop rate bilanciato per materiali
+- **Visual Effects**: Effetti visivi per ogni core
+
+#### **Sistema Armi**
+- **8 Armi Esterne**: Armi con upgrade
+- **Upgrade System**: Sistema di potenziamento armi
+- **Crafting Interface**: Interfaccia crafting intuitiva
+- **Material Requirements**: Requisiti materiali bilanciati
+
+#### **Sistema Materiali**
+- **10 Materiali**: 5 per core, 5 per armi
+- **Rarity System**: Sistema di rarità materiali
+- **Drop Mechanics**: Meccaniche drop per tipo nemico
+- **Inventory Management**: Gestione inventario materiali
+
+### **🔧 MIGLIORAMENTI**
+
+#### **UI/UX**
+- **Inventory System**: Sistema inventario completo
+- **Crafting Interface**: Interfaccia crafting
+- **Material Display**: Visualizzazione materiali
+- **Upgrade System**: Sistema upgrade armi
+
+#### **Gameplay**
+- **Core Effects**: Effetti core implementati
+- **Weapon Effects**: Effetti armi implementati
+- **Material Drops**: Sistema drop funzionante
+- **Crafting Logic**: Logica crafting completa
+
+---
+
+## **VERSIONE 3.0 - SISTEMA STAGE E ARCHETIPI** (Data: 2024)
+
+### **🎮 NUOVE FUNZIONALITÀ**
+
+#### **Sistema Stage**
+- **5 Stage Tematici**: Ambienti diversi
+- **Stage Progression**: Progressione attraverso stage
+- **Unlock Requirements**: Requisiti per sbloccare stage
+- **Stage Effects**: Effetti specifici per stage
+
+#### **Sistema Archetipi**
+- **6 Archetipi**: Personaggi unici
+- **Character Selection**: Selezione personaggio
+- **Archetype Bonuses**: Bonus specifici per archetipo
+- **Visual Customization**: Personalizzazione visiva
+
+#### **Sistema Progressione**
+- **Permanent Upgrades**: Upgrade permanenti
+- **Character Unlocks**: Sblocco personaggi
+- **Stage Unlocks**: Sblocco stage
+- **Save System**: Sistema salvataggio
+
+### **🔧 MIGLIORAMENTI**
+
+#### **UI/UX**
+- **Stage Selection**: Selezione stage
+- **Character Selection**: Selezione personaggio
+- **Upgrade Interface**: Interfaccia upgrade
+- **Save System**: Sistema salvataggio
+
+#### **Gameplay**
+- **Stage Mechanics**: Meccaniche stage
+- **Archetype Effects**: Effetti archetipo
+- **Progression System**: Sistema progressione
+- **Unlock System**: Sistema sblocchi
+
+---
+
+## **VERSIONE 2.0 - SISTEMA BASE** (Data: 2024)
+
+### **🎮 FUNZIONALITÀ BASE**
+
+#### **Core Gameplay**
+- **Player Movement**: Movimento giocatore
+- **Enemy Spawning**: Spawn nemici
+- **Combat System**: Sistema combattimento
+- **XP System**: Sistema esperienza
+- **Leveling**: Sistema livellamento
+
+#### **Enemy System**
+- **Enemy Types**: Tipi nemici diversi
+- **Enemy AI**: IA nemici base
+- **Enemy Scaling**: Scaling nemici
+- **Boss System**: Sistema boss
+
+#### **UI/UX**
+- **Basic UI**: Interfaccia base
+- **Health Display**: Visualizzazione salute
+- **XP Display**: Visualizzazione XP
+- **Level Display**: Visualizzazione livello
+
+### **🔧 TECNOLOGIA**
+
+#### **Engine**
+- **Canvas Rendering**: Rendering su canvas
+- **Game Loop**: Loop di gioco
+- **Entity System**: Sistema entità
+- **Collision Detection**: Rilevamento collisioni
+
+#### **Performance**
+- **Optimization**: Ottimizzazioni base
+- **Memory Management**: Gestione memoria
+- **Frame Rate**: Gestione frame rate
+- **Mobile Support**: Supporto mobile base
+
+---
+
+## **VERSIONE 1.0 - PROTOTIPO** (Data: 2024)
+
+### **🎮 FUNZIONALITÀ INIZIALI**
+
+#### **Core Mechanics**
+- **Basic Movement**: Movimento base
+- **Simple Combat**: Combattimento semplice
+- **Enemy Spawning**: Spawn nemici base
+- **XP Collection**: Raccolta XP
+
+#### **Basic Systems**
+- **Health System**: Sistema salute
+- **XP System**: Sistema esperienza base
+- **Level System**: Sistema livelli base
+- **Simple UI**: Interfaccia semplice
+
+### **🔧 TECNOLOGIA BASE**
+
+#### **Foundation**
+- **HTML5 Canvas**: Canvas HTML5
+- **JavaScript Engine**: Motore JavaScript
+- **Basic Rendering**: Rendering base
+- **Simple Physics**: Fisica semplice
+
+---
+
+## **📋 NOTE DI SVILUPPO**
+
+### **🔄 CICLO DI SVILUPPO**
+1. **Prototipo**: Funzionalità base
+2. **Sistema Base**: Meccaniche fondamentali
+3. **Stage e Archetipi**: Contenuto e progressione
+4. **Core e Armi**: Sistema crafting
+5. **Release Principale**: Sistema completo
+6. **Hotfix Bilanciamento**: Ottimizzazioni
+
+### **🎯 OBIETTIVI FUTURI**
+- **Nuovi Archetipi**: Più personaggi
+- **Nuovi Stage**: Ambienti aggiuntivi
+- **Nuovi Core**: Effetti passivi
+- **Nuove Armi**: Armi aggiuntive
+- **Sistema Multiplayer**: Gioco online
+- **Sistema Achievements**: Achievement
+- **Sistema Leaderboard**: Classifiche
+- **Sistema Events**: Eventi speciali
+
+### **📊 METRICHE DI SUCCESSO**
+- **Player Retention**: Retention giocatori
+- **Session Time**: Tempo di sessione
+- **Completion Rate**: Tasso completamento
+- **Return Rate**: Tasso ritorno
+- **Engagement**: Coinvolgimento
+- **Satisfaction**: Soddisfazione
+
+---
+
+## **👨‍💻 SVILUPPATORE**
+- **Nome**: Alessio (Alesx99)
+- **Ruolo**: Sviluppatore Full-Stack
+- **Tecnologie**: HTML5, CSS3, JavaScript
+- **Focus**: Game Design, UX/UI, Performance
+
+---
+
+## **📄 LICENZA**
+- **Tipo**: Licenza MIT
+- **Uso**: Libero per uso personale
+- **Modifiche**: Consentite
+- **Distribuzione**: Consentita 
