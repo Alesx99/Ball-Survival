@@ -156,7 +156,7 @@ const CONFIG = {
         }
     },
     enemies: {
-        spawnInterval: 0.25, 
+        spawnInterval: 0.8, // Aumentato da 0.25 (3.2x più lento)
         spawnImmunity: 60, 
         /**
          * Sistema di Scaling Nemici Bilanciato per Partite Più Lunghe
@@ -2547,6 +2547,13 @@ class RetentionMonitor {
         if (avgRetention < 0.85) {
             this.autoAdjustXP('reduce');
         }
+        
+        // Se enemy count troppo alto nei primi 5 min, riduci spawn rate
+        const recentSessions = this.metrics.enemyScaling.slice(-5);
+        const avgEnemyCount = recentSessions.reduce((sum, count) => sum + count, 0) / recentSessions.length;
+        if (avgEnemyCount > 15 && avgSessionTime < 5) {
+            this.autoAdjustSpawnRate('reduce');
+        }
     }
     
     autoAdjustScaling(action) {
@@ -2562,6 +2569,21 @@ class RetentionMonitor {
             });
             
             console.log('⚙️ Auto-adjust: Scaling ridotto per session time basso');
+        }
+    }
+    
+    autoAdjustSpawnRate(action) {
+        if (action === 'reduce') {
+            // Aumenta l'intervallo di spawn per ridurre la pressione
+            CONFIG.enemies.spawnInterval *= 1.2;
+            
+            this.optimizationHistory.push({
+                type: 'spawn_reduce',
+                timestamp: Date.now(),
+                reason: 'Troppi nemici all\'inizio'
+            });
+            
+            console.log('⚙️ Auto-adjust: Spawn rate ridotto per troppi nemici');
         }
     }
     
@@ -3494,11 +3516,43 @@ class BallSurvivalGame {
     }
 
     spawnEnemies() {
-        if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < CONFIG.enemies.spawnInterval)) return;
+        // Spawn interval dinamico per versione 5.3
+        const timeInMinutes = this.totalElapsedTime / 60;
+        let dynamicSpawnInterval = CONFIG.enemies.spawnInterval;
+        
+        // Rallenta lo spawn all'inizio, accelera gradualmente
+        if (timeInMinutes < 2) {
+            dynamicSpawnInterval = 2.0; // 2 secondi primi 2 min
+        } else if (timeInMinutes < 5) {
+            dynamicSpawnInterval = 1.5; // 1.5 secondi 2-5 min
+        } else if (timeInMinutes < 10) {
+            dynamicSpawnInterval = 1.0; // 1 secondo 5-10 min
+        } else if (timeInMinutes < 15) {
+            dynamicSpawnInterval = 0.8; // 0.8 secondi 10-15 min
+        } else {
+            dynamicSpawnInterval = 0.6; // 0.6 secondi dopo 15 min
+        }
+        
+        if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < dynamicSpawnInterval)) return;
         this.lastEnemySpawnTime = this.totalElapsedTime;
-        const maxEnemies = 100 + Math.floor(this.totalElapsedTime / 6); 
+        
+        // Curva di spawn graduale per versione 5.3
+        const maxEnemies = Math.min(200, 20 + Math.floor(timeInMinutes * 8)); // Più graduale
         if (this.entities.enemies.length >= maxEnemies) return;
-        const batchSize = 3 + Math.floor(Math.random() * 4); 
+        
+        // Batch size dinamico basato sul tempo
+        let batchSize;
+        if (timeInMinutes < 2) {
+            batchSize = 1 + Math.floor(Math.random() * 2); // 1-2 nemici primi 2 min
+        } else if (timeInMinutes < 5) {
+            batchSize = 2 + Math.floor(Math.random() * 2); // 2-3 nemici 2-5 min
+        } else if (timeInMinutes < 10) {
+            batchSize = 2 + Math.floor(Math.random() * 3); // 2-4 nemici 5-10 min
+        } else if (timeInMinutes < 15) {
+            batchSize = 3 + Math.floor(Math.random() * 3); // 3-5 nemici 10-15 min
+        } else {
+            batchSize = 3 + Math.floor(Math.random() * 4); // 3-6 nemici dopo 15 min
+        }
 
         for (let i = 0; i < batchSize; i++) {
             if (this.entities.enemies.length >= maxEnemies) break;
@@ -5212,7 +5266,7 @@ class BallSurvivalGame {
             retention: retention,
             satisfaction: satisfaction,
             playerLevel: playerLevel,
-            enemyScaling: enemyScaling
+            enemyScaling: enemyCount // Usa enemyCount invece di enemyScaling per tracciare numero nemici
         });
         
         // Controlla milestone
@@ -5225,7 +5279,8 @@ class BallSurvivalGame {
                 retention: (retention * 100).toFixed(1) + '%',
                 satisfaction: (satisfaction * 100).toFixed(1) + '%',
                 playerLevel: playerLevel,
-                enemyCount: enemyCount
+                enemyCount: enemyCount,
+                spawnRate: 'Dinamico' // Indica che lo spawn è ora dinamico
             });
         }
     }
