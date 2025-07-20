@@ -1072,12 +1072,12 @@ const Utils = {
 
 class AnalyticsManager {
     constructor() {
-        // Configurazione GitHub Gist (da personalizzare)
+        // Configurazione GitHub Gist - Gist ID configurato
         this.config = {
-            githubToken: 'ghp_your_token_here', // Sostituire con token reale
-            gistId: 'your_gist_id_here', // Sostituire con ID gist reale
-            enableCloudSync: false, // Abilita/disabilita cloud sync
-            syncInterval: 10 // Sync ogni N sessioni
+            githubToken: 'ghp_your_token_here', // Inserisci il tuo token GitHub
+            gistId: '1dc2b7cdfc87ca61cfaf7e2dc7e13cfd', // ✅ Gist ID configurato
+            enableCloudSync: false, // Abilita dopo configurazione token
+            syncInterval: 10 // Sync ogni 10 sessioni
         };
         
         this.analyticsData = {
