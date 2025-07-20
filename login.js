@@ -3,6 +3,7 @@ class PlayerAuth {
     constructor() {
         this.currentPlayer = null;
         this.isLoggedIn = false;
+        this.isGuest = false;
         this.init();
     }
     
@@ -17,11 +18,13 @@ class PlayerAuth {
             try {
                 this.currentPlayer = JSON.parse(savedPlayer);
                 this.isLoggedIn = true;
-                console.log('✅ Giocatore caricato:', this.currentPlayer.username);
+                this.isGuest = this.currentPlayer.isGuest || false;
+                console.log(`✅ Giocatore caricato: ${this.currentPlayer.username}${this.isGuest ? ' (Guest)' : ''}`);
             } catch (error) {
                 console.error('❌ Errore caricamento giocatore:', error);
                 this.currentPlayer = null;
                 this.isLoggedIn = false;
+                this.isGuest = false;
             }
         }
     }
@@ -60,56 +63,173 @@ class PlayerAuth {
                     <h1 style="margin: 0 0 30px 0; font-size: 28px;">🎮 Ball Survival</h1>
                     
                     <div id="loginForm" style="display: block;">
-                        <h2 style="margin: 0 0 20px 0; font-size: 20px;">Accedi o Registrati</h2>
+                        <h2 style="margin: 0 0 20px 0; font-size: 20px;">Benvenuto in Ball Survival!</h2>
                         
-                        <input type="text" id="username" placeholder="Nome Giocatore" style="
-                            width: 100%;
-                            padding: 12px;
-                            margin: 10px 0;
-                            border: none;
-                            border-radius: 8px;
-                            font-size: 16px;
-                            box-sizing: border-box;
-                        ">
-                        
-                        <input type="password" id="password" placeholder="Password" style="
-                            width: 100%;
-                            padding: 12px;
-                            margin: 10px 0;
-                            border: none;
-                            border-radius: 8px;
-                            font-size: 16px;
-                            box-sizing: border-box;
-                        ">
-                        
-                        <div style="margin: 20px 0;">
-                            <button onclick="playerAuth.login()" style="
+                        <div style="margin: 20px 0; text-align: center;">
+                            <p style="margin: 10px 0; color: #e0e0e0; font-size: 14px;">Come vuoi giocare?</p>
+                            
+                            <button onclick="playerAuth.showLoginFields()" style="
                                 background: #4CAF50;
                                 color: white;
-                                padding: 12px 25px;
+                                padding: 15px 30px;
                                 border: none;
                                 border-radius: 8px;
                                 font-size: 16px;
-                                margin: 5px;
+                                margin: 8px;
                                 cursor: pointer;
                                 transition: background 0.3s;
+                                width: 100%;
                             " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
-                                🔑 Accedi
+                                🔑 Ho già un account
                             </button>
                             
-                            <button onclick="playerAuth.register()" style="
+                            <button onclick="playerAuth.showRegisterFields()" style="
                                 background: #2196F3;
                                 color: white;
-                                padding: 12px 25px;
+                                padding: 15px 30px;
                                 border: none;
                                 border-radius: 8px;
                                 font-size: 16px;
-                                margin: 5px;
+                                margin: 8px;
                                 cursor: pointer;
                                 transition: background 0.3s;
+                                width: 100%;
                             " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
-                                ✨ Registrati
+                                ✨ Crea nuovo account
                             </button>
+                            
+                            <button onclick="playerAuth.playAsGuest()" style="
+                                background: #FF9800;
+                                color: white;
+                                padding: 15px 30px;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 16px;
+                                margin: 8px;
+                                cursor: pointer;
+                                transition: background 0.3s;
+                                width: 100%;
+                            " onmouseover="this.style.background='#F57C00'" onmouseout="this.style.background='#FF9800'">
+                                🎮 Gioca come Guest
+                            </button>
+                        </div>
+                        
+                        <div id="loginFields" style="display: none;">
+                            <h3 style="margin: 0 0 15px 0; font-size: 18px;">Accedi al tuo account</h3>
+                            
+                            <input type="text" id="username" placeholder="Nome Giocatore" style="
+                                width: 100%;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 16px;
+                                box-sizing: border-box;
+                            ">
+                            
+                            <input type="password" id="password" placeholder="Password" style="
+                                width: 100%;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 16px;
+                                box-sizing: border-box;
+                            ">
+                            
+                            <div style="margin: 20px 0;">
+                                <button onclick="playerAuth.login()" style="
+                                    background: #4CAF50;
+                                    color: white;
+                                    padding: 12px 25px;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 16px;
+                                    margin: 5px;
+                                    cursor: pointer;
+                                    transition: background 0.3s;
+                                " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                                    🔑 Accedi
+                                </button>
+                                
+                                <button onclick="playerAuth.backToMainMenu()" style="
+                                    background: #666;
+                                    color: white;
+                                    padding: 12px 25px;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 16px;
+                                    margin: 5px;
+                                    cursor: pointer;
+                                    transition: background 0.3s;
+                                " onmouseover="this.style.background='#555'" onmouseout="this.style.background='#666'">
+                                    ← Indietro
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="registerFields" style="display: none;">
+                            <h3 style="margin: 0 0 15px 0; font-size: 18px;">Crea nuovo account</h3>
+                            
+                            <input type="text" id="regUsername" placeholder="Nome Giocatore" style="
+                                width: 100%;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 16px;
+                                box-sizing: border-box;
+                            ">
+                            
+                            <input type="password" id="regPassword" placeholder="Password" style="
+                                width: 100%;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 16px;
+                                box-sizing: border-box;
+                            ">
+                            
+                            <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" style="
+                                width: 100%;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 16px;
+                                box-sizing: border-box;
+                            ">
+                            
+                            <div style="margin: 20px 0;">
+                                <button onclick="playerAuth.register()" style="
+                                    background: #2196F3;
+                                    color: white;
+                                    padding: 12px 25px;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 16px;
+                                    margin: 5px;
+                                    cursor: pointer;
+                                    transition: background 0.3s;
+                                " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                                    ✨ Registrati
+                                </button>
+                                
+                                <button onclick="playerAuth.backToMainMenu()" style="
+                                    background: #666;
+                                    color: white;
+                                    padding: 12px 25px;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 16px;
+                                    margin: 5px;
+                                    cursor: pointer;
+                                    transition: background 0.3s;
+                                " onmouseover="this.style.background='#555'" onmouseout="this.style.background='#666'">
+                                    ← Indietro
+                                </button>
+                            </div>
                         </div>
                         
                         <div id="loginMessage" style="
@@ -177,6 +297,47 @@ class PlayerAuth {
         }, 3000);
     }
     
+    showLoginFields() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('loginFields').style.display = 'block';
+    }
+    
+    showRegisterFields() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerFields').style.display = 'block';
+    }
+    
+    backToMainMenu() {
+        document.getElementById('loginFields').style.display = 'none';
+        document.getElementById('registerFields').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+    }
+    
+    playAsGuest() {
+        const guestPlayer = {
+            username: 'Guest_' + Math.floor(Math.random() * 10000),
+            id: 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            createdAt: Date.now(),
+            lastLogin: Date.now(),
+            isGuest: true,
+            stats: {
+                totalGames: 0,
+                totalTime: 0,
+                bestLevel: 0,
+                favoriteArchetype: 'standard'
+            }
+        };
+        
+        this.currentPlayer = guestPlayer;
+        this.isLoggedIn = true;
+        this.isGuest = true;
+        this.savePlayerData();
+        this.showPlayerInfo();
+        this.showMessage('🎮 Benvenuto Guest! I tuoi progressi saranno salvati localmente.');
+        
+        console.log('🎮 Giocatore guest creato:', guestPlayer.username);
+    }
+    
     async login() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -193,6 +354,7 @@ class PlayerAuth {
             if (playerData) {
                 this.currentPlayer = playerData;
                 this.isLoggedIn = true;
+                this.isGuest = false;
                 this.savePlayerData();
                 this.showPlayerInfo();
                 this.showMessage('✅ Login effettuato con successo!');
@@ -211,11 +373,12 @@ class PlayerAuth {
     }
     
     async register() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const passwordConfirm = document.getElementById('regPasswordConfirm').value;
         
-        if (!username || !password) {
-            this.showMessage('⚠️ Inserisci username e password', true);
+        if (!username || !password || !passwordConfirm) {
+            this.showMessage('⚠️ Compila tutti i campi', true);
             return;
         }
         
@@ -229,6 +392,11 @@ class PlayerAuth {
             return;
         }
         
+        if (password !== passwordConfirm) {
+            this.showMessage('⚠️ Le password non coincidono', true);
+            return;
+        }
+        
         try {
             // Simula registrazione
             const playerData = await this.createPlayer(username, password);
@@ -236,6 +404,7 @@ class PlayerAuth {
             if (playerData) {
                 this.currentPlayer = playerData;
                 this.isLoggedIn = true;
+                this.isGuest = false;
                 this.savePlayerData();
                 this.showPlayerInfo();
                 this.showMessage('✅ Registrazione completata!');
@@ -318,9 +487,12 @@ class PlayerAuth {
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('playerInfo').style.display = 'block';
         
-        document.getElementById('playerName').textContent = `👤 ${this.currentPlayer.username}`;
+        const guestBadge = this.isGuest ? ' 🎮' : '';
+        document.getElementById('playerName').textContent = `👤 ${this.currentPlayer.username}${guestBadge}`;
+        
+        const guestInfo = this.isGuest ? ' (Guest - Progressi locali)' : '';
         document.getElementById('playerStats').textContent = 
-            `🎮 Partite: ${this.currentPlayer.stats.totalGames} | ⏱️ Tempo: ${this.formatTime(this.currentPlayer.stats.totalTime)} | 🏆 Miglior Livello: ${this.currentPlayer.stats.bestLevel}`;
+            `🎮 Partite: ${this.currentPlayer.stats.totalGames} | ⏱️ Tempo: ${this.formatTime(this.currentPlayer.stats.totalTime)} | 🏆 Miglior Livello: ${this.currentPlayer.stats.bestLevel}${guestInfo}`;
     }
     
     formatTime(ms) {
@@ -375,13 +547,17 @@ class PlayerAuth {
         this.currentPlayer.lastLogin = Date.now();
         this.savePlayerData();
         
-        // Aggiorna anche nel database locale
-        const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
-        if (players[this.currentPlayer.username]) {
-            players[this.currentPlayer.username].stats = this.currentPlayer.stats;
-            players[this.currentPlayer.username].lastLogin = this.currentPlayer.lastLogin;
-            localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+        // Aggiorna anche nel database locale (solo per utenti registrati)
+        if (!this.isGuest) {
+            const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+            if (players[this.currentPlayer.username]) {
+                players[this.currentPlayer.username].stats = this.currentPlayer.stats;
+                players[this.currentPlayer.username].lastLogin = this.currentPlayer.lastLogin;
+                localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+            }
         }
+        
+        console.log(`📊 Statistiche aggiornate per ${this.currentPlayer.username}${this.isGuest ? ' (Guest)' : ''}`);
     }
     
     // Funzione per ottenere dati giocatore per analytics
@@ -389,7 +565,8 @@ class PlayerAuth {
         return this.currentPlayer ? {
             id: this.currentPlayer.id,
             username: this.currentPlayer.username,
-            stats: this.currentPlayer.stats
+            stats: this.currentPlayer.stats,
+            isGuest: this.isGuest || false
         } : null;
     }
 }
