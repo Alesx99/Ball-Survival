@@ -1132,9 +1132,17 @@ class AnalyticsManager {
         };
         
         // Track game completion
-        this.trackGameCompletion = (archetype, sessionTime, finalLevel, satisfaction) => {
+        this.trackGameCompletion = (gameStats) => {
+            if (!gameStats || !gameStats.archetype) return;
+            
+            const archetype = gameStats.archetype;
+            const sessionTime = gameStats.duration || 0;
+            const finalLevel = gameStats.level || 0;
+            const satisfaction = gameStats.satisfaction || 50; // Default satisfaction
+            
             if (this.analyticsData.archetypeUsage[archetype]) {
                 const data = this.analyticsData.archetypeUsage[archetype];
+                data.games++; // Incrementa il numero di partite
                 data.totalTime += sessionTime;
                 data.avgLevel = (data.avgLevel * (data.games - 1) + finalLevel) / data.games;
                 data.satisfaction = (data.satisfaction * (data.games - 1) + satisfaction) / data.games;
@@ -1146,6 +1154,8 @@ class AnalyticsManager {
                 
                 this.saveAnalytics();
                 this.updateBalanceMetrics();
+                
+                console.log(`📊 Analytics aggiornati per ${archetype}: ${data.games} partite, ${data.totalTime}s totale`);
             }
         };
     }
@@ -1249,11 +1259,19 @@ class AnalyticsManager {
                 return;
             }
             
+            console.log('🔄 Inizio upload analytics...');
+            
             // Prima scarica i dati esistenti per il merge
             const existingData = await this.downloadFromGist(this.config.githubToken, this.config.gistId);
             
             // Merge intelligente dei dati
             const mergedData = this.mergeAnalyticsData(existingData, this.analyticsData);
+            
+            // Validazione dati prima dell'upload
+            if (!mergedData || !mergedData.archetypeUsage) {
+                console.error('❌ Dati analytics non validi per upload');
+                return;
+            }
             
             const data = {
                 description: `Ball Survival Analytics - Version 5.4 - Updated ${new Date().toISOString()}`,
@@ -1278,11 +1296,14 @@ class AnalyticsManager {
             
             if (response.ok) {
                 console.log('✅ Analytics uploaded and merged to GitHub Gist');
+                console.log(`📊 Dati uploadati: ${mergedData.sessionStats.totalSessions} sessioni, ${Object.keys(mergedData.archetypeUsage).length} archetipi`);
+                
                 // Aggiorna i dati locali con quelli merged
                 this.analyticsData = mergedData;
                 this.saveAnalytics();
             } else {
-                console.error('❌ Failed to upload analytics:', response.statusText);
+                const errorText = await response.text();
+                console.error('❌ Failed to upload analytics:', response.status, response.statusText, errorText);
             }
             
         } catch (error) {
@@ -1292,6 +1313,12 @@ class AnalyticsManager {
     
     async downloadFromGist(token, gistId) {
         try {
+            // Validazione input
+            if (!token || !gistId || token === 'ghp_your_token_here' || gistId === 'your_gist_id_here') {
+                console.log('⚠️ Token o Gist ID non configurati');
+                return this.getEmptyAnalyticsStructure();
+            }
+            
             const response = await fetch(`https://api.github.com/gists/${gistId}`, {
                 headers: {
                     'Authorization': `token ${token}`,
@@ -1303,14 +1330,29 @@ class AnalyticsManager {
                 const gist = await response.json();
                 const analyticsFile = gist.files['analytics.json'];
                 if (analyticsFile && analyticsFile.content) {
-                    return JSON.parse(analyticsFile.content);
+                    try {
+                        const parsedData = JSON.parse(analyticsFile.content);
+                        console.log('✅ Dati scaricati dal Gist:', parsedData.sessionStats?.totalSessions || 0, 'sessioni');
+                        return parsedData;
+                    } catch (parseError) {
+                        console.error('❌ Errore parsing JSON dal Gist:', parseError);
+                        return this.getEmptyAnalyticsStructure();
+                    }
+                } else {
+                    console.log('📝 Nessun file analytics.json trovato nel Gist');
+                    return this.getEmptyAnalyticsStructure();
                 }
+            } else {
+                console.error('❌ Errore download Gist:', response.status, response.statusText);
+                return this.getEmptyAnalyticsStructure();
             }
         } catch (error) {
-            console.log('No existing data found, starting fresh');
+            console.error('❌ Errore download Gist:', error);
+            return this.getEmptyAnalyticsStructure();
         }
-        
-        // Ritorna struttura vuota se non ci sono dati esistenti
+    }
+    
+    getEmptyAnalyticsStructure() {
         return {
             archetypeUsage: {
                 'standard': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
@@ -1318,7 +1360,7 @@ class AnalyticsManager {
                 'shadow': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
                 'tech': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
                 'magma': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
-                'crystal': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 }
+                'frost': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 }
             },
             sessionStats: {
                 totalSessions: 0,
@@ -1335,6 +1377,12 @@ class AnalyticsManager {
     }
     
     mergeAnalyticsData(existingData, newData) {
+        // Validazione input
+        if (!existingData || !newData) {
+            console.warn('⚠️ Dati mancanti per merge analytics');
+            return newData || existingData || this.analyticsData;
+        }
+        
         const merged = {
             archetypeUsage: {},
             sessionStats: {
@@ -1355,14 +1403,20 @@ class AnalyticsManager {
             const existing = existingData.archetypeUsage?.[archetype] || { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 };
             const current = newData.archetypeUsage[archetype];
             
+            // Validazione dati
+            if (!current || typeof current.games !== 'number') {
+                console.warn(`⚠️ Dati non validi per archetipo ${archetype}:`, current);
+                continue;
+            }
+            
             // Calcolo media ponderata per livelli e soddisfazione
             const totalGames = existing.games + current.games;
             if (totalGames > 0) {
                 merged.archetypeUsage[archetype] = {
                     games: totalGames,
-                    totalTime: existing.totalTime + current.totalTime,
-                    avgLevel: (existing.avgLevel * existing.games + current.avgLevel * current.games) / totalGames,
-                    satisfaction: (existing.satisfaction * existing.games + current.satisfaction * current.games) / totalGames
+                    totalTime: (existing.totalTime || 0) + (current.totalTime || 0),
+                    avgLevel: ((existing.avgLevel || 0) * existing.games + (current.avgLevel || 0) * current.games) / totalGames,
+                    satisfaction: ((existing.satisfaction || 0) * existing.games + (current.satisfaction || 0) * current.games) / totalGames
                 };
             } else {
                 merged.archetypeUsage[archetype] = current;
@@ -1376,10 +1430,11 @@ class AnalyticsManager {
             }
         }
         
-        // Calcola statistiche aggregate
+        // Calcola statistiche aggregate con validazione
         const allSessions = (existingData.sessionStats?.totalSessions || 0) + (newData.sessionStats?.totalSessions || 0);
-        const allTime = (existingData.sessionStats?.avgSessionTime || 0) * (existingData.sessionStats?.totalSessions || 0) + 
-                       (newData.sessionStats?.avgSessionTime || 0) * (newData.sessionStats?.totalSessions || 0);
+        const existingTime = (existingData.sessionStats?.avgSessionTime || 0) * (existingData.sessionStats?.totalSessions || 0);
+        const newTime = (newData.sessionStats?.avgSessionTime || 0) * (newData.sessionStats?.totalSessions || 0);
+        const allTime = existingTime + newTime;
         
         if (allSessions > 0) {
             merged.sessionStats.avgSessionTime = allTime / allSessions;
@@ -1395,8 +1450,11 @@ class AnalyticsManager {
         merged.sessionStats.playerSatisfaction = allSessions > 0 ? (existingSatisfaction + newSatisfaction) / allSessions : 0;
         
         // Aggiorna balance metrics con i dati merged
+        this.analyticsData = merged;
         this.updateBalanceMetrics();
         merged.balanceMetrics = this.analyticsData.balanceMetrics;
+        
+        console.log(`🔄 Merge completato: ${allSessions} sessioni totali, ${Object.keys(merged.archetypeUsage).length} archetipi`);
         
         return merged;
     }
@@ -1476,11 +1534,23 @@ class AnalyticsManager {
         // Aggiorna statistiche giocatore
         window.playerAuth.updatePlayerStats(gameStats);
         
-        // Aggiorna analytics con dati giocatore
-        this.trackGameCompletion(gameStats);
+        // Prepara dati analytics completi
+        const analyticsData = {
+            archetype: gameStats.archetype || 'standard',
+            duration: gameStats.duration || 0,
+            level: gameStats.level || 0,
+            satisfaction: gameStats.satisfaction || 50,
+            playerId: playerData.id,
+            isGuest: playerData.isGuest || false
+        };
         
-        // Sync finale con cloud
-        if (this.config.enableCloudSync) {
+        // Aggiorna analytics con dati giocatore
+        this.trackGameCompletion(analyticsData);
+        
+        console.log(`📊 Statistiche partita aggiornate per ${playerData.username}${playerData.isGuest ? ' (Guest)' : ''}`);
+        
+        // Sync finale con cloud (solo per utenti registrati)
+        if (this.config.enableCloudSync && !playerData.isGuest) {
             setTimeout(() => {
                 this.uploadToGist();
             }, 1000); // Sync dopo 1 secondo
