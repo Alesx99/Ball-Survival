@@ -1360,10 +1360,9 @@ class AnalyticsManager {
                 console.error('❌ Failed to upload analytics:', response.status, response.statusText, errorText);
                 
                 if (response.status === 404) {
-                    console.log('⚠️ Gist non accessibile per scrittura, creando nuovo...');
-                    // Reset Gist ID per forzare creazione nuovo
-                    this.config.gistId = null;
-                    return await this.createNewGist();
+                    console.log('⚠️ Gist non accessibile per scrittura, disabilitando cloud sync...');
+                    this.config.enableCloudSync = false;
+                    return false;
                 }
             }
             
@@ -1549,6 +1548,29 @@ class AnalyticsManager {
             return false;
         }
         
+        // Verifica permessi token
+        try {
+            const response = await fetch('https://api.github.com/user', {
+                headers: {
+                    'Authorization': `token ${this.config.githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (!response.ok) {
+                console.error('❌ Token GitHub non valido o scaduto');
+                this.config.enableCloudSync = false;
+                return false;
+            }
+            
+            const userData = await response.json();
+            console.log('✅ Token valido per utente:', userData.login);
+        } catch (error) {
+            console.error('❌ Errore verifica token:', error);
+            this.config.enableCloudSync = false;
+            return false;
+        }
+        
         try {
             console.log('✅ Cloud sync abilitato, testando connessione...');
             
@@ -1568,10 +1590,11 @@ class AnalyticsManager {
                     await this.uploadToGist();
                     console.log('✅ Test cloud sync completato con successo');
                     return true;
-                } catch (uploadError) {
-                    console.log('⚠️ Gist in sola lettura, creando nuovo...');
-                    return await this.createNewGist();
-                }
+                        } catch (uploadError) {
+            console.log('⚠️ Gist in sola lettura o token senza permessi, disabilitando cloud sync...');
+            this.config.enableCloudSync = false;
+            return false;
+        }
             } else {
                 const error = await response.json();
                 console.error('❌ Errore accesso Gist:', response.status, error);

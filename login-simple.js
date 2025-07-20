@@ -562,11 +562,9 @@ async function syncUserAccounts() {
             console.error('❌ Errore sync account:', response.status, errorText);
             
             if (response.status === 404) {
-                console.log('⚠️ Gist non accessibile per scrittura, creando nuovo...');
-                // Reset Gist ID per forzare creazione nuovo
+                console.log('⚠️ Gist non accessibile per scrittura, disabilitando cloud sync...');
                 if (window.analyticsManager) {
-                    window.analyticsManager.config.gistId = null;
-                    return await window.analyticsManager.createNewGist();
+                    window.analyticsManager.config.enableCloudSync = false;
                 }
             }
             
