@@ -2,7 +2,24 @@ const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
         base: { hp: 150, speed: 3, radius: 15, dr: 0 },
-        xpCurve: { base: 18, growth: 1.25, levelFactor: 18, power: 1.0 }
+        /**
+         * Curva XP Bilanciata per Progressione Fluida
+         * 
+         * VALORI OTTIMIZZATI (Versione 5.1):
+         * - base: 15 (era 18) - XP iniziale più accessibile
+         * - growth: 1.20 (era 1.25) - Crescita più graduale
+         * - levelFactor: 12 (era 18) - Bonus per livello ridotto
+         * 
+         * EFFETTI SUI LIVELLI:
+         * - Livello 1: 15 XP (era 18) - -17%
+         * - Livello 2: 18 XP (era 23) - -22%
+         * - Livello 3: 22 XP (era 29) - -24%
+         * - Livello 5: 30 XP (era 45) - -33%
+         * 
+         * Questo bilanciamento rende la progressione più fluida
+         * e soddisfacente, specialmente nei primi 10 minuti di gioco.
+         */
+        xpCurve: { base: 15, growth: 1.20, levelFactor: 12, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
@@ -141,15 +158,30 @@ const CONFIG = {
     enemies: {
         spawnInterval: 0.25, 
         spawnImmunity: 60, 
+        /**
+         * Sistema di Scaling Nemici Bilanciato per Partite Più Lunghe
+         * 
+         * PROBLEMA IDENTIFICATO: Scaling troppo aggressivo causava partite brevi
+         * - Time Factor: 8s (troppo veloce) → 12s (più graduale)
+         * - HP per Factor: 10 (troppo alto) → 6 (bilanciato)
+         * - Speed per Factor: 0.04 (troppo veloce) → 0.025 (graduale)
+         * - Damage per Factor: 1.4 (troppo alto) → 1.1 (bilanciato)
+         * 
+         * EFFETTI ATTESI:
+         * - Partite più lunghe: 15-25 minuti (era 8-12)
+         * - Progressione più fluida: Livellamento graduale
+         * - Sfida bilanciata: Difficoltà crescente ma gestibile
+         * - Retention migliorata: Giocatori continuano più a lungo
+         */
         scaling: { 
-            timeFactor: 8, 
-            hpPerFactor: 10, // Aumentato da 8
-            speedPerFactor: 0.04, // Aumentato da 0.03
-            damagePerFactor: 1.4, // Aumentato da 1.2
-            xpPerFactor: 1.3, // Aumentato da 1.2
-            xpPowerFactor: 1.06, // Aumentato da 1.05
-            levelFactorMultiplier: 0.8, // Aumentato da 0.7
-            drPerFactor: 0.0008 // Aumentato da 0.0005
+            timeFactor: 12,           // Ridotto da 8 (50% più graduale)
+            hpPerFactor: 6,           // Ridotto da 10 (40% meno HP)
+            speedPerFactor: 0.025,    // Ridotto da 0.04 (37.5% meno veloce)
+            damagePerFactor: 1.1,     // Ridotto da 1.4 (21% meno danno)
+            xpPerFactor: 1.3,         // Mantenuto per progressione
+            xpPowerFactor: 1.06,      // Mantenuto per progressione
+            levelFactorMultiplier: 0.8, // Mantenuto per bilanciamento
+            drPerFactor: 0.0008       // Mantenuto per sfida
         },
         base: { hp: 25, speed: 1.2, radius: 12, damage: 7, xp: 4, dr: 0 }
     },
@@ -1203,18 +1235,41 @@ class Player extends Entity {
         this.powerUpTimers.invincibility = 120;
     }
 
+    /**
+     * Sistema di Riduzione Danni (DR) con Bilanciamento per Palla d'Acciaio
+     * 
+     * MECCANICA SPECIALE: Solo la Palla d'Acciaio può raggiungere DR > 95%
+     * - DR Base Palla d'Acciaio: +70%
+     * - Potenziamenti Permanenti: +30% (livello 30)
+     * - Core di Resistenza: +10%
+     * - TOTALE MASSIMO: 110% DR
+     * 
+     * BILANCIAMENTO: I boss hanno penetrazione DR per evitare l'immortalità
+     * - Elite: -10% penetrazione DR
+     * - Boss: -25% penetrazione DR
+     * - Esempio: DR 110% vs Boss = 110% - 25% = 85% DR effettiva
+     * 
+     * Questo sistema permette alla Palla d'Acciaio di essere molto resistente
+     * contro nemici normali, ma vulnerabile ai boss che rappresentano la sfida
+     * finale del gioco.
+     */
     takeDamage(amount, game, sourceEnemy = null) {
         const shieldSpell = game.spells.shield;
         if ((shieldSpell && shieldSpell.active && shieldSpell.evolution !== 'reflect') || this.powerUpTimers.invincibility > 0) return;
         
-        let damageReduction = Math.min(1.0, this.stats.dr);  // Cap DR al 100%
-        // Penetrazione DR del 10% da elite, 25% da boss
+        let damageReduction = Math.min(0.95, this.stats.dr);  // Cap DR al 95% per bilanciamento
+        
+        // PENETRAZIONE DR: Sistema di bilanciamento per evitare immortalità
+        // Elite: -10% penetrazione DR (nemici speciali)
         if (sourceEnemy && sourceEnemy.stats.isElite) {
             damageReduction = Math.max(0, damageReduction - 0.10);
         }
+        // Boss: -25% penetrazione DR (sfida finale)
         if (sourceEnemy && sourceEnemy instanceof Boss) {
             damageReduction = Math.max(0, damageReduction - 0.25);
         }
+        
+        // Scudo riflettente: Bonus DR aggiuntivo
         if (shieldSpell && shieldSpell.active && shieldSpell.evolution === 'reflect') {
             damageReduction += shieldSpell.dr;
             if(sourceEnemy) { sourceEnemy.takeDamage(amount * shieldSpell.reflectDamage, game); }

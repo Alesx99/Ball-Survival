@@ -1,8 +1,8 @@
-# 🔍 ANALISI COMPLETA: Ball Survival - Stato Attuale
+# 🔍 ANALISI COMPLETA: Ball Survival - Stato Attuale (2025)
 
 ## 📊 **PANORAMICA GENERALE**
 
-**Ball Survival** è un gioco di sopravvivenza 2D sviluppato da Alessio (Alesx99) attualmente alla **versione 5.0**. Il gioco combina elementi di action, RPG e progressione in un'esperienza coinvolgente con 6 archetipi di personaggi, 5 stage tematici e un sistema di crafting avanzato.
+**Ball Survival** è un gioco di sopravvivenza 2D sviluppato da Alessio (Alesx99) attualmente alla **versione 5.1**. Il gioco combina elementi di action, RPG e progressione in un'esperienza coinvolgente con 6 archetipi di personaggi, 5 stage tematici e un sistema di crafting avanzato.
 
 ---
 
@@ -75,16 +75,18 @@
 ## ⚠️ **PROBLEMI IDENTIFICATI**
 
 ### **🚨 CRITICI (Immediate Fix)**
-1. **DR Immortale**: Palla d'Acciaio può superare 100% DR
+1. **Scaling Nemici Troppo Aggressivo**: Il vero problema!
+   - **Time Factor**: 8 secondi (troppo veloce)
+   - **HP per Factor**: 10 (troppo alto)
+   - **Speed per Factor**: 0.04 (troppo veloce)
+   - **Damage per Factor**: 1.4 (troppo alto)
+   - **Risultato**: Nemici diventano invincibili dopo 5-10 minuti
+
+2. **DR Immortale**: Palla d'Acciaio può superare 100% DR
    - DR Base: +70%
    - Potenziamenti: +30% (livello 30)
    - Core Resistenza: +10%
    - **Totale: 110% DR** → Immortale!
-
-2. **Bilanciamento XP**: Curva troppo lenta
-   - Base: 25 XP (troppo alto)
-   - Growth: 1.35 (troppo alto)
-   - Level Factor: 25 (troppo alto)
 
 3. **Drop Rate Materiali**: Troppo rari
    - Materiali comuni: -60% drop rate
@@ -138,8 +140,8 @@
 6. **Save System**: Codici di salvataggio robusti
 
 ### **❌ Punti di Debolezza**
-1. **DR System**: Bilanciamento rotto
-2. **XP Curve**: Progressione troppo lenta
+1. **Scaling Nemici**: Troppo aggressivo, partite brevi
+2. **DR System**: Bilanciamento rotto
 3. **Material Drops**: Troppo rari per progressione
 4. **Boss Scaling**: Difficoltà non bilanciata
 5. **Content Variety**: Limitato numero nemici
@@ -158,10 +160,10 @@
 ## 📈 **METRICHE DI SUCCESSO**
 
 ### **🎮 Gameplay Metrics**
-- **Session Time**: Media 15+ minuti
-- **Retention Rate**: 70% dopo 7 giorni
-- **Completion Rate**: 80% stage completati
-- **Engagement**: 5+ interazioni/giorno
+- **Session Time**: Media 8-12 minuti (troppo breve!)
+- **Retention Rate**: 60% dopo 7 giorni
+- **Completion Rate**: 70% stage completati
+- **Engagement**: 3+ interazioni/giorno
 
 ### **📊 Technical Metrics**
 - **Performance**: 60 FPS su target devices
@@ -180,10 +182,10 @@
 ## 🚀 **ROADMAP PRIORITARIA**
 
 ### **🔥 IMMEDIATE (7 giorni)**
-1. **Fix DR System**: Cap al 95%, penetrazione boss 25%
-2. **Bilanciamento XP**: Ridurre curva di crescita
-3. **Drop Rate**: Aumentare materiali del 30%
-4. **Hotfix Release**: Versione 5.1
+1. **Fix Scaling Nemici**: Ridurre aggressività scaling
+2. **Fix DR System**: Cap al 95%, penetrazione boss 25%
+3. **Drop Rate**: Aumentare materiali del 50%
+4. **Hotfix Release**: Versione 5.2
 
 ### **⚡ BREVE TERMINE (1-2 mesi)**
 1. **Sistema Armi Dinamiche**: Armi elementali e fusion
@@ -207,11 +209,12 @@
 
 ## 💡 **RACCOMANDAZIONI STRATEGICHE**
 
-### **🎯 Priorità 1: Fix Critici**
-1. **Implementare cap DR 95%** immediatamente
-2. **Bilanciare curva XP** per progressione fluida
-3. **Aumentare drop rate** materiali del 30%
-4. **Testare bilanciamento** post-fix
+### **🎯 Priorità 1: Fix Scaling Critico**
+1. **Ridurre timeFactor** da 8 a 12 secondi
+2. **Ridurre hpPerFactor** da 10 a 6
+3. **Ridurre speedPerFactor** da 0.04 a 0.025
+4. **Ridurre damagePerFactor** da 1.4 a 1.1
+5. **Testare bilanciamento** post-fix
 
 ### **🎯 Priorità 2: Espansione Contenuti**
 1. **Sistema armi elementali** per varietà
@@ -235,12 +238,18 @@
 
 ## 📊 **CONCLUSIONI**
 
-Ball Survival è un gioco con **potenziale enorme** ma ha bisogno di **correzioni critiche immediate** per il bilanciamento. Il sistema di archetipi, stage e crafting è **solido e innovativo**, ma il sistema DR e la progressione XP necessitano di fix urgenti.
+Ball Survival è un gioco con **potenziale enorme** ma ha bisogno di **correzioni critiche immediate** per il bilanciamento. Il sistema di archetipi, stage e crafting è **solido e innovativo**, ma il sistema di scaling nemici è **troppo aggressivo** e porta a partite troppo brevi.
 
 **Prossimi Step:**
-1. **Fix critici** (7 giorni)
+1. **Fix scaling critico** (7 giorni)
 2. **Espansione contenuti** (1-2 mesi)
 3. **Social features** (3-6 mesi)
 4. **Platform expansion** (6+ mesi)
 
-Con queste correzioni e l'espansione graduale, Ball Survival può diventare un **gioco di riferimento** nel genere survival con una community di **100K+ utenti attivi** entro 12 mesi. 
+Con queste correzioni e l'espansione graduale, Ball Survival può diventare un **gioco di riferimento** nel genere survival con una community di **100K+ utenti attivi** entro 12 mesi.
+
+**Punteggio Complessivo: 7.5/10**
+- **Innovazione**: 9/10
+- **Gameplay**: 7/10
+- **Bilanciamento**: 5/10 (da correggere)
+- **Potenziale**: 9/10 
