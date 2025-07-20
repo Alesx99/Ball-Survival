@@ -19,7 +19,7 @@ const CONFIG = {
          * Questo bilanciamento rende la progressione più fluida
          * e soddisfacente, specialmente nei primi 10 minuti di gioco.
          */
-        xpCurve: { base: 15, growth: 1.20, levelFactor: 12, power: 1.0 }
+        xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
@@ -174,14 +174,14 @@ const CONFIG = {
          * - Retention migliorata: Giocatori continuano più a lungo
          */
         scaling: { 
-            timeFactor: 12,           // Ridotto da 8 (50% più graduale)
-            hpPerFactor: 6,           // Ridotto da 10 (40% meno HP)
-            speedPerFactor: 0.025,    // Ridotto da 0.04 (37.5% meno veloce)
-            damagePerFactor: 1.1,     // Ridotto da 1.4 (21% meno danno)
-            xpPerFactor: 1.3,         // Mantenuto per progressione
-            xpPowerFactor: 1.06,      // Mantenuto per progressione
-            levelFactorMultiplier: 0.8, // Mantenuto per bilanciamento
-            drPerFactor: 0.0008       // Mantenuto per sfida
+            timeFactor: 15,           // Aumentato da 12 (25% più graduale)
+            hpPerFactor: 5,           // Ridotto da 6 (17% meno HP)
+            speedPerFactor: 0.02,     // Ridotto da 0.025 (20% meno veloce)
+            damagePerFactor: 1.05,    // Ridotto da 1.1 (5% meno danno)
+            xpPerFactor: 1.25,        // Ridotto da 1.3 (4% meno XP)
+            xpPowerFactor: 1.05,      // Ridotto da 1.06 (2% meno XP)
+            levelFactorMultiplier: 0.7, // Ridotto da 0.8 (13% meno scaling)
+            drPerFactor: 0.0006       // Ridotto da 0.0008 (25% meno DR)
         },
         base: { hp: 25, speed: 1.2, radius: 12, damage: 7, xp: 4, dr: 0 }
     },
@@ -2500,6 +2500,164 @@ class Effect extends Entity {
 }
 
 
+// Sistema di monitoraggio retention per versione 5.3
+class RetentionMonitor {
+    constructor() {
+        this.metrics = {
+            sessionTimes: [],
+            retentionRates: [],
+            satisfactionScores: [],
+            playerLevels: [],
+            enemyScaling: []
+        };
+        this.alerts = [];
+        this.optimizationHistory = [];
+    }
+    
+    trackSession(sessionData) {
+        const { sessionTime, retention, satisfaction, playerLevel, enemyScaling } = sessionData;
+        
+        this.metrics.sessionTimes.push(sessionTime);
+        this.metrics.retentionRates.push(retention);
+        this.metrics.satisfactionScores.push(satisfaction);
+        this.metrics.playerLevels.push(playerLevel);
+        this.metrics.enemyScaling.push(enemyScaling);
+        
+        // Analisi real-time
+        this.analyzeTrends();
+        
+        // Alert se retention < 80%
+        if (retention < 0.8) {
+            this.triggerOptimization();
+        }
+    }
+    
+    analyzeTrends() {
+        if (this.metrics.sessionTimes.length < 10) return; // Aspetta dati sufficienti
+        
+        const avgSessionTime = this.getAverageSessionTime();
+        const avgRetention = this.getAverageRetention();
+        
+        // Se session time < 15 min, riduci scaling
+        if (avgSessionTime < 15) {
+            this.autoAdjustScaling('reduce');
+        }
+        
+        // Se retention < 85%, ottimizza XP
+        if (avgRetention < 0.85) {
+            this.autoAdjustXP('reduce');
+        }
+    }
+    
+    autoAdjustScaling(action) {
+        if (action === 'reduce') {
+            CONFIG.enemies.scaling.timeFactor *= 1.1;
+            CONFIG.enemies.scaling.hpPerFactor *= 0.9;
+            CONFIG.enemies.scaling.speedPerFactor *= 0.9;
+            
+            this.optimizationHistory.push({
+                type: 'scaling_reduce',
+                timestamp: Date.now(),
+                reason: 'Session time troppo basso'
+            });
+            
+            console.log('⚙️ Auto-adjust: Scaling ridotto per session time basso');
+        }
+    }
+    
+    autoAdjustXP(action) {
+        if (action === 'reduce') {
+            CONFIG.player.xpCurve.base *= 0.95;
+            CONFIG.player.xpCurve.growth *= 0.98;
+            
+            this.optimizationHistory.push({
+                type: 'xp_reduce',
+                timestamp: Date.now(),
+                reason: 'Retention troppo bassa'
+            });
+            
+            console.log('⚙️ Auto-adjust: XP ridotta per retention bassa');
+        }
+    }
+    
+    getAverageSessionTime() {
+        return this.metrics.sessionTimes.reduce((a, b) => a + b, 0) / this.metrics.sessionTimes.length;
+    }
+    
+    getAverageRetention() {
+        return this.metrics.retentionRates.reduce((a, b) => a + b, 0) / this.metrics.retentionRates.length;
+    }
+    
+    getMetrics() {
+        return {
+            avgSessionTime: this.getAverageSessionTime(),
+            avgRetention: this.getAverageRetention(),
+            avgSatisfaction: this.metrics.satisfactionScores.reduce((a, b) => a + b, 0) / this.metrics.satisfactionScores.length,
+            totalSessions: this.metrics.sessionTimes.length,
+            optimizations: this.optimizationHistory.length
+        };
+    }
+}
+
+// Sistema feedback rapido per versione 5.3
+class QuickFeedback {
+    constructor() {
+        this.feedbackTypes = {
+            'too_easy': { scaling: -0.1, xp: 0 },
+            'too_hard': { scaling: 0.1, xp: -0.05 },
+            'too_slow': { scaling: 0, xp: -0.1 },
+            'too_fast': { scaling: 0, xp: 0.1 },
+            'perfect': { scaling: 0, xp: 0 }
+        };
+    }
+    
+    applyFeedback(feedbackType) {
+        const adjustment = this.feedbackTypes[feedbackType];
+        
+        // Aggiusta scaling
+        CONFIG.enemies.scaling.timeFactor *= (1 + adjustment.scaling);
+        CONFIG.enemies.scaling.hpPerFactor *= (1 + adjustment.scaling);
+        
+        // Aggiusta XP
+        CONFIG.player.xpCurve.base *= (1 + adjustment.xp);
+        CONFIG.player.xpCurve.growth *= (1 + adjustment.xp);
+        
+        console.log(`🎯 Feedback applicato: ${feedbackType}`);
+    }
+}
+
+// Sistema progressione ottimizzata per versione 5.3
+class ProgressionOptimizer {
+    constructor() {
+        this.levelMilestones = [5, 10, 15, 20, 25];
+        this.milestoneRewards = {
+            5: { gems: 10, 'common_core': 1 },
+            10: { gems: 25, 'rare_weapon': 1 },
+            15: { gems: 50, 'epic_core': 1 },
+            20: { gems: 100, 'legendary_weapon': 1 },
+            25: { gems: 200, 'mythic_core': 1 }
+        };
+    }
+    
+    checkMilestone(playerLevel) {
+        if (this.levelMilestones.includes(playerLevel)) {
+            const reward = this.milestoneRewards[playerLevel];
+            this.grantReward(reward);
+            this.showMilestoneNotification(playerLevel, reward);
+        }
+    }
+    
+    grantReward(reward) {
+        // Implementa sistema ricompense
+        console.log('🎁 Ricompensa milestone:', reward);
+    }
+    
+    showMilestoneNotification(level, reward) {
+        // Mostra notifica milestone
+        console.log(`🏆 Livello ${level} raggiunto! Ricompensa:`, reward);
+    }
+}
+
 class BallSurvivalGame {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
@@ -2521,6 +2679,12 @@ class BallSurvivalGame {
             activeCore: null, // Solo 1 core attivo
             activeWeapons: [] // Max 2 armi attive
         };
+        
+        // Sistemi versione 5.3
+        this.retentionMonitor = new RetentionMonitor();
+        this.quickFeedback = new QuickFeedback();
+        this.progressionOptimizer = new ProgressionOptimizer();
+        
         this.loadGameData(); 
         this.loadStageProgress(); // Carica la progressione degli stage
         this.resetRunState(); 
@@ -2743,6 +2907,11 @@ class BallSurvivalGame {
         this.spawnMapXpOrbs();
         this.castSpells();
         this.checkForLevelUp(); // Spostato qui per coerenza
+        
+        // Monitoraggio versione 5.3 - ogni 30 secondi
+        if (Math.floor(this.gameTime / 30) % 30 === 0) {
+            this.trackRetentionMetrics();
+        }
     }
     
     draw() {
@@ -5020,6 +5189,68 @@ class BallSurvivalGame {
         this.populateShop();
         
         console.log('=== FINE TEST ===');
+    }
+    
+    // Metodo per tracciare metriche retention versione 5.3
+    trackRetentionMetrics() {
+        const sessionTime = this.gameTime / 60; // Converti in minuti
+        const playerLevel = this.player.level;
+        const enemyCount = this.entities.enemies.length + this.entities.bosses.length;
+        
+        // Calcola retention basata su session time
+        const retention = this.calculateRetention(sessionTime);
+        
+        // Calcola satisfaction basata su player level e enemy scaling
+        const satisfaction = this.calculateSatisfaction(playerLevel, enemyCount);
+        
+        // Calcola enemy scaling
+        const enemyScaling = this.calculateEnemyScaling();
+        
+        // Traccia metriche
+        this.retentionMonitor.trackSession({
+            sessionTime: sessionTime,
+            retention: retention,
+            satisfaction: satisfaction,
+            playerLevel: playerLevel,
+            enemyScaling: enemyScaling
+        });
+        
+        // Controlla milestone
+        this.progressionOptimizer.checkMilestone(playerLevel);
+        
+        // Log metriche ogni 5 minuti
+        if (Math.floor(sessionTime) % 5 === 0) {
+            console.log('📊 Metriche Versione 5.3:', {
+                sessionTime: sessionTime.toFixed(1) + ' min',
+                retention: (retention * 100).toFixed(1) + '%',
+                satisfaction: (satisfaction * 100).toFixed(1) + '%',
+                playerLevel: playerLevel,
+                enemyCount: enemyCount
+            });
+        }
+    }
+    
+    calculateRetention(sessionTime) {
+        // Modello retention basato su session time
+        if (sessionTime < 5) return 0.6; // Troppo breve
+        if (sessionTime < 10) return 0.75; // Breve ma accettabile
+        if (sessionTime < 20) return 0.9; // Ottimale
+        if (sessionTime < 30) return 0.85; // Lungo ma gestibile
+        return 0.7; // Troppo lungo
+    }
+    
+    calculateSatisfaction(playerLevel, enemyCount) {
+        // Modello satisfaction basato su progressione
+        const levelSatisfaction = Math.min(1.0, playerLevel / 10);
+        const enemySatisfaction = Math.min(1.0, enemyCount / 20);
+        return (levelSatisfaction + enemySatisfaction) / 2;
+    }
+    
+    calculateEnemyScaling() {
+        // Calcola scaling nemici basato su tempo
+        const timeFactor = this.gameTime / (CONFIG.enemies.scaling.timeFactor * 60);
+        const levelFactor = this.player.level * CONFIG.enemies.scaling.levelFactorMultiplier;
+        return timeFactor + levelFactor;
     }
 }
 
