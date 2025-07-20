@@ -317,6 +317,7 @@
                 <button id="startGameBtn">Inizia Partita</button>
                 <button id="inventoryBtn" style="background: #8e44ad; margin-top: 10px;">📦 Inventario</button>
                 <button id="achievementsBtn" style="background: #f39c12; margin-top: 10px;">🏆 Achievements</button>
+                <button id="cloudSyncBtn" style="background: #4a90e2; margin-top: 10px;" onclick="showCloudSyncConfig()">☁️ Cloud Sync</button>
             </div>
             <div class="save-load-container">
                 <p>Carica i tuoi progressi:</p>
@@ -450,6 +451,40 @@
                 <!-- Gli achievements verranno popolati qui -->
             </div>
             <!-- Pulsante Chiudi rimosso per evitare duplicati - usa la X nell'header -->
+        </div>
+        
+        <!-- Popup Cloud Sync Configuration -->
+        <div id="cloudSyncPopup" class="popup-menu">
+            <div class="cloud-sync-header">
+                <h3>☁️ Configurazione Cloud Sync</h3>
+                <button id="closeCloudSyncBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div class="cloud-sync-content">
+                <div class="sync-status">
+                    <h4>📊 Stato Sincronizzazione</h4>
+                    <div id="syncStatusDisplay">
+                        <p>🔄 Verificando configurazione...</p>
+                    </div>
+                </div>
+                
+                <div class="token-config">
+                    <h4>🔑 Token GitHub</h4>
+                    <input type="password" id="cloudSyncToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                    <small style="color: #888; font-size: 12px;">
+                        💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Crea token GitHub</a> | 
+                        <strong>Permessi necessari:</strong> gist (per salvare dati)
+                    </small>
+                </div>
+                
+                <div class="sync-actions">
+                    <button onclick="configureCloudSync()" style="background: #4CAF50; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">✅ Configura e Sincronizza</button>
+                    <button onclick="testCloudSync()" style="background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🧪 Test Connessione</button>
+                    <button onclick="syncUserAccounts()" style="background: #FF9800; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔄 Sync Account</button>
+                    <button onclick="resetCloudSync()" style="background: #f44336; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔧 Reset Config</button>
+                </div>
+                
+                <div id="cloudSyncMessage" style="margin: 10px 0; padding: 8px; border-radius: 4px; display: none; font-size: 12px;"></div>
+            </div>
         </div>
     </div>
 

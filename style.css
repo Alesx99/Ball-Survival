@@ -1607,4 +1607,53 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
 #tokenSetupStatus.info {
     background: rgba(52, 152, 219, 0.2);
     color: #3498db;
+}
+
+/* Popup Cloud Sync */
+.cloud-sync-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.cloud-sync-content {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.sync-status {
+    background: rgba(74, 144, 226, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #4a90e2;
+}
+
+.token-config {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sync-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.sync-actions button {
+    flex: 1;
+    min-width: 150px;
+    transition: all 0.3s ease;
+}
+
+.sync-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 } 
