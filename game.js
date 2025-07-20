@@ -3193,7 +3193,10 @@ class BallSurvivalGame {
         
         // Pulsante chiudi achievements
         if (this.dom.buttons.closeAchievements) {
-            this.dom.buttons.closeAchievements.onclick = () => this.hideAllPopups();
+            this.dom.buttons.closeAchievements.onclick = () => {
+                this.hideAllPopups();
+                this.returnToStartScreen();
+            };
         }
         
         // Pulsante chiudi negozio
