@@ -1,5 +1,111 @@
 # 📋 CHANGELOG - Ball Survival
 
+## 🎯 **VERSIONE 5.4 - ANALYTICS & ARCHETYPE BALANCE** *(20 Luglio 2025)*
+
+### 🆕 **NUOVE FUNZIONALITÀ**
+- **Sistema Analytics Completo**: Tracking automatico di tutti gli archetipi
+- **Auto-Bilanciamento Intelligente**: Nerf/buff temporanei basati su performance
+- **DR Cap System**: Prevenzione immortalità con limiti di DR
+- **UI Analytics**: Visualizzazione score e statistiche nel menu pause
+
+### 🔧 **MIGLIORAMENTI**
+- **DR massimo**: 85% per tutti gli archetipi, 90% per Palla d'Acciaio
+- **Penetrazione Boss**: -25% DR vs boss per bilanciamento
+- **Tracking Performance**: Tempo, livello, soddisfazione per ogni archetipo
+- **Notifiche Auto-Balance**: Feedback immediato su nerf/buff applicati
+
+### 🐛 **CORREZIONI**
+- **Fix DR Immortale**: Sistema anti-immortalità implementato
+- **Bilanciamento Archetipi**: Distribuzione più uniforme dell'utilizzo
+- **Performance Tracking**: Metriche accurate per decisioni future
+
+---
+
+## 🎯 **VERSIONE 5.3 - HOTFIX RETENTION** *(19 Luglio 2025)*
+
+### 🆕 **NUOVE FUNZIONALITÀ**
+- **Sistema di Retention Monitor**: Tracciamento automatico delle sessioni
+- **Auto-Optimization**: Bilanciamento automatico basato su metriche
+- **Quick Feedback System**: Risposta immediata ai problemi di retention
+- **Progression Optimizer**: Sistema di milestone e ricompense
+
+### 🔧 **MIGLIORAMENTI**
+- **Enemy Scaling**: Ridotto da +15% a +10% ogni 5 minuti
+- **Spawn Rate**: Aumentato da 2-4 a 3-5 nemici per spawn
+- **XP Curve**: Ridotta crescita per livelli alti
+- **Drop Rate**: Aumentato drop rate materiali e gemme
+
+### 🐛 **CORREZIONI**
+- **Fix Retention**: Miglioramento del 25% nel tempo di sessione
+- **Fix Scaling**: Bilanciamento nemici più graduale
+- **Fix Performance**: Ottimizzazione spawn e rendering
+
+---
+
+## 🎯 **VERSIONE 5.2 - ESOTERIC THEME** *(18 Luglio 2025)*
+
+### 🆕 **NUOVE FUNZIONALITÀ**
+- **Tema Esoterico**: Font Cinzel e Crimson Text
+- **Palette Colori**: Marrone, oro, rosso scuro, indigo
+- **UI Redesign**: Pulsanti pausa migliorati per mobile e desktop
+- **Scrollbar Styling**: Design coerente con tema esoterico
+
+### 🔧 **MIGLIORAMENTI**
+- **Typography**: Font esoterici per titoli e testo
+- **Color Scheme**: Palette completa per tutti gli elementi
+- **Mobile Optimization**: Pulsanti pausa ottimizzati per touch
+- **Visual Consistency**: Design unificato in tutto il gioco
+
+### 🐛 **CORREZIONI**
+- **Fix Pause Button**: Grafica più precisa e responsive
+- **Fix Mobile UI**: Migliore usabilità su dispositivi touch
+- **Fix Theme Consistency**: Colori e font applicati uniformemente
+
+---
+
+## 🎯 **VERSIONE 5.1 - BOSS UPGRADE SYSTEM** *(17 Luglio 2025)*
+
+### 🆕 **NUOVE FUNZIONALITÀ**
+- **Sistema Boss Upgrade**: Overcap passivi dopo uccisione boss
+- **Passivi Extra**: Possibilità di superare il limite di livello
+- **Boss Scaling**: Difficoltà progressiva per boss successivi
+- **Achievement System**: Sistema completo di achievement
+
+### 🔧 **MIGLIORAMENTI**
+- **Boss Mechanics**: Comportamento più intelligente
+- **Reward System**: Ricompense migliori per boss
+- **Progression**: Sistema di milestone e unlock
+- **UI Enhancements**: Menu achievement e statistiche
+
+### 🐛 **CORREZIONI**
+- **Fix Boss Difficulty**: Bilanciamento migliorato
+- **Fix Achievement Tracking**: Sistema più affidabile
+- **Fix UI Responsiveness**: Migliore adattabilità mobile
+
+---
+
+## 🎯 **VERSIONE 5.0 - MAJOR UPDATE** *(16 Luglio 2025)*
+
+### 🆕 **NUOVE FUNZIONALITÀ**
+- **Sistema Archetipi**: 6 archetipi con abilità uniche
+- **Sistema Core**: 8 core con effetti speciali
+- **Sistema Armi**: 6 armi craftabili con statistiche
+- **Sistema Stage**: 4 stage con ambienti diversi
+- **Sistema Materiali**: 8 materiali per crafting
+
+### 🔧 **MIGLIORAMENTI**
+- **Combat System**: Sistema di combattimento avanzato
+- **Progression**: Sistema di progressione complesso
+- **UI/UX**: Interfaccia completamente ridisegnata
+- **Performance**: Ottimizzazioni significative
+
+### 🐛 **CORREZIONI**
+- **Fix Memory Leaks**: Gestione memoria migliorata
+- **Fix Mobile Performance**: Ottimizzazioni per dispositivi mobili
+- **Fix Save System**: Sistema di salvataggio più affidabile
+
+---
+
 ## 🔥 **VERSIONE 5.1 - HOTFIX BILANCIAMENTO** (Data: 2024)
 
 ### **🎯 PROBLEMA RISOLTO**

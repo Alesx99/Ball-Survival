@@ -1068,6 +1068,210 @@ const Utils = {
     }
 };
 
+// ===== SISTEMA ANALYTICS VERSIONE 5.4 =====
+
+class AnalyticsManager {
+    constructor() {
+        this.analyticsData = {
+            archetypeUsage: {
+                'standard': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'steel': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'shadow': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'tech': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'magma': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'crystal': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 }
+            },
+            sessionStats: {
+                totalSessions: 0,
+                avgSessionTime: 0,
+                retentionRate: 0,
+                playerSatisfaction: 0
+            },
+            balanceMetrics: {
+                lastUpdate: Date.now(),
+                archetypeScores: {},
+                recommendations: []
+            }
+        };
+        
+        this.loadAnalytics();
+        this.setupTracking();
+    }
+    
+    loadAnalytics() {
+        const saved = localStorage.getItem('ballSurvivalAnalytics');
+        if (saved) {
+            try {
+                this.analyticsData = JSON.parse(saved);
+            } catch (e) {
+                console.log('Analytics data corrupted, starting fresh');
+            }
+        }
+    }
+    
+    saveAnalytics() {
+        localStorage.setItem('ballSurvivalAnalytics', JSON.stringify(this.analyticsData));
+        this.syncToCloud();
+    }
+    
+    setupTracking() {
+        // Track archetype selection
+        this.trackArchetypeSelection = (archetype) => {
+            if (this.analyticsData.archetypeUsage[archetype]) {
+                this.analyticsData.archetypeUsage[archetype].games++;
+                this.saveAnalytics();
+            }
+        };
+        
+        // Track game completion
+        this.trackGameCompletion = (archetype, sessionTime, finalLevel, satisfaction) => {
+            if (this.analyticsData.archetypeUsage[archetype]) {
+                const data = this.analyticsData.archetypeUsage[archetype];
+                data.totalTime += sessionTime;
+                data.avgLevel = (data.avgLevel * (data.games - 1) + finalLevel) / data.games;
+                data.satisfaction = (data.satisfaction * (data.games - 1) + satisfaction) / data.games;
+                
+                this.analyticsData.sessionStats.totalSessions++;
+                this.analyticsData.sessionStats.avgSessionTime = 
+                    (this.analyticsData.sessionStats.avgSessionTime * (this.analyticsData.sessionStats.totalSessions - 1) + sessionTime) / 
+                    this.analyticsData.sessionStats.totalSessions;
+                
+                this.saveAnalytics();
+                this.updateBalanceMetrics();
+            }
+        };
+    }
+    
+    updateBalanceMetrics() {
+        const scores = {};
+        let totalGames = 0;
+        
+        // Calculate scores for each archetype
+        for (let archetype in this.analyticsData.archetypeUsage) {
+            const data = this.analyticsData.archetypeUsage[archetype];
+            totalGames += data.games;
+            
+            if (data.games > 0) {
+                const timeScore = Math.min(1, data.totalTime / (data.games * 1200)); // 20 min = 1.0
+                const levelScore = Math.min(1, data.avgLevel / 25); // 25 level = 1.0
+                const satisfactionScore = data.satisfaction / 100;
+                
+                scores[archetype] = (timeScore + levelScore + satisfactionScore) / 3;
+            } else {
+                scores[archetype] = 0.5; // Default score
+            }
+        }
+        
+        this.analyticsData.balanceMetrics.archetypeScores = scores;
+        this.analyticsData.balanceMetrics.lastUpdate = Date.now();
+        
+        // Generate balance recommendations
+        this.generateBalanceRecommendations(scores);
+    }
+    
+    generateBalanceRecommendations(scores) {
+        const recommendations = [];
+        const avgScore = Object.values(scores).reduce((a, b) => a + b) / Object.values(scores).length;
+        
+        for (let archetype in scores) {
+            const score = scores[archetype];
+            const diff = score - avgScore;
+            
+            if (Math.abs(diff) > 0.1) { // 10% threshold
+                if (diff > 0) {
+                    recommendations.push({
+                        archetype: archetype,
+                        action: 'nerf',
+                        reason: `Score troppo alto (${score.toFixed(2)} vs ${avgScore.toFixed(2)})`,
+                        suggestion: this.getNerfSuggestion(archetype)
+                    });
+                } else {
+                    recommendations.push({
+                        archetype: archetype,
+                        action: 'buff',
+                        reason: `Score troppo basso (${score.toFixed(2)} vs ${avgScore.toFixed(2)})`,
+                        suggestion: this.getBuffSuggestion(archetype)
+                    });
+                }
+            }
+        }
+        
+        this.analyticsData.balanceMetrics.recommendations = recommendations;
+    }
+    
+    getNerfSuggestion(archetype) {
+        const suggestions = {
+            'steel': 'Ridurre DR da 70% a 60%, aumentare malus velocità',
+            'shadow': 'Ridurre danno critico da 15% a 10%',
+            'tech': 'Ridurre area effect da 30% a 25%',
+            'standard': 'Ridurre bonus XP da 10% a 8%',
+            'magma': 'Ridurre danno bruciatura da 15 a 12',
+            'crystal': 'Ridurre effetto slow da 40% a 35%'
+        };
+        return suggestions[archetype] || 'Ridurre statistiche generali';
+    }
+    
+    getBuffSuggestion(archetype) {
+        const suggestions = {
+            'steel': 'Aumentare HP da 150 a 160, ridurre malus velocità',
+            'shadow': 'Aumentare crit chance da 25% a 30%',
+            'tech': 'Aumentare chain damage da 20% a 25%',
+            'standard': 'Aumentare bonus XP da 10% a 12%',
+            'magma': 'Aumentare danno bruciatura da 15 a 18',
+            'crystal': 'Aumentare effetto slow da 40% a 45%'
+        };
+        return suggestions[archetype] || 'Aumentare statistiche generali';
+    }
+    
+    syncToCloud() {
+        // Sync to GitHub Gist or similar service
+        if (this.analyticsData.sessionStats.totalSessions % 10 === 0) { // Sync every 10 sessions
+            this.uploadToGist();
+        }
+    }
+    
+    async uploadToGist() {
+        try {
+            const data = {
+                description: 'Ball Survival Analytics - Version 5.4',
+                public: false,
+                files: {
+                    'analytics.json': {
+                        content: JSON.stringify(this.analyticsData, null, 2)
+                    }
+                }
+            };
+            
+            // Note: This would require a GitHub token in production
+            // For now, we'll just log the data
+            console.log('Analytics data ready for upload:', data);
+            
+        } catch (error) {
+            console.log('Failed to upload analytics:', error);
+        }
+    }
+    
+    getAnalyticsReport() {
+        return {
+            archetypeUsage: this.analyticsData.archetypeUsage,
+            sessionStats: this.analyticsData.sessionStats,
+            balanceMetrics: this.analyticsData.balanceMetrics,
+            recommendations: this.analyticsData.balanceMetrics.recommendations
+        };
+    }
+    
+    getArchetypeBalanceScore(archetype) {
+        return this.analyticsData.balanceMetrics.archetypeScores[archetype] || 0.5;
+    }
+    
+    getAllArchetypeScores() {
+        return this.analyticsData.balanceMetrics.archetypeScores;
+    }
+}
+
+// Initialize analytics manager
+const analyticsManager = new AnalyticsManager();
+
 // ################# ENTITY CLASSES ##################
 
 class Entity { constructor(x, y) { this.x = x; this.y = y; this.toRemove = false; } update(game) {} draw(ctx, game) {} }
@@ -1093,6 +1297,11 @@ class Player extends Entity {
         this.y = CONFIG.world.height / 2;
         this.initStats();
         this.archetype = CONFIG.characterArchetypes[archetypeId];
+        
+        // TRACKING ANALYTICS: Registra selezione archetipo
+        if (window.analyticsManager && archetypeId) {
+            analyticsManager.trackArchetypeSelection(archetypeId);
+        }
         
         this.applyPermanentUpgrades(permUpgrades);
         
@@ -1249,6 +1458,11 @@ class Player extends Entity {
      * - Boss: -25% penetrazione DR
      * - Esempio: DR 110% vs Boss = 110% - 25% = 85% DR effettiva
      * 
+     * VERSIONE 5.4: DR CAP IMPLEMENTATO
+     * - DR massimo per tutti gli archetipi: 85%
+     * - Palla d'Acciaio: DR massimo 90% (solo 5% in più)
+     * - Sistema anti-immortalità attivo
+     * 
      * Questo sistema permette alla Palla d'Acciaio di essere molto resistente
      * contro nemici normali, ma vulnerabile ai boss che rappresentano la sfida
      * finale del gioco.
@@ -1257,7 +1471,13 @@ class Player extends Entity {
         const shieldSpell = game.spells.shield;
         if ((shieldSpell && shieldSpell.active && shieldSpell.evolution !== 'reflect') || this.powerUpTimers.invincibility > 0) return;
         
-        let damageReduction = Math.min(0.95, this.stats.dr);  // Cap DR al 95% per bilanciamento
+        // VERSIONE 5.4: DR CAP IMPLEMENTATO
+        let maxDR = 0.85; // DR massimo per tutti gli archetipi
+        if (this.archetype && this.archetype.id === 'steel') {
+            maxDR = 0.90; // Palla d'Acciaio può raggiungere 90% DR
+        }
+        
+        let damageReduction = Math.min(maxDR, this.stats.dr);  // Cap DR al valore massimo
         
         // PENETRAZIONE DR: Sistema di bilanciamento per evitare immortalità
         // Elite: -10% penetrazione DR (nemici speciali)
@@ -3264,6 +3484,12 @@ class BallSurvivalGame {
             }
         }
         
+        // TRACKING ANALYTICS: Inizializza sessione
+        this.sessionStartTime = Date.now();
+        if (window.analyticsManager && this.player.archetype) {
+            console.log(`Iniziata sessione con archetipo: ${this.player.archetype.id}`);
+        }
+        
         // Applica gli effetti dei core e delle armi salvati
         if (this.cores && Object.keys(this.cores).length > 0) {
             for (const [coreId, coreData] of Object.entries(this.cores)) {
@@ -3293,6 +3519,20 @@ class BallSurvivalGame {
 
         this.state = 'gameOver'; 
         this.totalGems += this.gemsThisRun; 
+        
+        // TRACKING ANALYTICS: Registra completamento sessione
+        if (window.analyticsManager && this.player.archetype) {
+            const sessionTime = (Date.now() - this.sessionStartTime) / 1000; // in secondi
+            const satisfaction = this.calculateSatisfaction(this.player.level, this.entities.enemies.length + this.entities.bosses.length);
+            
+            analyticsManager.trackGameCompletion(
+                this.player.archetype.id,
+                sessionTime,
+                this.player.level,
+                satisfaction
+            );
+        }
+        
         this.saveGameData();
         document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
         document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
@@ -3366,6 +3606,11 @@ class BallSurvivalGame {
         // Monitoraggio versione 5.3 - ogni 30 secondi
         if (Math.floor(this.gameTime / 30) % 30 === 0) {
             this.trackRetentionMetrics();
+        }
+        
+        // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi
+        if (Math.floor(this.gameTime / 60) % 60 === 0) {
+            this.checkAutoBalance();
         }
         
         // Achievement tracking - ogni 10 secondi
@@ -5369,7 +5614,30 @@ class BallSurvivalGame {
         }); 
         if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`; 
         weaponsHTML += `</div>`; 
-        this.dom.weaponsStatsColumn.innerHTML = weaponsHTML; 
+        this.dom.weaponsStatsColumn.innerHTML = weaponsHTML;
+        
+        // ANALYTICS VERSIONE 5.4: Statistiche di bilanciamento
+        if (window.analyticsManager) {
+            const report = analyticsManager.getAnalyticsReport();
+            const scores = analyticsManager.getAllArchetypeScores();
+            
+            let analyticsHTML = `<div class="stats-section"><div class="stats-section-title">📊 Analytics Bilanciamento</div>`;
+            analyticsHTML += `<div class="stat-item">Sessione Corrente: <span>${p.archetype.id}</span></div>`;
+            analyticsHTML += `<div class="stat-item">Score Archetipo: <span>${(scores[p.archetype.id] || 0.5).toFixed(2)}</span></div>`;
+            analyticsHTML += `<div class="stat-item">Partite Totali: <span>${report.sessionStats.totalSessions}</span></div>`;
+            analyticsHTML += `<div class="stat-item">Tempo Medio: <span>${Math.floor(report.sessionStats.avgSessionTime)}s</span></div>`;
+            
+            // Mostra raccomandazioni di bilanciamento
+            if (report.recommendations.length > 0) {
+                analyticsHTML += `<div class="stat-item">Raccomandazioni: <span style="color: #ff6b6b;">${report.recommendations.length} pending</span></div>`;
+            }
+            analyticsHTML += `</div>`;
+            
+            // Aggiungi analytics alla colonna delle armi se esiste
+            if (this.dom.weaponsStatsColumn) {
+                this.dom.weaponsStatsColumn.innerHTML += analyticsHTML;
+            }
+        } 
     }
     handleEscapeKey() { 
         const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex'); 
@@ -6001,6 +6269,161 @@ class BallSurvivalGame {
         const timeFactor = this.gameTime / (CONFIG.enemies.scaling.timeFactor * 60);
         const levelFactor = this.player.level * CONFIG.enemies.scaling.levelFactorMultiplier;
         return timeFactor + levelFactor;
+    }
+    
+    // ANALYTICS VERSIONE 5.4: Sistema di auto-bilanciamento
+    checkAutoBalance() {
+        if (!window.analyticsManager) return;
+        
+        const report = analyticsManager.getAnalyticsReport();
+        const scores = analyticsManager.getAllArchetypeScores();
+        const currentArchetype = this.player.archetype.id;
+        const currentScore = scores[currentArchetype] || 0.5;
+        
+        // Calcola la media degli score
+        const avgScore = Object.values(scores).reduce((a, b) => a + b) / Object.values(scores).length;
+        const scoreDiff = currentScore - avgScore;
+        
+        // Se lo score è troppo alto (>20% sopra la media), applica nerf temporaneo
+        if (scoreDiff > 0.2) {
+            this.applyTemporaryNerf(currentArchetype);
+            console.log(`Auto-nerf applicato a ${currentArchetype}: score ${currentScore.toFixed(2)} vs media ${avgScore.toFixed(2)}`);
+        }
+        // Se lo score è troppo basso (<20% sotto la media), applica buff temporaneo
+        else if (scoreDiff < -0.2) {
+            this.applyTemporaryBuff(currentArchetype);
+            console.log(`Auto-buff applicato a ${currentArchetype}: score ${currentScore.toFixed(2)} vs media ${avgScore.toFixed(2)}`);
+        }
+    }
+    
+    applyTemporaryNerf(archetype) {
+        const nerfDuration = 300; // 5 minuti
+        const nerfAmount = 0.15; // 15% di riduzione
+        
+        switch(archetype) {
+            case 'steel':
+                this.player.stats.dr *= (1 - nerfAmount);
+                this.player.stats.speed *= (1 - nerfAmount * 0.5);
+                break;
+            case 'shadow':
+                this.player.modifiers.power *= (1 - nerfAmount);
+                break;
+            case 'tech':
+                this.player.modifiers.area *= (1 - nerfAmount);
+                break;
+            case 'magma':
+                this.player.modifiers.frequency *= (1 + nerfAmount);
+                break;
+            default:
+                this.player.modifiers.power *= (1 - nerfAmount);
+                break;
+        }
+        
+        // Notifica al giocatore
+        this.notifications.push({
+            text: `Auto-nerf applicato a ${archetype}`,
+            life: 180,
+            color: '#ff6b6b'
+        });
+        
+        // Rimuovi il nerf dopo il tempo stabilito
+        setTimeout(() => {
+            this.removeTemporaryNerf(archetype);
+        }, nerfDuration * 1000);
+    }
+    
+    applyTemporaryBuff(archetype) {
+        const buffDuration = 300; // 5 minuti
+        const buffAmount = 0.15; // 15% di aumento
+        
+        switch(archetype) {
+            case 'steel':
+                this.player.stats.dr *= (1 + buffAmount);
+                this.player.stats.speed *= (1 + buffAmount * 0.5);
+                break;
+            case 'shadow':
+                this.player.modifiers.power *= (1 + buffAmount);
+                break;
+            case 'tech':
+                this.player.modifiers.area *= (1 + buffAmount);
+                break;
+            case 'magma':
+                this.player.modifiers.frequency *= (1 - buffAmount);
+                break;
+            default:
+                this.player.modifiers.power *= (1 + buffAmount);
+                break;
+        }
+        
+        // Notifica al giocatore
+        this.notifications.push({
+            text: `Auto-buff applicato a ${archetype}`,
+            life: 180,
+            color: '#4ecdc4'
+        });
+        
+        // Rimuovi il buff dopo il tempo stabilito
+        setTimeout(() => {
+            this.removeTemporaryBuff(archetype);
+        }, buffDuration * 1000);
+    }
+    
+    removeTemporaryNerf(archetype) {
+        const nerfAmount = 0.15;
+        
+        switch(archetype) {
+            case 'steel':
+                this.player.stats.dr /= (1 - nerfAmount);
+                this.player.stats.speed /= (1 - nerfAmount * 0.5);
+                break;
+            case 'shadow':
+                this.player.modifiers.power /= (1 - nerfAmount);
+                break;
+            case 'tech':
+                this.player.modifiers.area /= (1 - nerfAmount);
+                break;
+            case 'magma':
+                this.player.modifiers.frequency /= (1 + nerfAmount);
+                break;
+            default:
+                this.player.modifiers.power /= (1 - nerfAmount);
+                break;
+        }
+        
+        this.notifications.push({
+            text: `Auto-nerf rimosso da ${archetype}`,
+            life: 120,
+            color: '#ffa500'
+        });
+    }
+    
+    removeTemporaryBuff(archetype) {
+        const buffAmount = 0.15;
+        
+        switch(archetype) {
+            case 'steel':
+                this.player.stats.dr /= (1 + buffAmount);
+                this.player.stats.speed /= (1 + buffAmount * 0.5);
+                break;
+            case 'shadow':
+                this.player.modifiers.power /= (1 + buffAmount);
+                break;
+            case 'tech':
+                this.player.modifiers.area /= (1 + buffAmount);
+                break;
+            case 'magma':
+                this.player.modifiers.frequency /= (1 - buffAmount);
+                break;
+            default:
+                this.player.modifiers.power /= (1 + buffAmount);
+                break;
+        }
+        
+        this.notifications.push({
+            text: `Auto-buff rimosso da ${archetype}`,
+            life: 120,
+            color: '#ffa500'
+        });
     }
 }
 
