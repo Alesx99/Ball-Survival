@@ -2051,6 +2051,27 @@ class Enemy extends Entity {
         game.score += Math.floor(this.stats.maxHp);
         game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
         
+        // Achievement tracking
+        if (game.achievementSystem) {
+            // Primo kill
+            if (game.enemiesKilled === 1) {
+                game.achievementSystem.updateProgress('first_kill', 1, game);
+            }
+            
+            // Kill count
+            game.achievementSystem.updateProgress('kill_count', 1, game);
+            
+            // Elite kill
+            if (this.stats.isElite) {
+                game.achievementSystem.updateProgress('elite_kill_count', 1, game);
+            }
+            
+            // Boss kill
+            if (this.isBoss) {
+                game.achievementSystem.updateProgress('boss_kill_count', 1, game);
+            }
+        }
+        
         // Drop di gemme (aumentato)
         const gemChance = this.stats.isElite ? 0.8 : (this.isBoss ? 1.0 : 0.3);
         if (Math.random() < gemChance) {
@@ -2370,6 +2391,12 @@ class MaterialOrb extends Entity {
         
         if (dist < 20) { 
             game.addMaterial(this.materialId, 1);
+            
+            // Achievement tracking per materiali raccolti
+            if (game.achievementSystem) {
+                game.achievementSystem.updateProgress('materials_collected', 1, game);
+            }
+            
             this.toRemove = true; 
         }
     }
@@ -2680,6 +2707,361 @@ class ProgressionOptimizer {
     }
 }
 
+// Sistema Achievement completo per versione 5.3
+class AchievementSystem {
+    constructor() {
+        this.achievements = {
+            'first_blood': {
+                id: 'first_blood',
+                name: 'Primo Sangue',
+                description: 'Uccidi il primo nemico',
+                icon: '🩸',
+                reward: { gems: 25 },
+                condition: { type: 'first_kill' },
+                unlocked: false,
+                progress: 0,
+                target: 1
+            },
+            'survivor_1': {
+                id: 'survivor_1',
+                name: 'Sopravvissuto Novizio',
+                description: 'Sopravvivi per 5 minuti',
+                icon: '⏰',
+                reward: { gems: 50 },
+                condition: { type: 'survival_time', value: 300 },
+                unlocked: false,
+                progress: 0,
+                target: 300
+            },
+            'survivor_2': {
+                id: 'survivor_2',
+                name: 'Sopravvissuto Esperto',
+                description: 'Sopravvivi per 15 minuti',
+                icon: '⏰⏰',
+                reward: { gems: 100 },
+                condition: { type: 'survival_time', value: 900 },
+                unlocked: false,
+                progress: 0,
+                target: 900
+            },
+            'killer_1': {
+                id: 'killer_1',
+                name: 'Cacciatore',
+                description: 'Uccidi 100 nemici',
+                icon: '⚔️',
+                reward: { gems: 75 },
+                condition: { type: 'kill_count', value: 100 },
+                unlocked: false,
+                progress: 0,
+                target: 100
+            },
+            'killer_2': {
+                id: 'killer_2',
+                name: 'Cacciatore di Elite',
+                description: 'Uccidi 50 nemici elite',
+                icon: '👑',
+                reward: { gems: 150 },
+                condition: { type: 'elite_kill_count', value: 50 },
+                unlocked: false,
+                progress: 0,
+                target: 50
+            },
+            'boss_slayer': {
+                id: 'boss_slayer',
+                name: 'Cacciatore di Boss',
+                description: 'Sconfiggi 10 boss',
+                icon: '👹',
+                reward: { gems: 200 },
+                condition: { type: 'boss_kill_count', value: 10 },
+                unlocked: false,
+                progress: 0,
+                target: 10
+            },
+            'collector': {
+                id: 'collector',
+                name: 'Collezionista',
+                description: 'Raccogli 100 materiali',
+                icon: '💎',
+                reward: { gems: 75 },
+                condition: { type: 'materials_collected', value: 100 },
+                unlocked: false,
+                progress: 0,
+                target: 100
+            },
+            'craftsman': {
+                id: 'craftsman',
+                name: 'Artigiano',
+                description: 'Crea 5 core o armi',
+                icon: '🔨',
+                reward: { gems: 100 },
+                condition: { type: 'items_crafted', value: 5 },
+                unlocked: false,
+                progress: 0,
+                target: 5
+            },
+            'level_master': {
+                id: 'level_master',
+                name: 'Maestro del Livello',
+                description: 'Raggiungi il livello 20',
+                icon: '⭐',
+                reward: { gems: 150 },
+                condition: { type: 'player_level', value: 20 },
+                unlocked: false,
+                progress: 0,
+                target: 20
+            },
+            'speed_demon': {
+                id: 'speed_demon',
+                name: 'Demone della Velocità',
+                description: 'Raggiungi velocità 5+',
+                icon: '💨',
+                reward: { gems: 75 },
+                condition: { type: 'player_speed', value: 5 },
+                unlocked: false,
+                progress: 0,
+                target: 5
+            },
+            'tank': {
+                id: 'tank',
+                name: 'Tank',
+                description: 'Raggiungi 80%+ DR',
+                icon: '🛡️',
+                reward: { gems: 100 },
+                condition: { type: 'player_dr', value: 0.8 },
+                unlocked: false,
+                progress: 0,
+                target: 0.8
+            },
+            'stage_explorer': {
+                id: 'stage_explorer',
+                name: 'Esploratore',
+                description: 'Sblocca 3 stage',
+                icon: '🗺️',
+                reward: { gems: 125 },
+                condition: { type: 'stages_unlocked', value: 3 },
+                unlocked: false,
+                progress: 0,
+                target: 3
+            },
+            'archetype_collector': {
+                id: 'archetype_collector',
+                name: 'Collezionista di Archetipi',
+                description: 'Sblocca 4 archetipi',
+                icon: '🎭',
+                reward: { gems: 200 },
+                condition: { type: 'archetypes_unlocked', value: 4 },
+                unlocked: false,
+                progress: 0,
+                target: 4
+            }
+        };
+        
+        this.stats = {
+            enemiesKilled: 0,
+            eliteKilled: 0,
+            bossesKilled: 0,
+            materialsCollected: 0,
+            itemsCrafted: 0,
+            maxLevel: 0,
+            maxSpeed: 0,
+            maxDR: 0,
+            stagesUnlocked: 0,
+            archetypesUnlocked: 0,
+            firstKill: false
+        };
+        
+        this.loadAchievements();
+    }
+    
+    loadAchievements() {
+        try {
+            const saved = localStorage.getItem('ballSurvivalAchievements');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.keys(data.achievements).forEach(id => {
+                    if (this.achievements[id]) {
+                        this.achievements[id].unlocked = data.achievements[id].unlocked;
+                        this.achievements[id].progress = data.achievements[id].progress;
+                    }
+                });
+                this.stats = { ...this.stats, ...data.stats };
+            }
+        } catch (e) {
+            console.error('Errore caricamento achievements:', e);
+        }
+    }
+    
+    saveAchievements() {
+        try {
+            const data = {
+                achievements: {},
+                stats: this.stats
+            };
+            
+            Object.keys(this.achievements).forEach(id => {
+                data.achievements[id] = {
+                    unlocked: this.achievements[id].unlocked,
+                    progress: this.achievements[id].progress
+                };
+            });
+            
+            localStorage.setItem('ballSurvivalAchievements', JSON.stringify(data));
+        } catch (e) {
+            console.error('Errore salvataggio achievements:', e);
+        }
+    }
+    
+    updateProgress(type, value, game) {
+        switch (type) {
+            case 'first_kill':
+                if (!this.stats.firstKill) {
+                    this.stats.firstKill = true;
+                    this.checkAchievement('first_blood', 1, game);
+                }
+                break;
+                
+            case 'kill_count':
+                this.stats.enemiesKilled += value;
+                this.checkAchievement('killer_1', this.stats.enemiesKilled, game);
+                break;
+                
+            case 'elite_kill_count':
+                this.stats.eliteKilled += value;
+                this.checkAchievement('killer_2', this.stats.eliteKilled, game);
+                break;
+                
+            case 'boss_kill_count':
+                this.stats.bossesKilled += value;
+                this.checkAchievement('boss_slayer', this.stats.bossesKilled, game);
+                break;
+                
+            case 'materials_collected':
+                this.stats.materialsCollected += value;
+                this.checkAchievement('collector', this.stats.materialsCollected, game);
+                break;
+                
+            case 'items_crafted':
+                this.stats.itemsCrafted += value;
+                this.checkAchievement('craftsman', this.stats.itemsCrafted, game);
+                break;
+                
+            case 'player_level':
+                if (value > this.stats.maxLevel) {
+                    this.stats.maxLevel = value;
+                    this.checkAchievement('level_master', value, game);
+                }
+                break;
+                
+            case 'player_speed':
+                if (value > this.stats.maxSpeed) {
+                    this.stats.maxSpeed = value;
+                    this.checkAchievement('speed_demon', value, game);
+                }
+                break;
+                
+            case 'player_dr':
+                if (value > this.stats.maxDR) {
+                    this.stats.maxDR = value;
+                    this.checkAchievement('tank', value, game);
+                }
+                break;
+                
+            case 'stages_unlocked':
+                this.stats.stagesUnlocked = value;
+                this.checkAchievement('stage_explorer', value, game);
+                break;
+                
+            case 'archetypes_unlocked':
+                this.stats.archetypesUnlocked = value;
+                this.checkAchievement('archetype_collector', value, game);
+                break;
+        }
+        
+        this.saveAchievements();
+    }
+    
+    checkAchievement(achievementId, currentValue, game) {
+        const achievement = this.achievements[achievementId];
+        if (!achievement || achievement.unlocked) return;
+        
+        // Aggiorna progresso
+        achievement.progress = Math.min(currentValue, achievement.target);
+        
+        // Controlla se sbloccato
+        if (achievement.progress >= achievement.target) {
+            this.unlockAchievement(achievementId, game);
+        }
+    }
+    
+    unlockAchievement(achievementId, game) {
+        const achievement = this.achievements[achievementId];
+        if (!achievement || achievement.unlocked) return;
+        
+        achievement.unlocked = true;
+        achievement.progress = achievement.target;
+        
+        // Applica ricompensa
+        if (achievement.reward.gems && game) {
+            game.totalGems += achievement.reward.gems;
+        }
+        
+        // Mostra notifica
+        this.showAchievementNotification(achievement);
+        
+        // Salva
+        this.saveAchievements();
+        
+        console.log(`🏆 Achievement sbloccato: ${achievement.name}!`);
+    }
+    
+    showAchievementNotification(achievement) {
+        // Crea notifica achievement
+        const notification = {
+            text: `🏆 ${achievement.icon} ${achievement.name} sbloccato!`,
+            life: 300,
+            type: 'achievement'
+        };
+        
+        // Aggiungi alla lista notifiche del gioco
+        if (window.game && window.game.notifications) {
+            window.game.notifications.push(notification);
+        }
+        
+        // Log per debug
+        console.log(`🏆 Achievement: ${achievement.name} - ${achievement.description}`);
+        console.log(`💰 Ricompensa: ${achievement.reward.gems} gemme`);
+    }
+    
+    checkTimeBasedAchievements(gameTime, game) {
+        // Controlla achievement basati sul tempo
+        this.checkAchievement('survivor_1', gameTime, game);
+        this.checkAchievement('survivor_2', gameTime, game);
+    }
+    
+    checkPlayerStatsAchievements(player, game) {
+        // Controlla achievement basati sulle statistiche del giocatore
+        this.checkAchievement('level_master', player.level, game);
+        this.checkAchievement('speed_demon', player.stats.speed, game);
+        this.checkAchievement('tank', player.stats.dr, game);
+    }
+    
+    getUnlockedCount() {
+        return Object.values(this.achievements).filter(a => a.unlocked).length;
+    }
+    
+    getTotalCount() {
+        return Object.keys(this.achievements).length;
+    }
+    
+    getProgress() {
+        return {
+            unlocked: this.getUnlockedCount(),
+            total: this.getTotalCount(),
+            percentage: Math.round((this.getUnlockedCount() / this.getTotalCount()) * 100)
+        };
+    }
+}
+
 class BallSurvivalGame {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
@@ -2706,6 +3088,7 @@ class BallSurvivalGame {
         this.retentionMonitor = new RetentionMonitor();
         this.quickFeedback = new QuickFeedback();
         this.progressionOptimizer = new ProgressionOptimizer();
+        this.achievementSystem = new AchievementSystem();
         
         this.loadGameData(); 
         this.loadStageProgress(); // Carica la progressione degli stage
@@ -2720,8 +3103,8 @@ class BallSurvivalGame {
     initDOM() {
         this.dom = {
             gameContainer: document.getElementById('gameContainer'),
-            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop'), inventory: document.getElementById('inventoryMenu'), characterSelection: document.getElementById('characterSelectionPopup') },
-            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), inventory: document.getElementById('inventoryBtn'), closeInventory: document.getElementById('closeInventoryBtn'), openCharacterPopup: document.getElementById('openCharacterPopupBtn'), closeCharacterPopup: document.getElementById('closeCharacterPopupBtn') },
+            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop'), inventory: document.getElementById('inventoryMenu'), characterSelection: document.getElementById('characterSelectionPopup'), achievements: document.getElementById('achievementsPopup') },
+            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), inventory: document.getElementById('inventoryBtn'), closeInventory: document.getElementById('closeInventoryBtn'), openCharacterPopup: document.getElementById('openCharacterPopupBtn'), closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'), achievements: document.getElementById('achievementsBtn') },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
             containers: { 
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
@@ -2736,7 +3119,8 @@ class BallSurvivalGame {
                 coresList: document.getElementById('coresList'),
                 weaponsList: document.getElementById('weaponsList'),
                 selectedCharacterPreview: document.getElementById('selectedCharacterPreview'),
-                stageDropdown: document.getElementById('stageDropdown')
+                stageDropdown: document.getElementById('stageDropdown'),
+                achievementsList: document.getElementById('achievementsList')
             },
             joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, touchId: null },
             menuOverlay: document.getElementById('menuOverlay'),
@@ -2773,6 +3157,11 @@ class BallSurvivalGame {
         // Pulsanti popup personaggi
         this.dom.buttons.openCharacterPopup.onclick = () => this.showCharacterPopup();
         this.dom.buttons.closeCharacterPopup.onclick = () => this.hideCharacterPopup();
+        
+        // Pulsante achievements
+        if (this.dom.buttons.achievements) {
+            this.dom.buttons.achievements.onclick = () => this.showAchievements();
+        }
         
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
@@ -2933,6 +3322,30 @@ class BallSurvivalGame {
         // Monitoraggio versione 5.3 - ogni 30 secondi
         if (Math.floor(this.gameTime / 30) % 30 === 0) {
             this.trackRetentionMetrics();
+        }
+        
+        // Achievement tracking - ogni 10 secondi
+        if (Math.floor(this.gameTime / 10) % 10 === 0) {
+            if (this.achievementSystem) {
+                // Controlla achievement basati sul tempo
+                this.achievementSystem.checkTimeBasedAchievements(this.gameTime, this);
+                
+                // Controlla achievement basati sulle statistiche del giocatore
+                this.achievementSystem.checkPlayerStatsAchievements(this.player, this);
+                
+                // Controlla achievement per stage sbloccati
+                const unlockedStages = Object.values(CONFIG.stages).filter(stage => stage.unlocked).length;
+                this.achievementSystem.updateProgress('stages_unlocked', unlockedStages, this);
+                
+                // Controlla achievement per archetipi sbloccati
+                const unlockedArchetypes = ['standard']; // Standard sempre sbloccato
+                if (this.totalGems >= 200) unlockedArchetypes.push('steel');
+                if (this.totalGems >= 300) unlockedArchetypes.push('magma');
+                if (this.totalGems >= 300) unlockedArchetypes.push('frost');
+                if (this.totalGems >= 400) unlockedArchetypes.push('shadow');
+                if (this.totalGems >= 800) unlockedArchetypes.push('tech');
+                this.achievementSystem.updateProgress('archetypes_unlocked', unlockedArchetypes.length, this);
+            }
         }
     }
     
@@ -3136,6 +3549,11 @@ class BallSurvivalGame {
             this.equipCore(coreId);
         }
         
+        // Achievement tracking per oggetti craftati
+        if (this.achievementSystem) {
+            this.achievementSystem.updateProgress('items_crafted', 1, this);
+        }
+        
         this.notifications.push({ 
             text: `Core creato: ${core.name}`, 
             life: 300,
@@ -3143,7 +3561,7 @@ class BallSurvivalGame {
         });
         
         this.saveGameData();
-        return true;
+        return true
     }
     
     craftWeapon(weaponId) {
@@ -3163,6 +3581,11 @@ class BallSurvivalGame {
             // Se c'è spazio nell'arsenale, equipaggia l'arma
             if (this.arsenal.activeWeapons.length < 2) {
                 this.equipWeapon(weaponId);
+            }
+            
+            // Achievement tracking per oggetti craftati
+            if (this.achievementSystem) {
+                this.achievementSystem.updateProgress('items_crafted', 1, this);
             }
             
             this.notifications.push({ 
@@ -4238,6 +4661,59 @@ class BallSurvivalGame {
     hideCharacterPopup() {
         this.hideAllPopups();
         this.showPopup('start'); // Torna al menù principale
+    }
+    
+    showAchievements() {
+        this.populateAchievements();
+        this.showPopup('achievements');
+    }
+    
+    populateAchievements() {
+        if (!this.achievementSystem || !this.dom.containers.achievementsList) return;
+        
+        const container = this.dom.containers.achievementsList;
+        container.innerHTML = '';
+        
+        const progress = this.achievementSystem.getProgress();
+        
+        // Header con progresso
+        const header = document.createElement('div');
+        header.className = 'achievements-header';
+        header.innerHTML = `
+            <h3>🏆 Achievements</h3>
+            <p>Progresso: ${progress.unlocked}/${progress.total} (${progress.percentage}%)</p>
+        `;
+        container.appendChild(header);
+        
+        // Lista achievements
+        Object.values(this.achievementSystem.achievements).forEach(achievement => {
+            const div = document.createElement('div');
+            div.className = `achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
+            
+            const progressPercent = Math.min(100, (achievement.progress / achievement.target) * 100);
+            
+            div.innerHTML = `
+                <div class="achievement-icon">${achievement.icon}</div>
+                <div class="achievement-info">
+                    <h4>${achievement.name}</h4>
+                    <p>${achievement.description}</p>
+                    <div class="achievement-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <span>${achievement.progress}/${achievement.target}</span>
+                    </div>
+                    <div class="achievement-reward">
+                        <span>💰 ${achievement.reward.gems} gemme</span>
+                    </div>
+                </div>
+                <div class="achievement-status">
+                    ${achievement.unlocked ? '✅' : '🔒'}
+                </div>
+            `;
+            
+            container.appendChild(div);
+        });
     }
     
     populateStageSelection() {
