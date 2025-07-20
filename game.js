@@ -1490,6 +1490,7 @@ class AnalyticsManager {
 
 // Initialize analytics manager
 const analyticsManager = new AnalyticsManager();
+window.analyticsManager = analyticsManager;
 
 // ################# ENTITY CLASSES ##################
 
@@ -6662,4 +6663,5 @@ let unlockedArchetypes = new Set(['standard']);
 let game;
 window.addEventListener('DOMContentLoaded', () => { 
     game = new BallSurvivalGame('gameCanvas'); 
+    window.game = game; // Rendi disponibile globalmente
 });

@@ -334,8 +334,18 @@ class PlayerAuth {
         document.getElementById('loginOverlay').style.display = 'none';
         
         // Avvia il gioco
-        if (window.startGame) {
-            window.startGame();
+        if (window.game && window.game.startGame) {
+            window.game.startGame();
+        } else {
+            console.log('⚠️ Game non ancora inizializzato, riprovo tra 1 secondo...');
+            // Riprova dopo 1 secondo se il gioco non è ancora pronto
+            setTimeout(() => {
+                if (window.game && window.game.startGame) {
+                    window.game.startGame();
+                } else {
+                    console.error('❌ Game non disponibile dopo timeout');
+                }
+            }, 1000);
         }
         
         console.log('🎮 Partita iniziata per:', this.currentPlayer.username);
