@@ -1075,7 +1075,7 @@ class AnalyticsManager {
         // Configurazione GitHub Gist - INSERISCI IL TUO TOKEN QUI
         this.config = {
             githubToken: 'ghp_your_token_here', // 🔧 SOSTITUISCI CON IL TUO TOKEN
-            gistId: null, // ✅ Gist ID da creare automaticamente
+            gistId: '1dc2b7cdfc87ca61cfaf7e2dc7e13cfd', // ✅ Gist ID esistente
             enableCloudSync: false, // 🔧 IMPOSTA A true DOPO AVER INSERITO IL TOKEN
             syncInterval: 10 // Sync ogni 10 sessioni
         };
@@ -1543,10 +1543,36 @@ class AnalyticsManager {
         }
         
         try {
-            console.log('✅ Cloud sync abilitato, testando upload...');
-            await this.uploadToGist();
-            console.log('✅ Test cloud sync completato con successo');
-            return true;
+            console.log('✅ Cloud sync abilitato, testando connessione...');
+            
+            // Prima testa la connessione al Gist esistente
+            const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
+                headers: {
+                    'Authorization': `token ${this.config.githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (response.ok) {
+                console.log('✅ Connessione al Gist riuscita');
+                await this.uploadToGist();
+                console.log('✅ Test cloud sync completato con successo');
+                return true;
+            } else {
+                const error = await response.json();
+                console.error('❌ Errore accesso Gist:', response.status, error);
+                
+                if (response.status === 404) {
+                    console.log('⚠️ Gist non trovato, creando nuovo...');
+                    return await this.createNewGist();
+                } else if (response.status === 401) {
+                    console.error('❌ Token GitHub non valido o scaduto');
+                    return false;
+                } else {
+                    console.error('❌ Errore sconosciuto:', error);
+                    return false;
+                }
+            }
         } catch (error) {
             console.error('❌ Test cloud sync fallito:', error);
             return false;
