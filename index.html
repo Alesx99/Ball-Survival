@@ -42,6 +42,232 @@
         <div id="startScreen" class="popup-menu main-menu">
             <h2>Ball Survival</h2>
             <p>Sopravvivi il più a lungo possibile!</p>
+            
+            <!-- SISTEMA LOGIN INTEGRATO -->
+            <div id="loginSection" style="margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                <h3 style="color: var(--secondary-color); margin-bottom: 15px;">👤 Accesso Giocatore</h3>
+                
+                <!-- Menu principale login -->
+                <div id="loginMainMenu">
+                    <p style="color: #e0e0e0; font-size: 14px; margin-bottom: 15px;">Come vuoi giocare?</p>
+                    
+                    <button onclick="showLoginForm()" style="
+                        background: #4CAF50;
+                        color: white;
+                        padding: 12px 20px;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        margin: 5px;
+                        cursor: pointer;
+                        transition: background 0.3s;
+                        width: 100%;
+                    " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                        🔑 Ho già un account
+                    </button>
+                    
+                    <button onclick="showRegisterForm()" style="
+                        background: #2196F3;
+                        color: white;
+                        padding: 12px 20px;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        margin: 5px;
+                        cursor: pointer;
+                        transition: background 0.3s;
+                        width: 100%;
+                    " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                        ✨ Crea nuovo account
+                    </button>
+                    
+                    <button onclick="playAsGuest()" style="
+                        background: #FF9800;
+                        color: white;
+                        padding: 12px 20px;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        margin: 5px;
+                        cursor: pointer;
+                        transition: background 0.3s;
+                        width: 100%;
+                    " onmouseover="this.style.background='#F57C00'" onmouseout="this.style.background='#FF9800'">
+                        🎮 Gioca come Guest
+                    </button>
+                </div>
+                
+                <!-- Form login -->
+                <div id="loginForm" style="display: none;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Accedi</h4>
+                    <input type="text" id="username" placeholder="Nome Giocatore" style="
+                        width: 100%;
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                    <input type="password" id="password" placeholder="Password" style="
+                        width: 100%;
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                    <div style="margin: 10px 0; padding: 8px; background: rgba(74, 144, 226, 0.1); border-radius: 4px; border-left: 3px solid #4a90e2;">
+                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4a90e2;">🔧 <strong>Cloud Sync (Opzionale):</strong></p>
+                        <input type="password" id="githubToken" placeholder="Token GitHub (per sincronizzazione cloud)" style="
+                            width: 100%;
+                            padding: 6px;
+                            margin: 2px 0;
+                            border: 1px solid #4a90e2;
+                            border-radius: 3px;
+                            font-size: 12px;
+                            box-sizing: border-box;
+                            background: rgba(255, 255, 255, 0.9);
+                        ">
+                        <p style="margin: 4px 0 0 0; font-size: 10px; color: #888;">
+                            💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Ottieni token</a> | 
+                            <a href="CONFIGURAZIONE_CLOUD_SYNC.md" target="_blank" style="color: #4a90e2;">Istruzioni</a>
+                        </p>
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <button onclick="login()" style="
+                            background: #4CAF50;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">Accedi</button>
+                        <button onclick="backToLoginMenu()" style="
+                            background: #666;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">Indietro</button>
+                    </div>
+                </div>
+                
+                <!-- Form registrazione -->
+                <div id="registerForm" style="display: none;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Registrati</h4>
+                    <input type="text" id="regUsername" placeholder="Nome Giocatore" style="
+                        width: 100%;
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                    <input type="password" id="regPassword" placeholder="Password" style="
+                        width: 100%;
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                    <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" style="
+                        width: 100%;
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                    <div style="margin: 10px 0; padding: 8px; background: rgba(74, 144, 226, 0.1); border-radius: 4px; border-left: 3px solid #4a90e2;">
+                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4a90e2;">🔧 <strong>Cloud Sync (Opzionale):</strong></p>
+                        <input type="password" id="regGithubToken" placeholder="Token GitHub (per sincronizzazione cloud)" style="
+                            width: 100%;
+                            padding: 6px;
+                            margin: 2px 0;
+                            border: 1px solid #4a90e2;
+                            border-radius: 3px;
+                            font-size: 12px;
+                            box-sizing: border-box;
+                            background: rgba(255, 255, 255, 0.9);
+                        ">
+                        <p style="margin: 4px 0 0 0; font-size: 10px; color: #888;">
+                            💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Ottieni token</a> | 
+                            <a href="CONFIGURAZIONE_CLOUD_SYNC.md" target="_blank" style="color: #4a90e2;">Istruzioni</a>
+                        </p>
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <button onclick="register()" style="
+                            background: #2196F3;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">Registrati</button>
+                        <button onclick="backToLoginMenu()" style="
+                            background: #666;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">Indietro</button>
+                    </div>
+                </div>
+                
+                <!-- Info giocatore -->
+                <div id="playerInfo" style="display: none;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Benvenuto!</h4>
+                    <div id="playerName" style="font-size: 16px; margin: 5px 0; color: var(--text-color);"></div>
+                    <div id="playerStats" style="font-size: 12px; margin: 5px 0; color: #ccc;"></div>
+                    <div style="margin: 10px 0;">
+                        <button onclick="showCloudSyncConfig()" style="
+                            background: #4a90e2;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 12px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">☁️ Configura Cloud Sync</button>
+                        <button onclick="logout()" style="
+                            background: #f44336;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">🚪 Logout</button>
+                    </div>
+                </div>
+                
+                <div id="loginMessage" style="
+                    margin: 10px 0;
+                    padding: 8px;
+                    border-radius: 4px;
+                    display: none;
+                    font-size: 12px;
+                "></div>
+            </div>
+            
             <div class="controls">
                 <p><strong>Controlli:</strong> Joystick (Mobile), WASD/Frecce (PC), E/Tocca (Negozio), ESC/Pausa</p>
             </div>
@@ -207,7 +433,7 @@
         </div>
     </div>
 
-    <script src="login.js"></script>
+    <script src="login-simple.js"></script>
     <script src="game.js"></script>
 
     <!-- Banner Ads Placeholder -->

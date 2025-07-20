@@ -1072,11 +1072,11 @@ const Utils = {
 
 class AnalyticsManager {
     constructor() {
-        // Configurazione GitHub Gist - Gist ID configurato
+        // Configurazione GitHub Gist - INSERISCI IL TUO TOKEN QUI
         this.config = {
-            githubToken: 'ghp_your_token_here', // Inserisci il tuo token GitHub
+            githubToken: 'ghp_your_token_here', // 🔧 SOSTITUISCI CON IL TUO TOKEN
             gistId: '1dc2b7cdfc87ca61cfaf7e2dc7e13cfd', // ✅ Gist ID configurato
-            enableCloudSync: false, // Abilita dopo configurazione token
+            enableCloudSync: false, // 🔧 IMPOSTA A true DOPO AVER INSERITO IL TOKEN
             syncInterval: 10 // Sync ogni 10 sessioni
         };
         
@@ -1478,16 +1478,26 @@ class AnalyticsManager {
     }
     
     // Funzione di test per il cloud sync
-    testCloudSync() {
+    async testCloudSync() {
         console.log('🧪 Test Cloud Sync...');
         console.log('Configurazione attuale:', this.config);
         console.log('Dati analytics locali:', this.analyticsData);
         
-        if (this.config.enableCloudSync) {
-            console.log('✅ Cloud sync abilitato');
-            this.uploadToGist();
-        } else {
-            console.log('⚠️ Cloud sync disabilitato');
+        if (!this.config.enableCloudSync || 
+            this.config.githubToken === 'ghp_your_token_here' || 
+            this.config.gistId === 'your_gist_id_here') {
+            console.log('⚠️ Cloud sync disabilitato o non configurato');
+            return false;
+        }
+        
+        try {
+            console.log('✅ Cloud sync abilitato, testando upload...');
+            await this.uploadToGist();
+            console.log('✅ Test cloud sync completato con successo');
+            return true;
+        } catch (error) {
+            console.error('❌ Test cloud sync fallito:', error);
+            return false;
         }
     }
     

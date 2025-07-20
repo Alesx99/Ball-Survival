@@ -18,6 +18,7 @@
 
 ## Documentazione aggiuntiva
 - `CHANGELOG.md`: Cronologia delle modifiche
+- `CONFIGURAZIONE_CLOUD_SYNC.md`: Istruzioni per configurare il cloud sync
 - `analisi_dr_immortale.md`: Analisi del sistema Damage Reduction
 - `bilanciamento_palla_acciaio.md`: Bilanciamento del gioco
 - `idee_innovative.md`: Idee per sviluppi futuri
