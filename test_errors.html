@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Errori JavaScript</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            background: #000;
+            border: 2px solid #333;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .popup-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+        
+        .menu-actions {
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #357abd;
+        }
+        
+        input, textarea {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px;
+            border-radius: 4px;
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .save-load-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        
+        #joystick-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: none;
+            z-index: 100;
+        }
+        
+        #joystick-stick {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #pauseButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        #inGameUI {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: none;
+            z-index: 100;
+        }
+        
+        #xpBarContainer {
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4a90e2;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #xpBarFill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        #xpBarText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+        }
+        
+        #menuOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+        
+        .character-popup {
+            max-width: 600px;
+        }
+        
+        .character-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-popup-btn {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .character-popup-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .character-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .character-card:hover {
+            border-color: #f39c12;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .character-card.selected {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.2);
+        }
+        
+        .character-preview {
+            margin: 20px 0;
+        }
+        
+        .character-preview-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .character-select-btn {
+            background: #f39c12;
+            width: 100%;
+        }
+        
+        .stage-selection-section {
+            margin: 20px 0;
+        }
+        
+        .dropdown-container {
+            margin: 10px 0;
+        }
+        
+        .stage-dropdown {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .stats-column {
+            flex: 1;
+            padding: 10px;
+        }
+        
+        .menu-content {
+            margin: 20px 0;
+        }
+        
+        .mt-4 {
+            margin-top: 20px;
+        }
+        
+        .w-full {
+            width: 100%;
+        }
+        
+        .mt-2 {
+            margin-top: 10px;
+        }
+        
+        .inventory-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #555;
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #ccc;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: #4a90e2;
+            border-bottom-color: #4a90e2;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .materials-list, .crafting-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .material-item, .crafting-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .material-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .material-info {
+            flex: 1;
+            margin-left: 10px;
+        }
+        
+        .material-name {
+            font-weight: bold;
+        }
+        
+        .material-count {
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .material-rarity {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        
+        .rarity-common { background: #95a5a6; }
+        .rarity-uncommon { background: #27ae60; }
+        .rarity-rare { background: #3498db; }
+        .rarity-epic { background: #9b59b6; }
+        .rarity-legendary { background: #f39c12; }
+        
+        .crafting-item h5 {
+            margin: 0 0 5px 0;
+            color: #4a90e2;
+        }
+        
+        .crafting-item p {
+            margin: 0 0 10px 0;
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .item-status {
+            font-size: 11px;
+            color: #f39c12;
+            margin-bottom: 5px;
+        }
+        
+        .materials-required {
+            font-size: 11px;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        
+        .craft-btn {
+            background: #27ae60;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        
+        .craft-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        .empty-inventory {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        .arsenal-section {
+            margin-bottom: 20px;
+        }
+        
+        .arsenal-section h5 {
+            margin: 0 0 10px 0;
+            color: #4a90e2;
+        }
+        
+        .active-item-display, .active-weapons-display, .available-items-display {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 10px;
+            min-height: 50px;
+        }
+        
+        .no-item {
+            color: #7f8c8d;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        .active-weapon-item {
+            background: rgba(74, 144, 226, 0.2);
+            border: 1px solid #4a90e2;
+            border-radius: 3px;
+            padding: 5px;
+            margin: 2px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .unequip-btn {
+            background: #e74c3c;
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+        
+        .available-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 3px;
+            padding: 5px;
+            margin: 2px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .available-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .equip-btn {
+            background: #27ae60;
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+        
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-shop-btn {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .shop-gems-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .gems-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .shop-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .upgrade-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upgrade-option:hover {
+            border-color: #f39c12;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .upgrade-option.evolution {
+            border-color: #9b59b6;
+        }
+        
+        .upgrade-option.mastery {
+            border-color: #f39c12;
+        }
+        
+        .upgrade-title {
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 5px;
+        }
+        
+        .upgrade-desc {
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .zero-gems-message {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 40px;
+            font-size: 16px;
+        }
+        
+        .buy-button {
+            background: #27ae60;
+            font-size: 12px;
+            padding: 5px 10px;
+            margin-top: 10px;
+        }
+        
+        .buy-button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .achievements-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .achievement-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        
+        .achievement-item.unlocked {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.2);
+        }
+        
+        .achievement-title {
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        
+        .achievement-desc {
+            font-size: 12px;
+            color: #ccc;
+            margin: 5px 0;
+        }
+        
+        .achievement-progress {
+            font-size: 11px;
+            color: #f39c12;
+        }
+        
+        #xpBarMobile {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #4a90e2;
+            border-radius: 10px;
+            padding: 10px;
+            z-index: 1000;
+        }
+        
+        #xpBarMobileText {
+            display: block;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        #xpBarMobileFill {
+            height: 8px;
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Errori JavaScript - Ball Survival</h1>
+    <p>Apri la console del browser (F12) per vedere se ci sono errori JavaScript.</p>
+    
+    <div id="gameContainer">
+        <div id="menuOverlay"></div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="joystick-container"><div id="joystick-stick"></div></div>
+        <div id="pauseButton">||</div>
+        <button id="pauseButtonMobile" style="display:none;">⏸</button>
+
+        <!-- Barra XP Mobile Flottante -->
+        <div id="xpBarMobile" style="display:none;">
+          <div>
+            <span id="xpBarMobileText">LVL 1</span>
+            <div>
+              <div id="xpBarMobileFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NUOVA UI DI GIOCO -->
+        <div id="inGameUI">
+            <div id="gameTimer">0s</div>
+            <div id="xpBarContainer">
+                <div id="xpBarFill"></div>
+                <div id="xpBarText">LVL 1</div>
+            </div>
+            <div id="gemCounter">💎 0</div>
+        </div>
+
+        <!-- Popups -->
+        <div id="startScreen" class="popup-menu">
+            <h2>⚽ Ball Survival - Archetipi</h2>
+            <p>Sopravvivi il più a lungo possibile!</p>
+            <div class="controls">
+                <p><strong>Controlli:</strong> Joystick (Mobile), WASD/Frecce (PC), E/Tocca (Negozio), ESC/Pausa</p>
+            </div>
+            
+            <!-- NUOVO SISTEMA DROPDOWN PER STAGE -->
+            <div class="stage-selection-section">
+                <h4>Scegli lo Stage:</h4>
+                <div class="dropdown-container">
+                    <select id="stageDropdown" class="stage-dropdown">
+                        <!-- Le opzioni verranno popolate da JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- NUOVO SISTEMA POPUP PER PERSONAGGI -->
+            <div class="character-selection-section">
+                <h4>Scegli la tua Sfera:</h4>
+                <div class="character-preview">
+                    <div id="selectedCharacterPreview" class="character-preview-card">
+                        <!-- Anteprima del personaggio selezionato -->
+                    </div>
+                    <button id="openCharacterPopupBtn" class="character-select-btn">Cambia Personaggio</button>
+                </div>
+            </div>
+
+            <div class="menu-actions">
+                <button id="startGameBtn">Inizia Partita</button>
+                <button id="inventoryBtn">📦 Inventario</button>
+                <button id="achievementsBtn">🏆 Achievements</button>
+            </div>
+            <div class="save-load-container">
+                <p>Carica i tuoi progressi:</p>
+                <input type="text" id="loadCodeInput" placeholder="Incolla il codice di salvataggio...">
+                <button id="loadGameBtn">Carica</button>
+                <div id="load-notification"></div>
+            </div>
+        </div>
+
+        <!-- NUOVO POPUP PER SELEZIONE PERSONAGGI -->
+        <div id="characterSelectionPopup" class="popup-menu character-popup">
+            <div class="character-popup-header">
+                <h3>Scegli il tuo Archetipo</h3>
+                <button id="closeCharacterPopupBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="characterSelectionContainer" class="character-popup-content">
+                <!-- I personaggi verranno popolati qui -->
+            </div>
+        </div>
+        <div id="upgradeMenu" class="popup-menu">
+            <h3>Scegli un Potenziamento!</h3>
+            <div id="upgradeOptions" class="menu-content"></div>
+        </div>
+        <div id="pauseMenu" class="popup-menu">
+            <h2>Pausa</h2>
+            <div id="runStatsContainer"></div>
+            <div id="pauseStatsContainer" class="menu-content">
+                <div id="playerStatsColumn" class="stats-column"></div>
+                <div id="weaponsStatsColumn" class="stats-column"></div>
+            </div>
+            <div class="menu-actions">
+                <button id="restartFromPauseBtn">Riavvia</button>
+                <button id="returnToMenuPauseBtn">Torna al Menù</button>
+            </div>
+            <button id="generateDebugSave">Genera Codice Parziale</button>
+            <div id="debugSaveContainer" class="save-load-container mt-4" style="display: none;">
+                 <p>Copia il codice per testare questo scenario:</p>
+                <textarea id="debugSaveOutput" readonly></textarea>
+                <button id="copyDebugCodeBtn" class="mt-2 w-full">Copia Codice Debug</button>
+            </div>
+        </div>
+        <div id="gameOver" class="popup-menu">
+            <h2>Game Over!</h2>
+            <p>Sei sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
+            <p>Cristalli raccolti: <span id="gemsEarned">0</span></p>
+            <p>Punteggio Finale: <span id="finalScore">0</span></p>
+            <div class="save-load-container">
+                 <p>Copia il codice per salvare i tuoi progressi:</p>
+                <input type="text" id="saveCodeOutput" readonly>
+                <button id="copyCodeBtn">Copia</button>
+            </div>
+            <div class="menu-actions">
+                <button id="restartGameBtn">Riprova</button>
+                <button id="returnToMenuBtn">Torna al Menù</button>
+            </div>
+        </div>
+        <div id="permanentUpgradeShop" class="popup-menu">
+            <div class="shop-header">
+                <h3>Negozio Permanente</h3>
+                <button id="closeShopBtn" class="close-shop-btn">✕</button>
+            </div>
+            <div class="shop-gems-display">
+                <span class="gems-icon">💎</span>
+                <span id="totalGemsShop">0</span>
+            </div>
+            <div id="permanentUpgradeOptions" class="menu-content shop-content"></div>
+        </div>
+        <div id="inventoryMenu" class="popup-menu">
+            <h3>📦 Inventario Materiali</h3>
+            <div class="inventory-tabs">
+                <button class="tab-btn active" data-tab="materials">Materiali</button>
+                <button class="tab-btn" data-tab="cores">Core</button>
+                <button class="tab-btn" data-tab="weapons">Armi</button>
+                <button class="tab-btn" data-tab="arsenal">Arsenale</button>
+            </div>
+            <div id="inventoryContent" class="menu-content">
+                <div id="materialsTab" class="tab-content active">
+                    <h4>Materiali per Core</h4>
+                    <div id="coreMaterialsList" class="materials-list"></div>
+                    <h4>Materiali per Armi</h4>
+                    <div id="weaponMaterialsList" class="materials-list"></div>
+                </div>
+                <div id="coresTab" class="tab-content">
+                    <h4>Core Disponibili</h4>
+                    <div id="coresList" class="crafting-list"></div>
+                </div>
+                <div id="weaponsTab" class="tab-content">
+                    <h4>Armi Disponibili</h4>
+                    <div id="weaponsList" class="crafting-list"></div>
+                </div>
+                <div id="arsenalTab" class="tab-content">
+                    <h4>Arsenale Attivo</h4>
+                    <div class="arsenal-section">
+                        <h5>Core Attivo</h5>
+                        <div id="activeCoreDisplay" class="active-item-display">
+                            <div class="no-item">Nessun core equipaggiato</div>
+                        </div>
+                    </div>
+                    <div class="arsenal-section">
+                        <h5>Armi Attive (Max 2)</h5>
+                        <div id="activeWeaponsDisplay" class="active-weapons-display">
+                            <div class="no-item">Nessuna arma equipaggiata</div>
+                        </div>
+                    </div>
+                    <div class="arsenal-section">
+                        <h5>Core Disponibili</h5>
+                        <div id="availableCoresDisplay" class="available-items-display"></div>
+                    </div>
+                    <div class="arsenal-section">
+                        <h5>Armi Disponibili</h5>
+                        <div id="availableWeaponsDisplay" class="available-items-display"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-actions">
+                <button id="closeInventoryBtn">Chiudi</button>
+            </div>
+        </div>
+        
+        <!-- Popup Achievements -->
+        <div id="achievementsPopup" class="popup-menu">
+            <div class="achievements-header">
+                <h3>🏆 Achievements</h3>
+                <button id="closeAchievementsBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="achievementsList" class="achievements-content">
+                <!-- Gli achievements verranno popolati qui -->
+            </div>
+            <div class="menu-actions">
+                <button id="closeAchievementsBtn">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // Test per verificare se il gioco si inizializza correttamente
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM caricato, testando inizializzazione del gioco...');
+            try {
+                const game = new BallSurvivalGame('gameCanvas');
+                console.log('✅ Gioco inizializzato con successo!');
+                console.log('✅ Nessun errore JavaScript rilevato');
+            } catch (error) {
+                console.error('❌ Errore durante l\'inizializzazione del gioco:', error);
+            }
+        });
+    </script>
+</body>
+</html> 

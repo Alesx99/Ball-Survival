@@ -3105,8 +3105,34 @@ class BallSurvivalGame {
     initDOM() {
         this.dom = {
             gameContainer: document.getElementById('gameContainer'),
-            popups: { start: document.getElementById('startScreen'), pause: document.getElementById('pauseMenu'), gameOver: document.getElementById('gameOver'), upgrade: document.getElementById('upgradeMenu'), shop: document.getElementById('permanentUpgradeShop'), inventory: document.getElementById('inventoryMenu'), characterSelection: document.getElementById('characterSelectionPopup'), achievements: document.getElementById('achievementsPopup') },
-            buttons: { start: document.getElementById('startGameBtn'), restart: document.getElementById('restartGameBtn'), restartFromPause: document.getElementById('restartFromPauseBtn'), pause: document.getElementById('pauseButton'), load: document.getElementById('loadGameBtn'), copy: document.getElementById('copyCodeBtn'), generateDebugSave: document.getElementById('generateDebugSave'), copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), returnToMenu: document.getElementById('returnToMenuBtn'), returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), inventory: document.getElementById('inventoryBtn'), closeInventory: document.getElementById('closeInventoryBtn'), openCharacterPopup: document.getElementById('openCharacterPopupBtn'), closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'), achievements: document.getElementById('achievementsBtn') },
+            popups: { 
+                start: document.getElementById('startScreen'), 
+                pause: document.getElementById('pauseMenu'), 
+                gameOver: document.getElementById('gameOver'), 
+                upgrade: document.getElementById('upgradeMenu'), 
+                shop: document.getElementById('permanentUpgradeShop'), 
+                inventory: document.getElementById('inventoryMenu'), 
+                characterSelection: document.getElementById('characterSelectionPopup'), 
+                achievements: document.getElementById('achievementsPopup') 
+            },
+            buttons: { 
+                start: document.getElementById('startGameBtn'), 
+                restart: document.getElementById('restartGameBtn'), 
+                restartFromPause: document.getElementById('restartFromPauseBtn'), 
+                pause: document.getElementById('pauseButton'), 
+                load: document.getElementById('loadGameBtn'), 
+                copy: document.getElementById('copyCodeBtn'), 
+                generateDebugSave: document.getElementById('generateDebugSave'), 
+                copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), 
+                returnToMenu: document.getElementById('returnToMenuBtn'), 
+                returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), 
+                inventory: document.getElementById('inventoryBtn'), 
+                closeInventory: document.getElementById('closeInventoryBtn'), 
+                openCharacterPopup: document.getElementById('openCharacterPopupBtn'), 
+                closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'), 
+                achievements: document.getElementById('achievementsBtn'), 
+                closeAchievements: document.getElementById('closeAchievementsBtn') 
+            },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
             containers: { 
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
@@ -3141,28 +3167,33 @@ class BallSurvivalGame {
     }
     initInputHandlers() {
         window.addEventListener('resize', () => this.resizeCanvas());
-        this.dom.buttons.start.onclick = () => this.startGame();
-        this.dom.buttons.restart.onclick = () => this.startGame();
-        this.dom.buttons.restartFromPause.onclick = () => this.startGame();
-        this.dom.buttons.pause.onclick = () => this.togglePause();
-        this.dom.buttons.copy.onclick = () => this.copySaveCode();
-        this.dom.buttons.load.onclick = () => this.loadFromSaveCode();
-        this.dom.buttons.generateDebugSave.onclick = () => this.generateAndShowDebugCode();
-        this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
-        this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
-        this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
+        if (this.dom.buttons.start) this.dom.buttons.start.onclick = () => this.startGame();
+        if (this.dom.buttons.restart) this.dom.buttons.restart.onclick = () => this.startGame();
+        if (this.dom.buttons.restartFromPause) this.dom.buttons.restartFromPause.onclick = () => this.startGame();
+        if (this.dom.buttons.pause) this.dom.buttons.pause.onclick = () => this.togglePause();
+        if (this.dom.buttons.copy) this.dom.buttons.copy.onclick = () => this.copySaveCode();
+        if (this.dom.buttons.load) this.dom.buttons.load.onclick = () => this.loadFromSaveCode();
+        if (this.dom.buttons.generateDebugSave) this.dom.buttons.generateDebugSave.onclick = () => this.generateAndShowDebugCode();
+        if (this.dom.buttons.copyDebugCodeBtn) this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
+        if (this.dom.buttons.returnToMenu) this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
+        if (this.dom.buttons.returnToMenuPause) this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
         
         // Pulsante inventario
-        this.dom.buttons.inventory.onclick = () => this.showInventory();
-        this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
+        if (this.dom.buttons.inventory) this.dom.buttons.inventory.onclick = () => this.showInventory();
+        if (this.dom.buttons.closeInventory) this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
         
         // Pulsanti popup personaggi
-        this.dom.buttons.openCharacterPopup.onclick = () => this.showCharacterPopup();
-        this.dom.buttons.closeCharacterPopup.onclick = () => this.hideCharacterPopup();
+        if (this.dom.buttons.openCharacterPopup) this.dom.buttons.openCharacterPopup.onclick = () => this.showCharacterPopup();
+        if (this.dom.buttons.closeCharacterPopup) this.dom.buttons.closeCharacterPopup.onclick = () => this.hideCharacterPopup();
         
         // Pulsante achievements
         if (this.dom.buttons.achievements) {
             this.dom.buttons.achievements.onclick = () => this.showAchievements();
+        }
+        
+        // Pulsante chiudi achievements
+        if (this.dom.buttons.closeAchievements) {
+            this.dom.buttons.closeAchievements.onclick = () => this.hideAllPopups();
         }
         
         // Pulsante chiudi negozio
@@ -3172,9 +3203,11 @@ class BallSurvivalGame {
         }
         
         // Dropdown stage
-        this.dom.containers.stageDropdown.onchange = (e) => {
-            this.selectStage(parseInt(e.target.value));
-        };
+        if (this.dom.containers.stageDropdown) {
+            this.dom.containers.stageDropdown.onchange = (e) => {
+                this.selectStage(parseInt(e.target.value));
+            };
+        }
         
         // Tasto pausa mobile
         const pauseBtnMobile = document.getElementById('pauseButtonMobile');
@@ -3182,31 +3215,37 @@ class BallSurvivalGame {
             pauseBtnMobile.onclick = () => this.togglePause();
         }
 
-        this.dom.menuOverlay.onclick = () => {
-            if (this.state === 'gameOver' || this.state === 'startScreen') {
-                return; 
-            }
-            
-            // Se il popup dei personaggi è aperto, torna al menù principale
-            if (this.dom.popups.characterSelection.style.display === 'flex') {
-                this.hideCharacterPopup();
-                return;
-            }
-            
-            this.hideAllPopups();
-        };
+        if (this.dom.menuOverlay) {
+            this.dom.menuOverlay.onclick = () => {
+                if (this.state === 'gameOver' || this.state === 'startScreen') {
+                    return; 
+                }
+                
+                // Se il popup dei personaggi è aperto, torna al menù principale
+                if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
+                    this.hideCharacterPopup();
+                    return;
+                }
+                
+                this.hideAllPopups();
+            };
+        }
 
-        Object.values(this.dom.popups).forEach(p => p.addEventListener('click', e => e.stopPropagation()));
+        Object.values(this.dom.popups).forEach(p => {
+            if (p) p.addEventListener('click', e => e.stopPropagation());
+        });
         document.addEventListener('keydown', (e) => {
             this.player.keys[e.code] = true;
             if (e.code === 'Escape') this.handleEscapeKey();
             if (e.code === 'KeyE') this.handleInteractionKey();
         });
         document.addEventListener('keyup', (e) => { this.player.keys[e.code] = false; });
-        this.canvas.addEventListener('pointerdown', this.handlePointerDown.bind(this));
-        this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this));
-        this.canvas.addEventListener('pointerup', this.handlePointerEnd.bind(this));
-        this.canvas.addEventListener('pointercancel', this.handlePointerEnd.bind(this));
+        if (this.canvas) {
+            this.canvas.addEventListener('pointerdown', this.handlePointerDown.bind(this));
+            this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this));
+            this.canvas.addEventListener('pointerup', this.handlePointerEnd.bind(this));
+            this.canvas.addEventListener('pointercancel', this.handlePointerEnd.bind(this));
+        }
     }
     startGame(isLoadedRun = false) {
         if (!isLoadedRun) {
@@ -3352,6 +3391,8 @@ class BallSurvivalGame {
     }
     
     draw() {
+        if (!this.ctx || !this.canvas) return;
+        
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
@@ -3363,23 +3404,25 @@ class BallSurvivalGame {
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
-        this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
-        this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
-        this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
-        this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
-        this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
-        this.entities.materialOrbs.forEach(e => e.draw(this.ctx, this));
-        this.entities.chests.forEach(e => e.draw(this.ctx, this));
-        this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
-        this.entities.enemies.forEach(e => e.draw(this.ctx, this));
-        this.entities.bosses.forEach(e => e.draw(this.ctx, this));
-        this.player.draw(this.ctx, this);
-        this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
-        this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
-        this.entities.auras.forEach(e => e.draw(this.ctx, this));
-        this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
-        this.entities.particles.forEach(e => e.draw(this.ctx, this));
-        this.entities.effects.forEach(e => e.draw(this.ctx, this));
+        if (this.entities) {
+            this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
+            this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
+            this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
+            this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
+            this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
+            this.entities.materialOrbs.forEach(e => e.draw(this.ctx, this));
+            this.entities.chests.forEach(e => e.draw(this.ctx, this));
+            this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
+            this.entities.enemies.forEach(e => e.draw(this.ctx, this));
+            this.entities.bosses.forEach(e => e.draw(this.ctx, this));
+            this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
+            this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
+            this.entities.auras.forEach(e => e.draw(this.ctx, this));
+            this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
+            this.entities.particles.forEach(e => e.draw(this.ctx, this));
+            this.entities.effects.forEach(e => e.draw(this.ctx, this));
+        }
+        if (this.player) this.player.draw(this.ctx, this);
         this.drawMerchant();
         this.ctx.restore();
         this.drawOffscreenIndicators();
@@ -3387,6 +3430,8 @@ class BallSurvivalGame {
     }
     
     drawBackground() {
+        if (!this.ctx) return;
+        
         const stageInfo = CONFIG.stages[this.currentStage];
         if (!stageInfo) return;
         
@@ -4837,16 +4882,18 @@ class BallSurvivalGame {
 
     updateInGameUI() {
         const ui = this.dom.inGameUI;
-        ui.timer.textContent = '🕒 ' + Math.floor(this.totalElapsedTime) + 's';
-        ui.gemCounter.textContent = '💎 ' + this.gemsThisRun;
+        if (!ui) return;
+        
+        if (ui.timer) ui.timer.textContent = '🕒 ' + Math.floor(this.totalElapsedTime) + 's';
+        if (ui.gemCounter) ui.gemCounter.textContent = '💎 ' + this.gemsThisRun;
 
-        if (this.player.xpNext > 0) {
+        if (this.player && this.player.xpNext > 0) {
             const xpPercent = Math.min(100, (this.player.xp / this.player.xpNext) * 100);
-            ui.xpBarFill.style.width = xpPercent + '%';
+            if (ui.xpBarFill) ui.xpBarFill.style.width = xpPercent + '%';
         } else {
-            ui.xpBarFill.style.width = '100%';
+            if (ui.xpBarFill) ui.xpBarFill.style.width = '100%';
         }
-        ui.xpBarText.textContent = `LVL ${this.player.level}`;
+        if (ui.xpBarText && this.player) ui.xpBarText.textContent = `LVL ${this.player.level}`;
         
         // Aggiorna anche la barra XP mobile
         const xpBarMobile = document.getElementById('xpBarMobile');
@@ -4870,9 +4917,11 @@ class BallSurvivalGame {
             this.state = 'paused';
         }
         
-        this.dom.menuOverlay.style.display = 'block'; 
-        Object.values(this.dom.popups).forEach(p => p.style.display = 'none'); 
-        this.dom.popups[popupKey].style.display = 'flex'; 
+        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'block'; 
+        Object.values(this.dom.popups).forEach(p => {
+            if (p) p.style.display = 'none';
+        }); 
+        if (this.dom.popups[popupKey]) this.dom.popups[popupKey].style.display = 'flex'; 
         
         if (popupKey === 'shop') {
             this.populateShop(); 
@@ -5260,8 +5309,10 @@ class BallSurvivalGame {
         return true;
     }
     hideAllPopups(forceNoResume) { 
-        Object.values(this.dom.popups).forEach(p => p.style.display = 'none'); 
-        this.dom.menuOverlay.style.display = 'none'; 
+        Object.values(this.dom.popups).forEach(p => {
+            if (p) p.style.display = 'none';
+        }); 
+        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'none'; 
         if (this.state === 'paused' && !forceNoResume) { 
             this.state = 'running'; 
             this.lastFrameTime = performance.now(); 
@@ -5274,11 +5325,15 @@ class BallSurvivalGame {
             this.showPopup('pause'); 
         } else { 
             this.hideAllPopups(); 
-            this.dom.containers.debugSaveContainer.style.display = 'none'; 
+            if (this.dom.containers.debugSaveContainer) {
+                this.dom.containers.debugSaveContainer.style.display = 'none'; 
+            }
         } 
     }
     populateStatsMenu() { 
         const runStatsContainer = this.dom.containers.runStatsContainer;
+        if (!runStatsContainer) return;
+        
         runStatsContainer.innerHTML = `
             <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
             <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
@@ -5314,10 +5369,10 @@ class BallSurvivalGame {
         this.dom.weaponsStatsColumn.innerHTML = weaponsHTML; 
     }
     handleEscapeKey() { 
-        const anyPopupOpen = Object.values(this.dom.popups).some(p => p.style.display === 'flex'); 
+        const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex'); 
         
         // Se il popup dei personaggi è aperto, torna al menù principale
-        if (this.dom.popups.characterSelection.style.display === 'flex') {
+        if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
             this.hideCharacterPopup();
             return;
         }
@@ -5339,16 +5394,74 @@ class BallSurvivalGame {
             this.showPopup('shop'); 
         }
     }
-    handlePointerDown(e) { if (this.state === 'gameOver' || this.state === 'startScreen') return; const rect = this.canvas.getBoundingClientRect(); const clientX = e.clientX; const clientY = e.clientY; const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { this.showPopup('shop'); return; } if (e.pointerType === 'touch' && !this.joystick.active) { e.preventDefault(); this.joystick.touchId = e.pointerId; this.joystick.active = true; this.joystick.startX = clientX; this.joystick.startY = clientY; this.dom.joystick.container.style.display = 'block'; this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; } }
-    handlePointerMove(e) { if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; e.preventDefault(); let deltaX = e.clientX - this.joystick.startX; let deltaY = e.clientY - this.joystick.startY; const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); const maxDistance = this.dom.joystick.radius; if (distance > maxDistance) { deltaX = (deltaX / distance) * maxDistance; deltaY = (deltaY / distance) * maxDistance; } this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; this.joystick.dx = deltaX / maxDistance; this.joystick.dy = deltaY / maxDistance; }
-    handlePointerEnd(e) { if (this.joystick.active && e.pointerId === this.joystick.touchId) { this.joystick.active = false; this.joystick.touchId = null; this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; this.dom.joystick.container.style.display = 'none'; this.joystick.dx = 0; this.joystick.dy = 0; } }
+    handlePointerDown(e) { 
+        if (this.state === 'gameOver' || this.state === 'startScreen') return; 
+        if (!this.canvas) return;
+        
+        const rect = this.canvas.getBoundingClientRect(); 
+        const clientX = e.clientX; 
+        const clientY = e.clientY; 
+        const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; 
+        const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; 
+        if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { 
+            this.showPopup('shop'); 
+            return; 
+        } 
+        if (e.pointerType === 'touch' && !this.joystick.active) { 
+            e.preventDefault(); 
+            this.joystick.touchId = e.pointerId; 
+            this.joystick.active = true; 
+            this.joystick.startX = clientX; 
+            this.joystick.startY = clientY; 
+            if (this.dom.joystick && this.dom.joystick.container) {
+                this.dom.joystick.container.style.display = 'block'; 
+                this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
+                this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+            }
+        } 
+    }
+    handlePointerMove(e) { 
+        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; 
+        e.preventDefault(); 
+        let deltaX = e.clientX - this.joystick.startX; 
+        let deltaY = e.clientY - this.joystick.startY; 
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
+        const maxDistance = this.dom.joystick.radius; 
+        if (distance > maxDistance) { 
+            deltaX = (deltaX / distance) * maxDistance; 
+            deltaY = (deltaY / distance) * maxDistance; 
+        } 
+        if (this.dom.joystick && this.dom.joystick.stick) {
+            this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
+        }
+        this.joystick.dx = deltaX / maxDistance; 
+        this.joystick.dy = deltaY / maxDistance; 
+    }
+    handlePointerEnd(e) { 
+        if (this.joystick.active && e.pointerId === this.joystick.touchId) { 
+            this.joystick.active = false; 
+            this.joystick.touchId = null; 
+            if (this.dom.joystick && this.dom.joystick.stick) {
+                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; 
+            }
+            if (this.dom.joystick && this.dom.joystick.container) {
+                this.dom.joystick.container.style.display = 'none'; 
+            }
+            this.joystick.dx = 0; 
+            this.joystick.dy = 0; 
+        } 
+    }
     
     generateAndShowDebugCode() {
-        this.dom.inputs.debugSaveOutput.value = this.generateSaveCode(true);
-        this.dom.containers.debugSaveContainer.style.display = 'block';
+        if (this.dom.inputs.debugSaveOutput) {
+            this.dom.inputs.debugSaveOutput.value = this.generateSaveCode(true);
+        }
+        if (this.dom.containers.debugSaveContainer) {
+            this.dom.containers.debugSaveContainer.style.display = 'block';
+        }
     }
     copyDebugCode() {
-        const debugCode = this.dom.inputs.debugSaveOutput.value;
+        const debugCode = this.dom.inputs.debugSaveOutput ? this.dom.inputs.debugSaveOutput.value : '';
         if(debugCode) {
             navigator.clipboard.writeText(debugCode).then(() => {
                 this.notifications.push({ text: "Codice Debug Copiato!", life: 120 });
@@ -5396,9 +5509,16 @@ class BallSurvivalGame {
     }
 
     loadFromSaveCode() {
-        const code = this.dom.inputs.loadCode.value.trim();
+        const code = this.dom.inputs.loadCode ? this.dom.inputs.loadCode.value.trim() : '';
         const notification = this.dom.loadNotification;
-        if (!code) { notification.textContent = "Inserisci un codice."; notification.style.color = '#e74c3c'; setTimeout(() => notification.textContent = "", 3000); return; }
+        if (!code) { 
+            if (notification) {
+                notification.textContent = "Inserisci un codice."; 
+                notification.style.color = '#e74c3c'; 
+                setTimeout(() => notification.textContent = "", 3000);
+            }
+            return; 
+        }
 
         try {
             const jsonString = atob(code);
@@ -5465,7 +5585,19 @@ class BallSurvivalGame {
         setTimeout(() => notification.textContent = "", 3000);
     }
     
-    copySaveCode() { const saveCodeInput = this.dom.inputs.saveCode; if (saveCodeInput.value) { saveCodeInput.select(); saveCodeInput.setSelectionRange(0, 99999); try { document.execCommand('copy'); this.notifications.push({ text: "Codice copiato!", life: 120 }); } catch (err) { console.error("Copia fallita", err); } } }
+    copySaveCode() { 
+        const saveCodeInput = this.dom.inputs.saveCode; 
+        if (saveCodeInput && saveCodeInput.value) { 
+            saveCodeInput.select(); 
+            saveCodeInput.setSelectionRange(0, 99999); 
+            try { 
+                document.execCommand('copy'); 
+                this.notifications.push({ text: "Codice copiato!", life: 120 }); 
+            } catch (err) { 
+                console.error("Copia fallita", err); 
+            } 
+        } 
+    }
     copyDebugCode() {
         const debugCode = this.dom.inputs.debugSaveOutput.value;
         if(debugCode) {
@@ -5544,8 +5676,9 @@ class BallSurvivalGame {
         } 
     }
     populateShop() { 
-        this.dom.totalGemsShop.textContent = this.totalGems; 
+        if (this.dom.totalGemsShop) this.dom.totalGemsShop.textContent = this.totalGems; 
         const container = this.dom.containers.permanentUpgradeOptions; 
+        if (!container) return;
         
         // Inizializza il pulsante di chiusura se non è già stato fatto
         this.initShopCloseButton();
@@ -5611,6 +5744,8 @@ class BallSurvivalGame {
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
     updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); }
     resizeCanvas() {
+        if (!this.dom.gameContainer || !this.canvas) return;
+        
         const rect = this.dom.gameContainer.getBoundingClientRect();
         // Limiti massimi desktop
         const maxW = window.innerWidth <= 700 ? CONFIG.world.width : Math.min(CONFIG.world.width, 1200);
@@ -5623,9 +5758,51 @@ class BallSurvivalGame {
         this.camera.height = height;
         if (this.state !== 'running') this.draw();
     }
-    drawOffscreenIndicators() { if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); }
-    drawOffscreenIndicator(target, color, shape) { const screenX = target.x - this.camera.x; const screenY = target.y - this.camera.y; if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; const pScreenX = this.player.x - this.camera.x; const pScreenY = this.player.y - this.camera.y; const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); const padding = 30; let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); this.ctx.save(); this.ctx.translate(arrowX, arrowY); this.ctx.rotate(angle); this.ctx.fillStyle = color; this.ctx.strokeStyle = "white"; this.ctx.lineWidth = 1; this.ctx.beginPath(); if (shape === 'arrow') { this.ctx.moveTo(15, 0); this.ctx.lineTo(-15, -10); this.ctx.lineTo(-10, 0); this.ctx.lineTo(-15, 10); } else { this.ctx.moveTo(0, -10); this.ctx.lineTo(10, 10); this.ctx.lineTo(-10, 10); } this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke(); this.ctx.restore(); }
+    drawOffscreenIndicators() { 
+        if (!this.ctx || !this.canvas) return;
+        
+        if(this.entities.chests.length > 0) this.drawOffscreenIndicator(this.entities.chests[0], "rgba(255, 215, 0, 0.7)", 'arrow'); 
+        this.drawOffscreenIndicator(CONFIG.merchant, "rgba(155, 89, 182, 0.8)", 'triangle'); 
+    }
+    drawOffscreenIndicator(target, color, shape) { 
+        if (!this.ctx || !this.canvas) return;
+        
+        const screenX = target.x - this.camera.x; 
+        const screenY = target.y - this.camera.y; 
+        if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; 
+        const pScreenX = this.player.x - this.camera.x; 
+        const pScreenY = this.player.y - this.camera.y; 
+        const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); 
+        const padding = 30; 
+        let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
+        let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
+        arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); 
+        arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); 
+        this.ctx.save(); 
+        this.ctx.translate(arrowX, arrowY); 
+        this.ctx.rotate(angle); 
+        this.ctx.fillStyle = color; 
+        this.ctx.strokeStyle = "white"; 
+        this.ctx.lineWidth = 1; 
+        this.ctx.beginPath(); 
+        if (shape === 'arrow') { 
+            this.ctx.moveTo(15, 0); 
+            this.ctx.lineTo(-15, -10); 
+            this.ctx.lineTo(-10, 0); 
+            this.ctx.lineTo(-15, 10); 
+        } else { 
+            this.ctx.moveTo(0, -10); 
+            this.ctx.lineTo(10, 10); 
+            this.ctx.lineTo(-10, 10); 
+        } 
+        this.ctx.closePath(); 
+        this.ctx.fill(); 
+        this.ctx.stroke(); 
+        this.ctx.restore(); 
+    }
     drawNotifications() {
+        if (!this.ctx || !this.canvas) return;
+        
         this.ctx.save();
         this.ctx.textAlign = 'center';
         this.ctx.font = 'bold clamp(14px, 2.5vw, 18px) "Courier New", monospace';
@@ -5639,12 +5816,28 @@ class BallSurvivalGame {
         });
         this.ctx.restore();
     }
-    drawMerchant() { const m = CONFIG.merchant; this.ctx.fillStyle = '#9b59b6'; this.ctx.fillRect(m.x, m.y, m.size, m.size); this.ctx.strokeStyle = '#f1c40f'; this.ctx.lineWidth = 3; this.ctx.strokeRect(m.x, m.y, m.size, m.size); if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { this.ctx.font = 'bold 14px "Courier New"'; this.ctx.fillStyle = 'white'; this.ctx.textAlign = 'center'; this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); } }
+    drawMerchant() { 
+        if (!this.ctx) return;
+        
+        const m = CONFIG.merchant; 
+        this.ctx.fillStyle = '#9b59b6'; 
+        this.ctx.fillRect(m.x, m.y, m.size, m.size); 
+        this.ctx.strokeStyle = '#f1c40f'; 
+        this.ctx.lineWidth = 3; 
+        this.ctx.strokeRect(m.x, m.y, m.size, m.size); 
+        if (this.state === 'running' && Utils.getDistance(this.player, m) < CONFIG.merchant.interactionRadius) { 
+            this.ctx.font = 'bold 14px "Courier New"'; 
+            this.ctx.fillStyle = 'white'; 
+            this.ctx.textAlign = 'center'; 
+            this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25); 
+            this.ctx.fillText("Negozio", m.x + m.size / 2, m.y - 10); 
+        } 
+    }
 
     showInGameUI() {
-        this.dom.inGameUI.style.display = 'flex';
-        this.dom.pauseButton.style.display = 'block';
-        this.dom.pauseButtonMobile.style.display = 'block';
+        if (this.dom.inGameUI) this.dom.inGameUI.style.display = 'flex';
+        if (this.dom.pauseButton) this.dom.pauseButton.style.display = 'block';
+        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'block';
         
         // Mostra la barra XP mobile se siamo su mobile
         const xpBarMobile = document.getElementById('xpBarMobile');
@@ -5654,9 +5847,9 @@ class BallSurvivalGame {
     }
 
     hideInGameUI() {
-        this.dom.inGameUI.style.display = 'none';
-        this.dom.pauseButton.style.display = 'none';
-        this.dom.pauseButtonMobile.style.display = 'none';
+        if (this.dom.inGameUI) this.dom.inGameUI.style.display = 'none';
+        if (this.dom.pauseButton) this.dom.pauseButton.style.display = 'none';
+        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'none';
         
         // Nascondi la barra XP mobile
         const xpBarMobile = document.getElementById('xpBarMobile');
@@ -5668,14 +5861,18 @@ class BallSurvivalGame {
     showBossUpgradePopup() {
         // Mostra popup con scelta upgrade passivo extra (overcap)
         this.state = 'paused';
-        this.dom.menuOverlay.style.display = 'block';
-        Object.values(this.dom.popups).forEach(p => p.style.display = 'none');
-        this.dom.popups['upgrade'].style.display = 'flex';
+        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'block';
+        Object.values(this.dom.popups).forEach(p => {
+            if (p) p.style.display = 'none';
+        });
+        if (this.dom.popups['upgrade']) this.dom.popups['upgrade'].style.display = 'flex';
         this.populateBossUpgradeMenu();
     }
 
     populateBossUpgradeMenu() {
         const container = this.dom.containers.upgradeOptions;
+        if (!container) return;
+        
         container.innerHTML = '';
         const choices = this.getBossUpgradeChoices();
         choices.forEach(upgrade => {
