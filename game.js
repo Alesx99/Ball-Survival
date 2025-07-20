@@ -2049,7 +2049,9 @@ class Enemy extends Entity {
         game.enemiesKilled++;
         game.enemiesKilledSinceBoss++;
         game.score += Math.floor(this.stats.maxHp);
-        game.addEntity('xpOrbs', new XpOrb(this.x, this.y, this.stats.xp));
+        // Riduzione del 70% dell'XP droppata dai nemici
+        const reducedXp = Math.max(1, Math.floor(this.stats.xp * 0.3));
+        game.addEntity('xpOrbs', new XpOrb(this.x, this.y, reducedXp));
         
         // Achievement tracking
         if (game.achievementSystem) {
