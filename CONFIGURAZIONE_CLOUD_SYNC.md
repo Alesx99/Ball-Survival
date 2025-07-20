@@ -40,6 +40,13 @@ this.config = {
 ### 4️⃣ **Visualizzare i Dati**
 - I dati vengono salvati nel Gist: https://gist.github.com/Alesx99/1dc2b7cdfc87ca61cfaf7e2dc7e13cfd
 - Ogni 10 sessioni di gioco i dati vengono sincronizzati automaticamente
+- Gli account utenti vengono sincronizzati automaticamente durante login/registrazione
+
+### 5️⃣ **Sync Account Utenti**
+- **Automatico:** Gli account vengono sincronizzati durante login e registrazione
+- **Manuale:** Usa il pulsante "🔄 Sync Account" nell'interfaccia
+- **Merge Intelligente:** I dati più recenti vengono mantenuti automaticamente
+- **Sicurezza:** Tutti i dati sono crittografati e privati
 
 ## ⚠️ **IMPORTANTE**
 - **NON condividere mai il token** - è come una password
@@ -53,7 +60,9 @@ this.config = {
 
 ## 📊 **Funzionalità Cloud Sync**
 - ✅ Sincronizzazione automatica dei dati analytics
+- ✅ Sincronizzazione automatica degli account utenti
 - ✅ Merge intelligente dei dati tra dispositivi
-- ✅ Backup sicuro dei progressi
+- ✅ Backup sicuro dei progressi e account
 - ✅ Analisi delle performance degli archetipi
-- ✅ Raccomandazioni di bilanciamento automatico 
+- ✅ Raccomandazioni di bilanciamento automatico
+- ✅ Accesso agli account da qualsiasi dispositivo 

@@ -161,6 +161,11 @@ async function login() {
             
             if (tokenToUse) {
                 await configureCloudSync(tokenToUse);
+                
+                // Carica account da cloud e sincronizza
+                await loadUserAccounts();
+                await syncUserAccounts();
+                
                 showMessage('✅ Login completato! Cloud sync configurato.', false);
             } else {
                 showMessage('✅ Login completato!', false);
@@ -222,6 +227,10 @@ async function register() {
             
             if (tokenToUse) {
                 await configureCloudSync(tokenToUse);
+                
+                // Sincronizza il nuovo account
+                await syncUserAccounts();
+                
                 showMessage('✅ Registrazione completata! Cloud sync configurato.', false);
             } else {
                 showMessage('✅ Registrazione completata!', false);
@@ -352,6 +361,13 @@ function updatePlayerStats(gameStats) {
             players[currentPlayer.username].stats = currentPlayer.stats;
             players[currentPlayer.username].lastLogin = currentPlayer.lastLogin;
             localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+            
+            // Sync account con cloud se configurato
+            if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
+                setTimeout(() => {
+                    syncUserAccounts();
+                }, 2000); // Sync dopo 2 secondi
+            }
         }
     }
     
@@ -398,7 +414,12 @@ async function configureCloudSync(githubToken) {
         
         if (testResult) {
             console.log('✅ Cloud sync configurato con successo');
-            showMessage('☁️ Cloud sync configurato! I dati verranno sincronizzati automaticamente.', false);
+            
+            // Carica e sincronizza account
+            await loadUserAccounts();
+            await syncUserAccounts();
+            
+            showMessage('☁️ Cloud sync configurato! Account e analytics sincronizzati.', false);
         } else {
             console.log('⚠️ Configurazione cloud sync fallita');
             showMessage('⚠️ Token GitHub non valido o errore di configurazione', true);
@@ -442,6 +463,130 @@ function showCloudSyncConfig() {
     }
 }
 
+// Test sync account
+async function testAccountSync() {
+    console.log('🧪 Test Sync Account...');
+    
+    const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+    console.log('Account locali:', Object.keys(players));
+    
+    if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
+        const syncResult = await syncUserAccounts();
+        const loadResult = await loadUserAccounts();
+        
+        console.log('Sync result:', syncResult);
+        console.log('Load result:', loadResult);
+        
+        const updatedPlayers = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+        console.log('Account dopo sync:', Object.keys(updatedPlayers));
+    } else {
+        console.log('⚠️ Cloud sync non configurato');
+    }
+}
+
+// Sincronizza account utenti con Gist
+async function syncUserAccounts() {
+    try {
+        if (!window.analyticsManager || !window.analyticsManager.config.enableCloudSync) {
+            console.log('⚠️ Cloud sync non configurato per sync account');
+            return false;
+        }
+        
+        const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+        if (Object.keys(players).length === 0) {
+            console.log('📝 Nessun account da sincronizzare');
+            return true;
+        }
+        
+        console.log('🔄 Sincronizzazione account utenti...');
+        
+        // Prepara dati account per upload
+        const accountsData = {
+            lastSync: Date.now(),
+            totalAccounts: Object.keys(players).length,
+            accounts: players
+        };
+        
+        // Upload al Gist
+        const response = await fetch(`https://api.github.com/gists/${window.analyticsManager.config.gistId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${window.analyticsManager.config.githubToken}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+                description: `Ball Survival - Accounts & Analytics - Updated ${new Date().toISOString()}`,
+                public: false,
+                files: {
+                    'analytics.json': {
+                        content: JSON.stringify(window.analyticsManager.analyticsData, null, 2)
+                    },
+                    'accounts.json': {
+                        content: JSON.stringify(accountsData, null, 2)
+                    }
+                }
+            })
+        });
+        
+        if (response.ok) {
+            console.log('✅ Account sincronizzati con successo');
+            return true;
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Errore sync account:', response.status, errorText);
+            return false;
+        }
+        
+    } catch (error) {
+        console.error('❌ Errore sync account:', error);
+        return false;
+    }
+}
+
+// Carica account da Gist
+async function loadUserAccounts() {
+    try {
+        if (!window.analyticsManager || !window.analyticsManager.config.enableCloudSync) {
+            console.log('⚠️ Cloud sync non configurato per caricamento account');
+            return false;
+        }
+        
+        const response = await fetch(`https://api.github.com/gists/${window.analyticsManager.config.gistId}`, {
+            headers: {
+                'Authorization': `token ${window.analyticsManager.config.githubToken}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (response.ok) {
+            const gist = await response.json();
+            const accountsFile = gist.files['accounts.json'];
+            
+            if (accountsFile && accountsFile.content) {
+                const accountsData = JSON.parse(accountsFile.content);
+                const localPlayers = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+                
+                // Merge intelligente degli account
+                for (const [username, account] of Object.entries(accountsData.accounts)) {
+                    if (!localPlayers[username] || localPlayers[username].lastLogin < account.lastLogin) {
+                        localPlayers[username] = account;
+                    }
+                }
+                
+                localStorage.setItem('ballSurvivalPlayers', JSON.stringify(localPlayers));
+                console.log('✅ Account caricati da Gist:', Object.keys(localPlayers).length);
+                return true;
+            }
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('❌ Errore caricamento account:', error);
+        return false;
+    }
+}
+
 // Esponi funzioni globalmente
 window.currentPlayer = currentPlayer;
 window.isLoggedIn = isLoggedIn;
@@ -449,4 +594,7 @@ window.isGuest = isGuest;
 window.updatePlayerStats = updatePlayerStats;
 window.getPlayerData = getPlayerData;
 window.configureCloudSync = configureCloudSync;
-window.showCloudSyncConfig = showCloudSyncConfig; 
+window.showCloudSyncConfig = showCloudSyncConfig;
+window.syncUserAccounts = syncUserAccounts;
+window.loadUserAccounts = loadUserAccounts;
+window.testAccountSync = testAccountSync; 
