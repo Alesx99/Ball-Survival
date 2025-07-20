@@ -1315,6 +1315,9 @@ class AnalyticsManager {
             
             console.log('🔄 Inizio upload analytics...');
             
+            // Rate limiting prima di scaricare
+            await this.waitForRateLimit();
+            
             // Prima scarica i dati esistenti per il merge
             const existingData = await this.downloadFromGist(this.config.githubToken, this.config.gistId);
             
@@ -1336,6 +1339,9 @@ class AnalyticsManager {
                     }
                 }
             };
+            
+            // Rate limiting prima di upload
+            await this.waitForRateLimit();
             
             // Upload al Gist
             const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
@@ -1363,11 +1369,15 @@ class AnalyticsManager {
                     console.log('⚠️ Gist non accessibile per scrittura, disabilitando cloud sync...');
                     this.config.enableCloudSync = false;
                     return false;
+                } else if (response.status === 403 && errorText.includes('rate limit')) {
+                    console.log('⚠️ Rate limit raggiunto, riproverò più tardi...');
+                    throw { status: 403, message: 'rate limit' };
                 }
             }
             
         } catch (error) {
             console.error('❌ Failed to upload analytics:', error);
+            return false;
         }
     }
     
@@ -1378,6 +1388,9 @@ class AnalyticsManager {
                 console.log('⚠️ Token o Gist ID non configurati');
                 return this.getEmptyAnalyticsStructure();
             }
+            
+            // Rate limiting prima di scaricare
+            await this.waitForRateLimit();
             
             const response = await fetch(`https://api.github.com/gists/${gistId}`, {
                 headers: {
@@ -1536,6 +1549,23 @@ class AnalyticsManager {
         return this.analyticsData.balanceMetrics.archetypeScores;
     }
     
+    // Rate limiting per GitHub API
+    lastApiCall = 0;
+    minApiInterval = 1000; // 1 secondo tra le chiamate
+    
+    async waitForRateLimit() {
+        const now = Date.now();
+        const timeSinceLastCall = now - this.lastApiCall;
+        
+        if (timeSinceLastCall < this.minApiInterval) {
+            const waitTime = this.minApiInterval - timeSinceLastCall;
+            console.log(`⏳ Rate limiting: attendo ${waitTime}ms...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+        
+        this.lastApiCall = Date.now();
+    }
+    
     // Funzione di test per il cloud sync
     async testCloudSync() {
         console.log('🧪 Test Cloud Sync...');
@@ -1548,8 +1578,10 @@ class AnalyticsManager {
             return false;
         }
         
-        // Verifica permessi token
+        // Verifica permessi token con rate limiting
         try {
+            await this.waitForRateLimit();
+            
             const response = await fetch('https://api.github.com/user', {
                 headers: {
                     'Authorization': `token ${this.config.githubToken}`,
@@ -1574,7 +1606,9 @@ class AnalyticsManager {
         try {
             console.log('✅ Cloud sync abilitato, testando connessione...');
             
-            // Prima testa la connessione al Gist esistente
+            // Prima testa la connessione al Gist esistente con rate limiting
+            await this.waitForRateLimit();
+            
             const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
                 headers: {
                     'Authorization': `token ${this.config.githubToken}`,
@@ -1590,11 +1624,16 @@ class AnalyticsManager {
                     await this.uploadToGist();
                     console.log('✅ Test cloud sync completato con successo');
                     return true;
-                        } catch (uploadError) {
-            console.log('⚠️ Gist in sola lettura o token senza permessi, disabilitando cloud sync...');
-            this.config.enableCloudSync = false;
-            return false;
-        }
+                } catch (uploadError) {
+                    if (uploadError.status === 403 && uploadError.message.includes('rate limit')) {
+                        console.log('⚠️ Rate limit raggiunto, riproverò più tardi...');
+                        return false;
+                    } else {
+                        console.log('⚠️ Gist in sola lettura o token senza permessi, disabilitando cloud sync...');
+                        this.config.enableCloudSync = false;
+                        return false;
+                    }
+                }
             } else {
                 const error = await response.json();
                 console.error('❌ Errore accesso Gist:', response.status, error);
@@ -1604,6 +1643,9 @@ class AnalyticsManager {
                     return await this.createNewGist();
                 } else if (response.status === 401) {
                     console.error('❌ Token GitHub non valido o scaduto');
+                    return false;
+                } else if (response.status === 403 && error.message.includes('rate limit')) {
+                    console.log('⚠️ Rate limit raggiunto, riproverò più tardi...');
                     return false;
                 } else {
                     console.error('❌ Errore sconosciuto:', error);

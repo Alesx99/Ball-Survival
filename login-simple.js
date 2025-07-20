@@ -1,5 +1,26 @@
 // Sistema di Login Semplice per Ball Survival
 
+// ==================== RATE LIMITING ====================
+
+// Rate limiting per GitHub API
+let lastApiCall = 0;
+const minApiInterval = 1000; // 1 secondo tra le chiamate
+
+async function waitForRateLimit() {
+    const now = Date.now();
+    const timeSinceLastCall = now - lastApiCall;
+    
+    if (timeSinceLastCall < minApiInterval) {
+        const waitTime = minApiInterval - timeSinceLastCall;
+        console.log(`⏳ Rate limiting: attendo ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    lastApiCall = Date.now();
+}
+
+// ==================== GESTIONE PLAYER ====================
+
 // Stato globale del giocatore
 let currentPlayer = null;
 let isLoggedIn = false;
@@ -525,6 +546,9 @@ async function syncUserAccounts() {
         
         console.log('🔄 Sincronizzazione account utenti...');
         
+        // Rate limiting prima di upload
+        await waitForRateLimit();
+        
         // Prepara dati account per upload
         const accountsData = {
             lastSync: Date.now(),
@@ -566,6 +590,9 @@ async function syncUserAccounts() {
                 if (window.analyticsManager) {
                     window.analyticsManager.config.enableCloudSync = false;
                 }
+            } else if (response.status === 403 && errorText.includes('rate limit')) {
+                console.log('⚠️ Rate limit raggiunto, riproverò più tardi...');
+                return false;
             }
             
             return false;
@@ -586,6 +613,9 @@ async function loadUserAccounts() {
         }
         
         console.log('🔄 Caricamento account da cloud...');
+        
+        // Rate limiting prima di scaricare
+        await waitForRateLimit();
         
         const response = await fetch(`https://api.github.com/gists/${window.analyticsManager.config.gistId}`, {
             headers: {
