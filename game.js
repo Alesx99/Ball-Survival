@@ -1072,6 +1072,14 @@ const Utils = {
 
 class AnalyticsManager {
     constructor() {
+        // Configurazione GitHub Gist (da personalizzare)
+        this.config = {
+            githubToken: 'ghp_your_token_here', // Sostituire con token reale
+            gistId: 'your_gist_id_here', // Sostituire con ID gist reale
+            enableCloudSync: false, // Abilita/disabilita cloud sync
+            syncInterval: 10 // Sync ogni N sessioni
+        };
+        
         this.analyticsData = {
             archetypeUsage: {
                 'standard': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
@@ -1224,31 +1232,173 @@ class AnalyticsManager {
     }
     
     syncToCloud() {
-        // Sync to GitHub Gist or similar service
-        if (this.analyticsData.sessionStats.totalSessions % 10 === 0) { // Sync every 10 sessions
+        // Sync to GitHub Gist if enabled
+        if (this.config.enableCloudSync && 
+            this.analyticsData.sessionStats.totalSessions % this.config.syncInterval === 0) {
             this.uploadToGist();
         }
     }
     
     async uploadToGist() {
         try {
+            // Verifica configurazione
+            if (!this.config.enableCloudSync || 
+                this.config.githubToken === 'ghp_your_token_here' || 
+                this.config.gistId === 'your_gist_id_here') {
+                console.log('⚠️ Cloud sync disabilitato o non configurato');
+                return;
+            }
+            
+            // Prima scarica i dati esistenti per il merge
+            const existingData = await this.downloadFromGist(this.config.githubToken, this.config.gistId);
+            
+            // Merge intelligente dei dati
+            const mergedData = this.mergeAnalyticsData(existingData, this.analyticsData);
+            
             const data = {
-                description: 'Ball Survival Analytics - Version 5.4',
+                description: `Ball Survival Analytics - Version 5.4 - Updated ${new Date().toISOString()}`,
                 public: false,
                 files: {
                     'analytics.json': {
-                        content: JSON.stringify(this.analyticsData, null, 2)
+                        content: JSON.stringify(mergedData, null, 2)
                     }
                 }
             };
             
-            // Note: This would require a GitHub token in production
-            // For now, we'll just log the data
-            console.log('Analytics data ready for upload:', data);
+            // Upload al Gist
+            const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${this.config.githubToken}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                console.log('✅ Analytics uploaded and merged to GitHub Gist');
+                // Aggiorna i dati locali con quelli merged
+                this.analyticsData = mergedData;
+                this.saveAnalytics();
+            } else {
+                console.error('❌ Failed to upload analytics:', response.statusText);
+            }
             
         } catch (error) {
-            console.log('Failed to upload analytics:', error);
+            console.error('❌ Failed to upload analytics:', error);
         }
+    }
+    
+    async downloadFromGist(token, gistId) {
+        try {
+            const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (response.ok) {
+                const gist = await response.json();
+                const analyticsFile = gist.files['analytics.json'];
+                if (analyticsFile && analyticsFile.content) {
+                    return JSON.parse(analyticsFile.content);
+                }
+            }
+        } catch (error) {
+            console.log('No existing data found, starting fresh');
+        }
+        
+        // Ritorna struttura vuota se non ci sono dati esistenti
+        return {
+            archetypeUsage: {
+                'standard': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'steel': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'shadow': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'tech': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'magma': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
+                'crystal': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 }
+            },
+            sessionStats: {
+                totalSessions: 0,
+                avgSessionTime: 0,
+                retentionRate: 0,
+                playerSatisfaction: 0
+            },
+            balanceMetrics: {
+                lastUpdate: Date.now(),
+                archetypeScores: {},
+                recommendations: []
+            }
+        };
+    }
+    
+    mergeAnalyticsData(existingData, newData) {
+        const merged = {
+            archetypeUsage: {},
+            sessionStats: {
+                totalSessions: (existingData.sessionStats?.totalSessions || 0) + (newData.sessionStats?.totalSessions || 0),
+                avgSessionTime: 0, // Calcolato dopo
+                retentionRate: 0, // Calcolato dopo
+                playerSatisfaction: 0 // Calcolato dopo
+            },
+            balanceMetrics: {
+                lastUpdate: Date.now(),
+                archetypeScores: {},
+                recommendations: []
+            }
+        };
+        
+        // Merge intelligente per ogni archetipo
+        for (const archetype in newData.archetypeUsage) {
+            const existing = existingData.archetypeUsage?.[archetype] || { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 };
+            const current = newData.archetypeUsage[archetype];
+            
+            // Calcolo media ponderata per livelli e soddisfazione
+            const totalGames = existing.games + current.games;
+            if (totalGames > 0) {
+                merged.archetypeUsage[archetype] = {
+                    games: totalGames,
+                    totalTime: existing.totalTime + current.totalTime,
+                    avgLevel: (existing.avgLevel * existing.games + current.avgLevel * current.games) / totalGames,
+                    satisfaction: (existing.satisfaction * existing.games + current.satisfaction * current.games) / totalGames
+                };
+            } else {
+                merged.archetypeUsage[archetype] = current;
+            }
+        }
+        
+        // Aggiungi archetipi esistenti che non sono nel nuovo data
+        for (const archetype in existingData.archetypeUsage) {
+            if (!merged.archetypeUsage[archetype]) {
+                merged.archetypeUsage[archetype] = existingData.archetypeUsage[archetype];
+            }
+        }
+        
+        // Calcola statistiche aggregate
+        const allSessions = (existingData.sessionStats?.totalSessions || 0) + (newData.sessionStats?.totalSessions || 0);
+        const allTime = (existingData.sessionStats?.avgSessionTime || 0) * (existingData.sessionStats?.totalSessions || 0) + 
+                       (newData.sessionStats?.avgSessionTime || 0) * (newData.sessionStats?.totalSessions || 0);
+        
+        if (allSessions > 0) {
+            merged.sessionStats.avgSessionTime = allTime / allSessions;
+        }
+        
+        // Calcola retention e satisfaction aggregate
+        const existingRetention = (existingData.sessionStats?.retentionRate || 0) * (existingData.sessionStats?.totalSessions || 0);
+        const newRetention = (newData.sessionStats?.retentionRate || 0) * (newData.sessionStats?.totalSessions || 0);
+        merged.sessionStats.retentionRate = allSessions > 0 ? (existingRetention + newRetention) / allSessions : 0;
+        
+        const existingSatisfaction = (existingData.sessionStats?.playerSatisfaction || 0) * (existingData.sessionStats?.totalSessions || 0);
+        const newSatisfaction = (newData.sessionStats?.playerSatisfaction || 0) * (newData.sessionStats?.totalSessions || 0);
+        merged.sessionStats.playerSatisfaction = allSessions > 0 ? (existingSatisfaction + newSatisfaction) / allSessions : 0;
+        
+        // Aggiorna balance metrics con i dati merged
+        this.updateBalanceMetrics();
+        merged.balanceMetrics = this.analyticsData.balanceMetrics;
+        
+        return merged;
     }
     
     getAnalyticsReport() {
@@ -1266,6 +1416,32 @@ class AnalyticsManager {
     
     getAllArchetypeScores() {
         return this.analyticsData.balanceMetrics.archetypeScores;
+    }
+    
+    // Funzione di test per il cloud sync
+    testCloudSync() {
+        console.log('🧪 Test Cloud Sync...');
+        console.log('Configurazione attuale:', this.config);
+        console.log('Dati analytics locali:', this.analyticsData);
+        
+        if (this.config.enableCloudSync) {
+            console.log('✅ Cloud sync abilitato');
+            this.uploadToGist();
+        } else {
+            console.log('⚠️ Cloud sync disabilitato');
+        }
+    }
+    
+    // Funzione per abilitare/disabilitare cloud sync
+    toggleCloudSync(enable = true) {
+        this.config.enableCloudSync = enable;
+        console.log(`Cloud sync ${enable ? 'abilitato' : 'disabilitato'}`);
+    }
+    
+    // Funzione per aggiornare configurazione
+    updateConfig(newConfig) {
+        this.config = { ...this.config, ...newConfig };
+        console.log('Configurazione aggiornata:', this.config);
     }
 }
 
