@@ -1087,7 +1087,7 @@ class AnalyticsManager {
                 'shadow': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
                 'tech': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
                 'magma': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 },
-                'crystal': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 }
+                'frost': { games: 0, totalTime: 0, avgLevel: 0, satisfaction: 0 }
             },
             sessionStats: {
                 totalSessions: 0,
@@ -1126,7 +1126,8 @@ class AnalyticsManager {
         // Track archetype selection
         this.trackArchetypeSelection = (archetype) => {
             if (this.analyticsData.archetypeUsage[archetype]) {
-                this.analyticsData.archetypeUsage[archetype].games++;
+                // Non incrementare games qui, verrà fatto in trackGameCompletion
+                console.log(`🎯 Archetipo selezionato: ${archetype}`);
                 this.saveAnalytics();
             }
         };
@@ -1224,7 +1225,7 @@ class AnalyticsManager {
             'tech': 'Ridurre area effect da 30% a 25%',
             'standard': 'Ridurre bonus XP da 10% a 8%',
             'magma': 'Ridurre danno bruciatura da 15 a 12',
-            'crystal': 'Ridurre effetto slow da 40% a 35%'
+            'frost': 'Ridurre effetto slow da 40% a 35%'
         };
         return suggestions[archetype] || 'Ridurre statistiche generali';
     }
@@ -1236,7 +1237,7 @@ class AnalyticsManager {
             'tech': 'Aumentare chain damage da 20% a 25%',
             'standard': 'Aumentare bonus XP da 10% a 12%',
             'magma': 'Aumentare danno bruciatura da 15 a 18',
-            'crystal': 'Aumentare effetto slow da 40% a 45%'
+            'frost': 'Aumentare effetto slow da 40% a 45%'
         };
         return suggestions[archetype] || 'Aumentare statistiche generali';
     }
