@@ -810,11 +810,13 @@ function updateSyncStatus() {
             <p>✅ Cloud Sync Abilitato</p>
             <p>Token: ${window.analyticsManager.config.githubToken.substring(0, 10)}...</p>
             <p>Gist ID: ${window.analyticsManager.config.gistId || 'Non configurato'}</p>
+            <p>⚠️ Nota: Il Gist potrebbe essere in sola lettura</p>
         `;
     } else {
         statusDisplay.innerHTML = `
             <p>❌ Cloud Sync Disabilitato</p>
             <p>Configura un token GitHub per abilitare la sincronizzazione</p>
+            <p>💡 Se il Gist non è accessibile, crea un nuovo Gist privato</p>
         `;
     }
 }
@@ -864,7 +866,7 @@ function testCloudSync() {
             if (success) {
                 showCloudSyncMessage('✅ Connessione al cloud riuscita!', 'success');
             } else {
-                showCloudSyncMessage('❌ Connessione fallita. Verifica il token.', 'error');
+                showCloudSyncMessage('❌ Gist non accessibile per scrittura. Crea un nuovo Gist privato.', 'error');
             }
             return success;
         });
@@ -902,6 +904,38 @@ function showCloudSyncMessage(message, type) {
     }, 5000);
 }
 
+function createNewGist() {
+    if (!window.analyticsManager) {
+        showCloudSyncMessage('❌ Analytics Manager non disponibile', 'error');
+        return;
+    }
+    
+    const token = document.getElementById('cloudSyncToken').value.trim();
+    if (!token || !token.startsWith('ghp_')) {
+        showCloudSyncMessage('⚠️ Inserisci un token GitHub valido prima di creare un nuovo Gist', 'error');
+        return;
+    }
+    
+    showCloudSyncMessage('🆕 Creazione nuovo Gist privato...', 'info');
+    
+    // Salva token se non già salvato
+    localStorage.setItem('ballSurvivalGithubToken', token);
+    window.analyticsManager.config.githubToken = token;
+    window.analyticsManager.config.enableCloudSync = true;
+    
+    // Crea nuovo Gist
+    window.analyticsManager.createNewGist().then(success => {
+        if (success) {
+            showCloudSyncMessage('✅ Nuovo Gist creato con successo! Cloud sync abilitato.', 'success');
+            updateSyncStatus();
+        } else {
+            showCloudSyncMessage('❌ Errore creazione Gist. Verifica il token.', 'error');
+        }
+    }).catch(error => {
+        showCloudSyncMessage('❌ Errore creazione Gist: ' + error.message, 'error');
+    });
+}
+
 // Esponi funzioni globalmente
 window.currentPlayer = currentPlayer;
 window.isLoggedIn = isLoggedIn;
@@ -916,6 +950,7 @@ window.testAccountSync = testAccountSync;
 window.testCloudSync = testCloudSync;
 window.resetCloudSync = resetCloudSync;
 window.closeCloudSyncConfig = closeCloudSyncConfig;
+window.createNewGist = createNewGist;
 
 // Inizializzazione al caricamento della pagina
 document.addEventListener('DOMContentLoaded', function() {
