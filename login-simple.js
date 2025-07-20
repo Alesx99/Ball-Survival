@@ -397,15 +397,31 @@ function getPlayerData() {
 document.addEventListener('DOMContentLoaded', function() {
     initLogin();
     
-    // Carica token salvato e account dopo un breve delay per permettere l'inizializzazione di analyticsManager
-    setTimeout(async () => {
-        loadSavedToken();
+    // Controlla se è il primo avvio o se il token è già configurato
+    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+    
+    if (savedToken && savedToken !== 'ghp_your_token_here') {
+        // Token già configurato, vai direttamente al login
+        showLoginScreen();
         
-        // Se il cloud sync è configurato, carica gli account all'avvio
-        if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
-            await loadUserAccounts();
+        // Carica account in background
+        setTimeout(async () => {
+            if (window.analyticsManager) {
+                window.analyticsManager.config.githubToken = savedToken;
+                window.analyticsManager.config.enableCloudSync = true;
+                await loadUserAccounts();
+            }
+        }, 1000);
+    } else {
+        // Primo avvio o token non configurato, mostra setup
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('tokenSetupScreen').style.display = 'block';
+        
+        // Pre-filla token se presente
+        if (savedToken && savedToken !== 'ghp_your_token_here') {
+            document.getElementById('startupToken').value = savedToken;
         }
-    }, 1000);
+    }
 });
 
 // Configura cloud sync con token GitHub
@@ -600,6 +616,151 @@ async function loadUserAccounts() {
     } catch (error) {
         console.error('❌ Errore caricamento account:', error);
         return false;
+    }
+}
+
+// Funzioni per il flusso di avvio
+async function configureStartupToken() {
+    const token = document.getElementById('startupToken').value.trim();
+    const statusElement = document.getElementById('tokenSetupStatus');
+    
+    if (!token) {
+        showStartupStatus('⚠️ Inserisci un token GitHub valido', 'error');
+        return;
+    }
+    
+    if (!token.startsWith('ghp_')) {
+        showStartupStatus('⚠️ Token GitHub deve iniziare con "ghp_"', 'error');
+        return;
+    }
+    
+    showStartupStatus('🔄 Configurazione in corso...', 'info');
+    
+    try {
+        // Salva token
+        localStorage.setItem('ballSurvivalGithubToken', token);
+        
+        // Configura analytics manager
+        if (window.analyticsManager) {
+            window.analyticsManager.config.githubToken = token;
+            window.analyticsManager.config.enableCloudSync = true;
+        }
+        
+        // Avvia processo di sync
+        await startSyncProcess();
+        
+    } catch (error) {
+        console.error('Errore configurazione token:', error);
+        showStartupStatus('❌ Errore configurazione: ' + error.message, 'error');
+    }
+}
+
+function skipTokenSetup() {
+    showStartupStatus('⏭️ Modalità solo locale attivata', 'info');
+    setTimeout(() => {
+        showLoginScreen();
+    }, 1500);
+}
+
+function showStartupStatus(message, type) {
+    const statusElement = document.getElementById('tokenSetupStatus');
+    statusElement.textContent = message;
+    statusElement.className = `status-message ${type}`;
+}
+
+async function startSyncProcess() {
+    // Mostra schermata sync
+    document.getElementById('tokenSetupScreen').style.display = 'none';
+    document.getElementById('syncScreen').style.display = 'block';
+    
+    const progressElement = document.getElementById('syncProgress');
+    const statusElement = document.getElementById('syncStatus');
+    const analyticsStatus = document.getElementById('analyticsStatus');
+    const accountsStatus = document.getElementById('accountsStatus');
+    
+    try {
+        // Step 1: Test connessione (25%)
+        statusElement.textContent = 'Test connessione al cloud...';
+        progressElement.style.width = '25%';
+        
+        if (window.analyticsManager) {
+            const testResult = await window.analyticsManager.testCloudSync();
+            if (!testResult) {
+                throw new Error('Connessione al cloud fallita');
+            }
+        }
+        
+        // Step 2: Carica analytics (50%)
+        statusElement.textContent = 'Caricamento analytics...';
+        progressElement.style.width = '50%';
+        analyticsStatus.textContent = '✅';
+        
+        // Step 3: Carica account (75%)
+        statusElement.textContent = 'Caricamento account utenti...';
+        progressElement.style.width = '75%';
+        
+        if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
+            await loadUserAccounts();
+            accountsStatus.textContent = '✅';
+        } else {
+            accountsStatus.textContent = '⏭️';
+        }
+        
+        // Step 4: Completato (100%)
+        statusElement.textContent = 'Sincronizzazione completata!';
+        progressElement.style.width = '100%';
+        
+        setTimeout(() => {
+            showLoginScreen();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Errore sync:', error);
+        statusElement.textContent = '❌ Errore sincronizzazione: ' + error.message;
+        analyticsStatus.textContent = '❌';
+        accountsStatus.textContent = '❌';
+        
+        setTimeout(() => {
+            showLoginScreen();
+        }, 3000);
+    }
+}
+
+function showLoginScreen() {
+    // Nascondi tutte le schermate
+    document.getElementById('tokenSetupScreen').style.display = 'none';
+    document.getElementById('syncScreen').style.display = 'none';
+    
+    // Mostra schermata login
+    document.getElementById('loginScreen').style.display = 'block';
+    
+    // Pre-filla token se disponibile
+    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+    if (savedToken) {
+        const tokenInputs = document.querySelectorAll('input[id*="githubToken"]');
+        tokenInputs.forEach(input => {
+            input.value = savedToken;
+        });
+    }
+}
+
+// Funzione per resettare configurazione token
+function resetTokenConfiguration() {
+    if (confirm('⚠️ Sei sicuro di voler resettare la configurazione del token?\n\nQuesto rimuoverà il token salvato e dovrai riconfigurarlo al prossimo avvio.')) {
+        localStorage.removeItem('ballSurvivalGithubToken');
+        
+        if (window.analyticsManager) {
+            window.analyticsManager.config.githubToken = 'ghp_your_token_here';
+            window.analyticsManager.config.enableCloudSync = false;
+        }
+        
+        showMessage('✅ Configurazione token resettata. Riavvia il gioco per riconfigurare.', false);
+        
+        // Torna alla schermata di setup
+        setTimeout(() => {
+            document.getElementById('playerInfoScreen').style.display = 'none';
+            document.getElementById('tokenSetupScreen').style.display = 'block';
+        }, 2000);
     }
 }
 

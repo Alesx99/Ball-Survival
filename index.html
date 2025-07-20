@@ -256,6 +256,16 @@
                             margin: 2px;
                             cursor: pointer;
                         ">🔄 Sync Account</button>
+                        <button onclick="resetTokenConfiguration()" style="
+                            background: #ff9800;
+                            color: white;
+                            padding: 8px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            font-size: 12px;
+                            margin: 2px;
+                            cursor: pointer;
+                        ">🔧 Reset Token</button>
                         <button onclick="logout()" style="
                             background: #f44336;
                             color: white;
@@ -440,6 +450,49 @@
                 <!-- Gli achievements verranno popolati qui -->
             </div>
             <!-- Pulsante Chiudi rimosso per evitare duplicati - usa la X nell'header -->
+        </div>
+    </div>
+
+    <!-- Schermata di configurazione token all'avvio -->
+    <div id="tokenSetupScreen" class="screen" style="display: none;">
+        <div class="container">
+            <h2>🔧 Configurazione Cloud Sync</h2>
+            <p>Per sincronizzare i tuoi dati tra dispositivi, inserisci il tuo token GitHub:</p>
+            
+            <div class="form-group">
+                <label for="startupToken">Token GitHub:</label>
+                <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+                <small>
+                    <a href="https://github.com/settings/tokens" target="_blank">🔗 Crea token GitHub</a>
+                    <br>
+                    <strong>Permessi necessari:</strong> gist (per salvare dati)
+                </small>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="configureStartupToken()" class="btn btn-primary">✅ Configura e Sincronizza</button>
+                <button onclick="skipTokenSetup()" class="btn btn-secondary">⏭️ Salta (Solo Locale)</button>
+            </div>
+            
+            <div id="tokenSetupStatus" class="status-message"></div>
+        </div>
+    </div>
+
+    <!-- Schermata di sincronizzazione -->
+    <div id="syncScreen" class="screen" style="display: none;">
+        <div class="container">
+            <h2>🔄 Sincronizzazione in Corso</h2>
+            <div class="sync-progress">
+                <div class="progress-bar">
+                    <div id="syncProgress" class="progress-fill"></div>
+                </div>
+                <p id="syncStatus">Caricamento dati dal cloud...</p>
+            </div>
+            
+            <div id="syncDetails" class="sync-details">
+                <p>📊 Analytics: <span id="analyticsStatus">⏳</span></p>
+                <p>👤 Account: <span id="accountsStatus">⏳</span></p>
+            </div>
         </div>
     </div>
 
