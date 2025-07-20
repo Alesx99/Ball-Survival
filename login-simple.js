@@ -146,6 +146,18 @@ async function login() {
     }
     
     try {
+        // Configura cloud sync PRIMA del login se token fornito
+        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        const tokenToUse = githubToken && githubToken.trim() !== '' ? githubToken : savedToken;
+        
+        if (tokenToUse) {
+            await configureCloudSync(tokenToUse);
+            
+            // Carica account da cloud PRIMA dell'autenticazione
+            await loadUserAccounts();
+        }
+        
+        // Ora prova l'autenticazione con tutti gli account disponibili
         const playerData = await authenticatePlayer(username, password);
         
         if (playerData) {
@@ -155,17 +167,9 @@ async function login() {
             savePlayerData();
             updateLoginUI();
             
-            // Configura cloud sync se token fornito o già presente
-            const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-            const tokenToUse = githubToken && githubToken.trim() !== '' ? githubToken : savedToken;
-            
+            // Sincronizza account dopo login riuscito
             if (tokenToUse) {
-                await configureCloudSync(tokenToUse);
-                
-                // Carica account da cloud e sincronizza
-                await loadUserAccounts();
                 await syncUserAccounts();
-                
                 showMessage('✅ Login completato! Cloud sync configurato.', false);
             } else {
                 showMessage('✅ Login completato!', false);
@@ -212,6 +216,18 @@ async function register() {
     }
     
     try {
+        // Configura cloud sync PRIMA della registrazione se token fornito
+        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        const tokenToUse = githubToken && githubToken.trim() !== '' ? githubToken : savedToken;
+        
+        if (tokenToUse) {
+            await configureCloudSync(tokenToUse);
+            
+            // Carica account da cloud PRIMA di verificare se l'username esiste
+            await loadUserAccounts();
+        }
+        
+        // Ora prova a creare il giocatore con tutti gli account disponibili
         const playerData = await createPlayer(username, password);
         
         if (playerData) {
@@ -221,16 +237,9 @@ async function register() {
             savePlayerData();
             updateLoginUI();
             
-            // Configura cloud sync se token fornito o già presente
-            const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-            const tokenToUse = githubToken && githubToken.trim() !== '' ? githubToken : savedToken;
-            
+            // Sincronizza il nuovo account dopo registrazione riuscita
             if (tokenToUse) {
-                await configureCloudSync(tokenToUse);
-                
-                // Sincronizza il nuovo account
                 await syncUserAccounts();
-                
                 showMessage('✅ Registrazione completata! Cloud sync configurato.', false);
             } else {
                 showMessage('✅ Registrazione completata!', false);
@@ -388,9 +397,14 @@ function getPlayerData() {
 document.addEventListener('DOMContentLoaded', function() {
     initLogin();
     
-    // Carica token salvato dopo un breve delay per permettere l'inizializzazione di analyticsManager
-    setTimeout(() => {
+    // Carica token salvato e account dopo un breve delay per permettere l'inizializzazione di analyticsManager
+    setTimeout(async () => {
         loadSavedToken();
+        
+        // Se il cloud sync è configurato, carica gli account all'avvio
+        if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
+            await loadUserAccounts();
+        }
     }, 1000);
 });
 
@@ -414,12 +428,7 @@ async function configureCloudSync(githubToken) {
         
         if (testResult) {
             console.log('✅ Cloud sync configurato con successo');
-            
-            // Carica e sincronizza account
-            await loadUserAccounts();
-            await syncUserAccounts();
-            
-            showMessage('☁️ Cloud sync configurato! Account e analytics sincronizzati.', false);
+            showMessage('☁️ Cloud sync configurato! I dati verranno sincronizzati automaticamente.', false);
         } else {
             console.log('⚠️ Configurazione cloud sync fallita');
             showMessage('⚠️ Token GitHub non valido o errore di configurazione', true);
@@ -552,6 +561,8 @@ async function loadUserAccounts() {
             return false;
         }
         
+        console.log('🔄 Caricamento account da cloud...');
+        
         const response = await fetch(`https://api.github.com/gists/${window.analyticsManager.config.gistId}`, {
             headers: {
                 'Authorization': `token ${window.analyticsManager.config.githubToken}`,
@@ -566,17 +577,22 @@ async function loadUserAccounts() {
             if (accountsFile && accountsFile.content) {
                 const accountsData = JSON.parse(accountsFile.content);
                 const localPlayers = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+                let accountsLoaded = 0;
                 
                 // Merge intelligente degli account
                 for (const [username, account] of Object.entries(accountsData.accounts)) {
                     if (!localPlayers[username] || localPlayers[username].lastLogin < account.lastLogin) {
                         localPlayers[username] = account;
+                        accountsLoaded++;
                     }
                 }
                 
                 localStorage.setItem('ballSurvivalPlayers', JSON.stringify(localPlayers));
-                console.log('✅ Account caricati da Gist:', Object.keys(localPlayers).length);
+                console.log(`✅ Account caricati da Gist: ${accountsLoaded} nuovi account`);
                 return true;
+            } else {
+                console.log('📝 Nessun file accounts.json trovato nel Gist');
+                return true; // Non è un errore, potrebbe essere il primo utilizzo
             }
         }
         
