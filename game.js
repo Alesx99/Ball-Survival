@@ -1075,7 +1075,7 @@ class AnalyticsManager {
         // Configurazione GitHub Gist - INSERISCI IL TUO TOKEN QUI
         this.config = {
             githubToken: 'ghp_your_token_here', // 🔧 SOSTITUISCI CON IL TUO TOKEN
-            gistId: '1dc2b7cdfc87ca61cfaf7e2dc7e13cfd', // ✅ Gist ID configurato
+            gistId: null, // ✅ Gist ID da creare automaticamente
             enableCloudSync: false, // 🔧 IMPOSTA A true DOPO AVER INSERITO IL TOKEN
             syncInterval: 10 // Sync ogni 10 sessioni
         };
@@ -1250,14 +1250,67 @@ class AnalyticsManager {
         }
     }
     
+    async createNewGist() {
+        try {
+            console.log('🔄 Creazione nuovo Gist...');
+            
+            const gistData = {
+                description: 'Ball Survival Analytics & Accounts',
+                public: false,
+                files: {
+                    'analytics.json': {
+                        content: JSON.stringify(this.getEmptyAnalyticsStructure(), null, 2)
+                    },
+                    'accounts.json': {
+                        content: JSON.stringify({
+                            lastUpdate: new Date().toISOString(),
+                            accounts: {}
+                        }, null, 2)
+                    }
+                }
+            };
+            
+            const response = await fetch('https://api.github.com/gists', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${this.config.githubToken}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify(gistData)
+            });
+            
+            if (response.ok) {
+                const newGist = await response.json();
+                this.config.gistId = newGist.id;
+                console.log('✅ Nuovo Gist creato:', newGist.id);
+                return true;
+            } else {
+                console.error('❌ Errore creazione Gist:', response.status, await response.json());
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Errore creazione Gist:', error);
+            return false;
+        }
+    }
+    
     async uploadToGist() {
         try {
             // Verifica configurazione
             if (!this.config.enableCloudSync || 
-                this.config.githubToken === 'ghp_your_token_here' || 
-                this.config.gistId === 'your_gist_id_here') {
+                this.config.githubToken === 'ghp_your_token_here') {
                 console.log('⚠️ Cloud sync disabilitato o non configurato');
                 return;
+            }
+            
+            // Se non c'è un Gist ID, creane uno nuovo
+            if (!this.config.gistId) {
+                const gistCreated = await this.createNewGist();
+                if (!gistCreated) {
+                    console.error('❌ Impossibile creare nuovo Gist');
+                    return;
+                }
             }
             
             console.log('🔄 Inizio upload analytics...');
@@ -1315,7 +1368,7 @@ class AnalyticsManager {
     async downloadFromGist(token, gistId) {
         try {
             // Validazione input
-            if (!token || !gistId || token === 'ghp_your_token_here' || gistId === 'your_gist_id_here') {
+            if (!token || !gistId || token === 'ghp_your_token_here') {
                 console.log('⚠️ Token o Gist ID non configurati');
                 return this.getEmptyAnalyticsStructure();
             }
@@ -1484,8 +1537,7 @@ class AnalyticsManager {
         console.log('Dati analytics locali:', this.analyticsData);
         
         if (!this.config.enableCloudSync || 
-            this.config.githubToken === 'ghp_your_token_here' || 
-            this.config.gistId === 'your_gist_id_here') {
+            this.config.githubToken === 'ghp_your_token_here') {
             console.log('⚠️ Cloud sync disabilitato o non configurato');
             return false;
         }
