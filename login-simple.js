@@ -740,14 +740,14 @@ function showLoginScreen() {
     // Nascondi tutte le schermate con controllo esistenza
     const tokenSetupScreen = document.getElementById('tokenSetupScreen');
     const syncScreen = document.getElementById('syncScreen');
-    const loginScreen = document.getElementById('loginScreen');
+    const startScreen = document.getElementById('startScreen');
     
     if (tokenSetupScreen) tokenSetupScreen.style.display = 'none';
     if (syncScreen) syncScreen.style.display = 'none';
     
-    // Mostra schermata login
-    if (loginScreen) {
-        loginScreen.style.display = 'block';
+    // Mostra schermata login (usa startScreen che contiene il login)
+    if (startScreen) {
+        startScreen.style.display = 'block';
         
         // Pre-filla token se disponibile
         const savedToken = localStorage.getItem('ballSurvivalGithubToken');
@@ -758,7 +758,7 @@ function showLoginScreen() {
             });
         }
     } else {
-        console.error('❌ Elemento loginScreen non trovato');
+        console.error('❌ Elemento startScreen non trovato');
     }
 }
 
