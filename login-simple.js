@@ -560,6 +560,16 @@ async function syncUserAccounts() {
         } else {
             const errorText = await response.text();
             console.error('❌ Errore sync account:', response.status, errorText);
+            
+            if (response.status === 404) {
+                console.log('⚠️ Gist non accessibile per scrittura, creando nuovo...');
+                // Reset Gist ID per forzare creazione nuovo
+                if (window.analyticsManager) {
+                    window.analyticsManager.config.gistId = null;
+                    return await window.analyticsManager.createNewGist();
+                }
+            }
+            
             return false;
         }
         
@@ -727,20 +737,28 @@ async function startSyncProcess() {
 }
 
 function showLoginScreen() {
-    // Nascondi tutte le schermate
-    document.getElementById('tokenSetupScreen').style.display = 'none';
-    document.getElementById('syncScreen').style.display = 'none';
+    // Nascondi tutte le schermate con controllo esistenza
+    const tokenSetupScreen = document.getElementById('tokenSetupScreen');
+    const syncScreen = document.getElementById('syncScreen');
+    const loginScreen = document.getElementById('loginScreen');
+    
+    if (tokenSetupScreen) tokenSetupScreen.style.display = 'none';
+    if (syncScreen) syncScreen.style.display = 'none';
     
     // Mostra schermata login
-    document.getElementById('loginScreen').style.display = 'block';
-    
-    // Pre-filla token se disponibile
-    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-    if (savedToken) {
-        const tokenInputs = document.querySelectorAll('input[id*="githubToken"]');
-        tokenInputs.forEach(input => {
-            input.value = savedToken;
-        });
+    if (loginScreen) {
+        loginScreen.style.display = 'block';
+        
+        // Pre-filla token se disponibile
+        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        if (savedToken) {
+            const tokenInputs = document.querySelectorAll('input[id*="githubToken"]');
+            tokenInputs.forEach(input => {
+                input.value = savedToken;
+            });
+        }
+    } else {
+        console.error('❌ Elemento loginScreen non trovato');
     }
 }
 

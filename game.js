@@ -1358,6 +1358,13 @@ class AnalyticsManager {
             } else {
                 const errorText = await response.text();
                 console.error('❌ Failed to upload analytics:', response.status, response.statusText, errorText);
+                
+                if (response.status === 404) {
+                    console.log('⚠️ Gist non accessibile per scrittura, creando nuovo...');
+                    // Reset Gist ID per forzare creazione nuovo
+                    this.config.gistId = null;
+                    return await this.createNewGist();
+                }
             }
             
         } catch (error) {
@@ -1555,9 +1562,16 @@ class AnalyticsManager {
             
             if (response.ok) {
                 console.log('✅ Connessione al Gist riuscita');
-                await this.uploadToGist();
-                console.log('✅ Test cloud sync completato con successo');
-                return true;
+                
+                // Testa se possiamo scrivere nel Gist
+                try {
+                    await this.uploadToGist();
+                    console.log('✅ Test cloud sync completato con successo');
+                    return true;
+                } catch (uploadError) {
+                    console.log('⚠️ Gist in sola lettura, creando nuovo...');
+                    return await this.createNewGist();
+                }
             } else {
                 const error = await response.json();
                 console.error('❌ Errore accesso Gist:', response.status, error);
