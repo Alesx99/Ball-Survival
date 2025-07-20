@@ -1443,6 +1443,49 @@ class AnalyticsManager {
         this.config = { ...this.config, ...newConfig };
         console.log('Configurazione aggiornata:', this.config);
     }
+    
+    // Funzione per sincronizzare dati giocatore
+    async syncPlayerData(playerData) {
+        if (!playerData) return;
+        
+        console.log('🔄 Sincronizzazione dati giocatore:', playerData.username);
+        
+        // Aggiungi dati giocatore agli analytics
+        this.analyticsData.playerData = {
+            id: playerData.id,
+            username: playerData.username,
+            stats: playerData.stats,
+            lastSync: Date.now()
+        };
+        
+        // Sync con cloud se abilitato
+        if (this.config.enableCloudSync) {
+            await this.uploadToGist();
+        }
+        
+        this.saveAnalytics();
+    }
+    
+    // Funzione per aggiornare statistiche giocatore alla fine partita
+    updatePlayerGameStats(gameStats) {
+        if (!window.playerAuth || !window.playerAuth.currentPlayer) return;
+        
+        const playerData = window.playerAuth.getPlayerData();
+        if (!playerData) return;
+        
+        // Aggiorna statistiche giocatore
+        window.playerAuth.updatePlayerStats(gameStats);
+        
+        // Aggiorna analytics con dati giocatore
+        this.trackGameCompletion(gameStats);
+        
+        // Sync finale con cloud
+        if (this.config.enableCloudSync) {
+            setTimeout(() => {
+                this.uploadToGist();
+            }, 1000); // Sync dopo 1 secondo
+        }
+    }
 }
 
 // Initialize analytics manager
@@ -3660,10 +3703,15 @@ class BallSurvivalGame {
             }
         }
         
-        // TRACKING ANALYTICS: Inizializza sessione
+        // TRACKING ANALYTICS: Inizializza sessione con dati giocatore
         this.sessionStartTime = Date.now();
         if (window.analyticsManager && this.player.archetype) {
             console.log(`Iniziata sessione con archetipo: ${this.player.archetype.id}`);
+            
+            // Sync dati giocatore all'avvio se loggato
+            if (window.playerAuth && window.playerAuth.currentPlayer) {
+                analyticsManager.syncPlayerData(window.playerAuth.currentPlayer);
+            }
         }
         
         // Applica gli effetti dei core e delle armi salvati
@@ -3696,17 +3744,22 @@ class BallSurvivalGame {
         this.state = 'gameOver'; 
         this.totalGems += this.gemsThisRun; 
         
-        // TRACKING ANALYTICS: Registra completamento sessione
+        // TRACKING ANALYTICS: Registra completamento sessione con dati giocatore
         if (window.analyticsManager && this.player.archetype) {
             const sessionTime = (Date.now() - this.sessionStartTime) / 1000; // in secondi
             const satisfaction = this.calculateSatisfaction(this.player.level, this.entities.enemies.length + this.entities.bosses.length);
             
-            analyticsManager.trackGameCompletion(
-                this.player.archetype.id,
-                sessionTime,
-                this.player.level,
-                satisfaction
-            );
+            const gameStats = {
+                archetype: this.player.archetype.id,
+                duration: sessionTime * 1000,
+                level: this.player.level,
+                satisfaction: satisfaction,
+                enemiesKilled: this.enemiesKilled,
+                gemsEarned: this.gemsThisRun,
+                finalScore: this.score
+            };
+            
+            analyticsManager.updatePlayerGameStats(gameStats);
         }
         
         this.saveGameData();
