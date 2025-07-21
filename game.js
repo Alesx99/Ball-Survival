@@ -6,9 +6,9 @@ const CONFIG = {
          * Curva XP Bilanciata per Progressione Fluida
          * 
          * VALORI OTTIMIZZATI (Versione 5.1):
-         * - base: 15 (era 18) - XP iniziale più accessibile
-         * - growth: 1.20 (era 1.25) - Crescita più graduale
-         * - levelFactor: 12 (era 18) - Bonus per livello ridotto
+         * - base: 12 (era 18) - XP iniziale più accessibile
+         * - growth: 1.15 (era 1.25) - Crescita più graduale
+         * - levelFactor: 10 (era 18) - Bonus per livello ridotto
          * 
          * EFFETTI SUI LIVELLI:
          * - Livello 1: 15 XP (era 18) - -17%
@@ -1077,8 +1077,9 @@ class AnalyticsManager {
             githubToken: 'ghp_your_token_here', // 🔧 SOSTITUISCI CON IL TUO TOKEN
             gistId: '1dc2b7cdfc87ca61cfaf7e2dc7e13cfd', // ✅ Gist ID esistente
             enableCloudSync: false, // 🔧 IMPOSTA A true DOPO AVER INSERITO IL TOKEN
-            syncInterval: 10 // Sync ogni 10 sessioni
+            syncInterval: 10 // (Non più usato per la logica principale)
         };
+        this.lastCloudSyncTime = 0; // <--- AGGIUNTA: timestamp ultima sync
         
         this.analyticsData = {
             archetypeUsage: {
@@ -1243,10 +1244,21 @@ class AnalyticsManager {
     }
     
     syncToCloud() {
-        // Sync to GitHub Gist if enabled
-        if (this.config.enableCloudSync && 
-            this.analyticsData.sessionStats.totalSessions % this.config.syncInterval === 0) {
+        // Nuova logica: prime 5 sessioni sync immediata, poi ogni 10 minuti
+        if (!this.config.enableCloudSync) return;
+        const totalSessions = this.analyticsData.sessionStats.totalSessions;
+        const now = Date.now();
+        if (totalSessions <= 5) {
             this.uploadToGist();
+            this.lastCloudSyncTime = now;
+        } else {
+            // 10 minuti = 600000 ms
+            if (!this.lastCloudSyncTime || (now - this.lastCloudSyncTime) >= 600000) {
+                this.uploadToGist();
+                this.lastCloudSyncTime = now;
+            } else {
+                console.log('⏳ Sync cloud rimandata: meno di 10 minuti dall\'ultima sync.');
+            }
         }
     }
     
@@ -1551,19 +1563,31 @@ class AnalyticsManager {
     
     // Rate limiting per GitHub API
     lastApiCall = 0;
-    minApiInterval = 1000; // 1 secondo tra le chiamate
+    minApiInterval = 3000; // 3 secondi per le prime due chiamate
+    apiCallCount = 0; // Conta le chiamate API dall'inizio sessione
     
-    async waitForRateLimit() {
+    async waitForRateLimit(force = false) {
+        if (force) {
+            this.lastApiCall = Date.now();
+            this.apiCallCount++;
+            if (this.apiCallCount === 2) {
+                this.minApiInterval = 1000;
+                this.apiCallCount++;
+            }
+            return;
+        }
         const now = Date.now();
         const timeSinceLastCall = now - this.lastApiCall;
-        
         if (timeSinceLastCall < this.minApiInterval) {
             const waitTime = this.minApiInterval - timeSinceLastCall;
             console.log(`⏳ Rate limiting: attendo ${waitTime}ms...`);
             await new Promise(resolve => setTimeout(resolve, waitTime));
         }
-        
         this.lastApiCall = Date.now();
+        this.apiCallCount++;
+        if (this.apiCallCount === 2) {
+            this.minApiInterval = 600000; // Dopo le prime due chiamate, passa a 10 minuti
+        }
     }
     
     // Funzione di test per il cloud sync
@@ -1580,7 +1604,7 @@ class AnalyticsManager {
         
         // Verifica permessi token con rate limiting
         try {
-            await this.waitForRateLimit();
+            await this.waitForRateLimit(true); // Bypassa il rate limit per chiamata manuale
             
             const response = await fetch('https://api.github.com/user', {
                 headers: {
@@ -1607,7 +1631,7 @@ class AnalyticsManager {
             console.log('✅ Cloud sync abilitato, testando connessione...');
             
             // Prima testa la connessione al Gist esistente con rate limiting
-            await this.waitForRateLimit();
+            await this.waitForRateLimit(true); // Bypassa il rate limit per chiamata manuale
             
             const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
                 headers: {
@@ -1683,6 +1707,19 @@ class AnalyticsManager {
             stats: playerData.stats,
             lastSync: Date.now()
         };
+        
+        // --- PATCH: Sincronizza anche gli achievement dal cloud ---
+        if (playerData.achievements && window.analyticsManager && window.analyticsManager.achievementSystem) {
+            const achievementSystem = window.analyticsManager.achievementSystem;
+            Object.keys(playerData.achievements).forEach(id => {
+                if (playerData.achievements[id] && achievementSystem.achievements[id]) {
+                    achievementSystem.achievements[id].unlocked = true;
+                    achievementSystem.achievements[id].progress = achievementSystem.achievements[id].target;
+                }
+            });
+            achievementSystem.saveAchievements();
+        }
+        // --- FINE PATCH ---
         
         // Sync con cloud se abilitato
         if (this.config.enableCloudSync) {
@@ -3387,7 +3424,7 @@ class ProgressionOptimizer {
     }
 }
 
-// Sistema Achievement completo per versione 5.3
+// Sistema Achievement completo per versione 5.3 - compatibile cloud sync
 class AchievementSystem {
     constructor() {
         this.achievements = {
@@ -3535,7 +3572,7 @@ class AchievementSystem {
                 target: 4
             }
         };
-        
+
         this.stats = {
             enemiesKilled: 0,
             eliteKilled: 0,
@@ -3549,10 +3586,10 @@ class AchievementSystem {
             archetypesUnlocked: 0,
             firstKill: false
         };
-        
+
         this.loadAchievements();
     }
-    
+
     loadAchievements() {
         try {
             const saved = localStorage.getItem('ballSurvivalAchievements');
@@ -3570,27 +3607,27 @@ class AchievementSystem {
             console.error('Errore caricamento achievements:', e);
         }
     }
-    
+
     saveAchievements() {
         try {
             const data = {
                 achievements: {},
                 stats: this.stats
             };
-            
+
             Object.keys(this.achievements).forEach(id => {
                 data.achievements[id] = {
                     unlocked: this.achievements[id].unlocked,
                     progress: this.achievements[id].progress
                 };
             });
-            
+
             localStorage.setItem('ballSurvivalAchievements', JSON.stringify(data));
         } catch (e) {
             console.error('Errore salvataggio achievements:', e);
         }
     }
-    
+
     updateProgress(type, value, game) {
         switch (type) {
             case 'first_kill':
@@ -3599,101 +3636,108 @@ class AchievementSystem {
                     this.checkAchievement('first_blood', 1, game);
                 }
                 break;
-                
+
             case 'kill_count':
                 this.stats.enemiesKilled += value;
                 this.checkAchievement('killer_1', this.stats.enemiesKilled, game);
                 break;
-                
+
             case 'elite_kill_count':
                 this.stats.eliteKilled += value;
                 this.checkAchievement('killer_2', this.stats.eliteKilled, game);
                 break;
-                
+
             case 'boss_kill_count':
                 this.stats.bossesKilled += value;
                 this.checkAchievement('boss_slayer', this.stats.bossesKilled, game);
                 break;
-                
+
             case 'materials_collected':
                 this.stats.materialsCollected += value;
                 this.checkAchievement('collector', this.stats.materialsCollected, game);
                 break;
-                
+
             case 'items_crafted':
                 this.stats.itemsCrafted += value;
                 this.checkAchievement('craftsman', this.stats.itemsCrafted, game);
                 break;
-                
+
             case 'player_level':
                 if (value > this.stats.maxLevel) {
                     this.stats.maxLevel = value;
                     this.checkAchievement('level_master', value, game);
                 }
                 break;
-                
+
             case 'player_speed':
                 if (value > this.stats.maxSpeed) {
                     this.stats.maxSpeed = value;
                     this.checkAchievement('speed_demon', value, game);
                 }
                 break;
-                
+
             case 'player_dr':
                 if (value > this.stats.maxDR) {
                     this.stats.maxDR = value;
                     this.checkAchievement('tank', value, game);
                 }
                 break;
-                
+
             case 'stages_unlocked':
                 this.stats.stagesUnlocked = value;
                 this.checkAchievement('stage_explorer', value, game);
                 break;
-                
+
             case 'archetypes_unlocked':
                 this.stats.archetypesUnlocked = value;
                 this.checkAchievement('archetype_collector', value, game);
                 break;
         }
-        
+
         this.saveAchievements();
     }
-    
+
     checkAchievement(achievementId, currentValue, game) {
         const achievement = this.achievements[achievementId];
         if (!achievement || achievement.unlocked) return;
-        
+
         // Aggiorna progresso
         achievement.progress = Math.min(currentValue, achievement.target);
-        
+
         // Controlla se sbloccato
         if (achievement.progress >= achievement.target) {
             this.unlockAchievement(achievementId, game);
         }
     }
-    
+
     unlockAchievement(achievementId, game) {
         const achievement = this.achievements[achievementId];
         if (!achievement || achievement.unlocked) return;
-        
+
         achievement.unlocked = true;
         achievement.progress = achievement.target;
-        
+
         // Applica ricompensa
         if (achievement.reward.gems && game) {
             game.totalGems += achievement.reward.gems;
         }
-        
+
         // Mostra notifica
         this.showAchievementNotification(achievement);
-        
+
         // Salva
         this.saveAchievements();
-        
+
+        // --- PATCH: aggiorna anche currentPlayer.achievements per sync cloud ---
+        if (window.currentPlayer) {
+            if (!window.currentPlayer.achievements) window.currentPlayer.achievements = {};
+            window.currentPlayer.achievements[achievementId] = true;
+            if (typeof savePlayerData === 'function') savePlayerData();
+        }
+
         console.log(`🏆 Achievement sbloccato: ${achievement.name}!`);
     }
-    
+
     showAchievementNotification(achievement) {
         // Crea notifica achievement
         const notification = {
@@ -3701,38 +3745,38 @@ class AchievementSystem {
             life: 300,
             type: 'achievement'
         };
-        
+
         // Aggiungi alla lista notifiche del gioco
         if (window.game && window.game.notifications) {
             window.game.notifications.push(notification);
         }
-        
+
         // Log per debug
         console.log(`🏆 Achievement: ${achievement.name} - ${achievement.description}`);
         console.log(`💰 Ricompensa: ${achievement.reward.gems} gemme`);
     }
-    
+
     checkTimeBasedAchievements(gameTime, game) {
         // Controlla achievement basati sul tempo
         this.checkAchievement('survivor_1', gameTime, game);
         this.checkAchievement('survivor_2', gameTime, game);
     }
-    
+
     checkPlayerStatsAchievements(player, game) {
         // Controlla achievement basati sulle statistiche del giocatore
         this.checkAchievement('level_master', player.level, game);
         this.checkAchievement('speed_demon', player.stats.speed, game);
         this.checkAchievement('tank', player.stats.dr, game);
     }
-    
+
     getUnlockedCount() {
         return Object.values(this.achievements).filter(a => a.unlocked).length;
     }
-    
+
     getTotalCount() {
         return Object.keys(this.achievements).length;
     }
-    
+
     getProgress() {
         return {
             unlocked: this.getUnlockedCount(),
@@ -3741,7 +3785,6 @@ class AchievementSystem {
         };
     }
 }
-
 class BallSurvivalGame {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
@@ -3778,6 +3821,9 @@ class BallSurvivalGame {
         this.populateStageSelection();
         this.updateCharacterPreview(); // Inizializza l'anteprima del personaggio
         this.showPopup('start');
+        
+        this.sessionStartTime = 0;
+        this.lastPeriodicCloudSyncTime = 0; // Timestamp ultimo sync periodico
     }
 
     initDOM() {
@@ -3944,6 +3990,7 @@ class BallSurvivalGame {
         
         // TRACKING ANALYTICS: Inizializza sessione con dati giocatore
         this.sessionStartTime = Date.now();
+        this.lastPeriodicCloudSyncTime = this.sessionStartTime; // Inizializza il timer del sync periodico
         if (window.analyticsManager && this.player.archetype) {
             console.log(`Iniziata sessione con archetipo: ${this.player.archetype.id}`);
             
@@ -3978,45 +4025,49 @@ class BallSurvivalGame {
         if (!this.gameLoopId) this.gameLoop();
     }
     gameOver() {
-        if (this.state === 'gameOver') return;
+    if (this.state === 'gameOver') return;
 
-        this.state = 'gameOver'; 
-        this.totalGems += this.gemsThisRun; 
+    this.state = 'gameOver'; 
+    this.totalGems += this.gemsThisRun; 
+    
+    // TRACKING ANALYTICS: Registra completamento sessione con dati giocatore
+    if (window.analyticsManager && this.player.archetype) {
+        const sessionTime = (Date.now() - this.sessionStartTime) / 1000; // in secondi
+        const satisfaction = this.calculateSatisfaction(this.player.level, this.entities.enemies.length + this.entities.bosses.length);
         
-        // TRACKING ANALYTICS: Registra completamento sessione con dati giocatore
-        if (window.analyticsManager && this.player.archetype) {
-            const sessionTime = (Date.now() - this.sessionStartTime) / 1000; // in secondi
-            const satisfaction = this.calculateSatisfaction(this.player.level, this.entities.enemies.length + this.entities.bosses.length);
-            
-            const gameStats = {
-                archetype: this.player.archetype.id,
-                duration: sessionTime * 1000,
-                level: this.player.level,
-                satisfaction: satisfaction,
-                enemiesKilled: this.enemiesKilled,
-                gemsEarned: this.gemsThisRun,
-                finalScore: this.score
-            };
-            
-            analyticsManager.updatePlayerGameStats(gameStats);
+        const gameStats = {
+            archetype: this.player.archetype.id,
+            duration: sessionTime * 1000,
+            level: this.player.level,
+            satisfaction: satisfaction,
+            enemiesKilled: this.enemiesKilled,
+            gemsEarned: this.gemsThisRun,
+            finalScore: this.score
+        };
+        
+        analyticsManager.updatePlayerGameStats(gameStats);
+        // PATCH: aggiorna anche playerData negli analytics
+        if (window.playerAuth && window.playerAuth.currentPlayer) {
+            analyticsManager.syncPlayerData(window.playerAuth.currentPlayer);
         }
-        
-        this.saveGameData();
-        document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
-        document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
-        document.getElementById('gemsEarned').textContent = this.gemsThisRun;
-        document.getElementById('finalScore').textContent = this.score;
-        this.dom.inputs.saveCode.value = this.generateSaveCode();
-        this.dom.buttons.pause.style.display = 'none';
-        this.dom.inGameUI.container.style.display = 'none';
-        this.hideAllPopups(true); 
-        this.showPopup('gameOver');
-        
-        // Pulisci il canvas dopo aver mostrato il popup di game over
-        setTimeout(() => {
-            this.clearCanvas();
-        }, 100);
     }
+    
+    this.saveGameData();
+    document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
+    document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
+    document.getElementById('gemsEarned').textContent = this.gemsThisRun;
+    document.getElementById('finalScore').textContent = this.score;
+    this.dom.inputs.saveCode.value = this.generateSaveCode();
+    this.dom.buttons.pause.style.display = 'none';
+    this.dom.inGameUI.container.style.display = 'none';
+    this.hideAllPopups(true); 
+    this.showPopup('gameOver');
+    
+    // Pulisci il canvas dopo aver mostrato il popup di game over
+    setTimeout(() => {
+        this.clearCanvas();
+    }, 100);
+}
     resetRunState() {
         this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
@@ -4102,6 +4153,17 @@ class BallSurvivalGame {
                 if (this.totalGems >= 400) unlockedArchetypes.push('shadow');
                 if (this.totalGems >= 800) unlockedArchetypes.push('tech');
                 this.achievementSystem.updateProgress('archetypes_unlocked', unlockedArchetypes.length, this);
+            }
+        }
+        
+        // --- SYNC CLOUD OGNI 20 MINUTI DALL'AVVIO SESSIONE ---
+        if (window.analyticsManager && analyticsManager.config.enableCloudSync) {
+            const now = Date.now();
+            const ventiMinuti = 20 * 60 * 1000;
+            if (now - this.lastPeriodicCloudSyncTime >= ventiMinuti) {
+                analyticsManager.uploadToGist(); // Sync cloud periodico
+                this.lastPeriodicCloudSyncTime = now;
+                console.log('🔄 Sync cloud periodico ogni 20 minuti');
             }
         }
     }
