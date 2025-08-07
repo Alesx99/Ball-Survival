@@ -72,60 +72,76 @@ function updateLoginUI() {
     
     if (isLoggedIn && currentPlayer) {
         // Giocatore loggato
-        loginMainMenu.style.display = 'none';
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'none';
-        playerInfo.style.display = 'block';
+        if (loginMainMenu) loginMainMenu.style.display = 'none';
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'none';
+        if (playerInfo) playerInfo.style.display = 'block';
         
         const guestBadge = isGuest ? ' 🎮' : '';
-        document.getElementById('playerName').textContent = `👤 ${currentPlayer.username}${guestBadge}`;
+        const playerName = document.getElementById('playerName');
+        if (playerName) playerName.textContent = `👤 ${currentPlayer.username}${guestBadge}`;
         
         const guestInfo = isGuest ? ' (Guest - Progressi locali)' : '';
-        document.getElementById('playerStats').textContent = 
+        const playerStats = document.getElementById('playerStats');
+        if (playerStats) playerStats.textContent = 
             `🎮 Partite: ${currentPlayer.stats.totalGames} | ⏱️ Tempo: ${formatTime(currentPlayer.stats.totalTime)} | 🏆 Miglior Livello: ${currentPlayer.stats.bestLevel}${guestInfo}`;
     } else {
         // Non loggato
-        loginMainMenu.style.display = 'block';
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'none';
-        playerInfo.style.display = 'none';
+        if (loginMainMenu) loginMainMenu.style.display = 'block';
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'none';
+        if (playerInfo) playerInfo.style.display = 'none';
     }
 }
 
 // Mostra form login
 function showLoginForm() {
-    document.getElementById('loginMainMenu').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('playerInfo').style.display = 'none';
+    const loginMainMenu = document.getElementById('loginMainMenu');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const playerInfo = document.getElementById('playerInfo');
+    if (loginMainMenu) loginMainMenu.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'block';
+    if (registerForm) registerForm.style.display = 'none';
+    if (playerInfo) playerInfo.style.display = 'none';
     
     // Pre-compila il token se già salvato
     const savedToken = localStorage.getItem('ballSurvivalGithubToken');
     if (savedToken) {
-        document.getElementById('githubToken').value = savedToken;
+        const githubToken = document.getElementById('githubToken');
+        if (githubToken) githubToken.value = savedToken;
     }
 }
 
 // Mostra form registrazione
 function showRegisterForm() {
-    document.getElementById('loginMainMenu').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-    document.getElementById('playerInfo').style.display = 'none';
+    const loginMainMenu = document.getElementById('loginMainMenu');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const playerInfo = document.getElementById('playerInfo');
+    if (loginMainMenu) loginMainMenu.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'block';
+    if (playerInfo) playerInfo.style.display = 'none';
     
     // Pre-compila il token se già salvato
     const savedToken = localStorage.getItem('ballSurvivalGithubToken');
     if (savedToken) {
-        document.getElementById('regGithubToken').value = savedToken;
+        const regGithubToken = document.getElementById('regGithubToken');
+        if (regGithubToken) regGithubToken.value = savedToken;
     }
 }
 
 // Torna al menu principale login
 function backToLoginMenu() {
-    document.getElementById('loginMainMenu').style.display = 'block';
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('playerInfo').style.display = 'none';
+    const loginMainMenu = document.getElementById('loginMainMenu');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const playerInfo = document.getElementById('playerInfo');
+    if (loginMainMenu) loginMainMenu.style.display = 'block';
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'none';
+    if (playerInfo) playerInfo.style.display = 'none';
     hideMessage();
 }
 
@@ -183,6 +199,7 @@ async function login() {
         
         if (playerData) {
             currentPlayer = playerData;
+            window.currentPlayer = currentPlayer; // PATCH: aggiorna sempre la variabile globale
             isLoggedIn = true;
             isGuest = false;
             savePlayerData();
@@ -293,9 +310,15 @@ async function authenticatePlayer(username, password) {
     const player = players[username];
     
     if (player && player.password === password) {
+        // Inizializza sempre i campi richiesti se mancanti
+        if (!player.achievements) player.achievements = {};
+        if (!player.unlockedCharacters) player.unlockedCharacters = { standard: true };
+        if (!player.unlockedWeapons) player.unlockedWeapons = {};
+        if (!player.unlockedCores) player.unlockedCores = {};
         return {
             username: player.username,
             id: player.id,
+            password: player.password,
             createdAt: player.createdAt,
             lastLogin: Date.now(),
             stats: player.stats || {
@@ -303,7 +326,11 @@ async function authenticatePlayer(username, password) {
                 totalTime: 0,
                 bestLevel: 0,
                 favoriteArchetype: 'standard'
-            }
+            },
+            achievements: player.achievements,
+            unlockedCharacters: player.unlockedCharacters,
+            unlockedWeapons: player.unlockedWeapons,
+            unlockedCores: player.unlockedCores
         };
     }
     
@@ -321,7 +348,7 @@ async function createPlayer(username, password) {
     const newPlayer = {
         username: username,
         id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-        password: password,
+        password: password, // <-- salva sempre la password in chiaro
         createdAt: Date.now(),
         lastLogin: Date.now(),
         stats: {
@@ -329,7 +356,11 @@ async function createPlayer(username, password) {
             totalTime: 0,
             bestLevel: 0,
             favoriteArchetype: 'standard'
-        }
+        },
+        achievements: {},
+        unlockedCharacters: { standard: true },
+        unlockedWeapons: {},
+        unlockedCores: {}
     };
     
     players[username] = newPlayer;
@@ -338,19 +369,26 @@ async function createPlayer(username, password) {
     return {
         username: newPlayer.username,
         id: newPlayer.id,
+        password: newPlayer.password,
         createdAt: newPlayer.createdAt,
         lastLogin: newPlayer.lastLogin,
-        stats: newPlayer.stats
+        stats: newPlayer.stats,
+        achievements: newPlayer.achievements,
+        unlockedCharacters: newPlayer.unlockedCharacters,
+        unlockedWeapons: newPlayer.unlockedWeapons,
+        unlockedCores: newPlayer.unlockedCores
     };
 }
 
 // Mostra messaggio
 function showMessage(message, isError = false) {
     const messageBox = document.getElementById('loginMessage');
-    messageBox.textContent = message;
-    messageBox.style.display = 'block';
-    messageBox.style.background = isError ? '#f44336' : '#4CAF50';
-    messageBox.style.color = 'white';
+    if (messageBox) {
+        messageBox.textContent = message;
+        messageBox.style.display = 'block';
+        messageBox.style.background = isError ? '#f44336' : '#4CAF50';
+        messageBox.style.color = 'white';
+    }
     
     setTimeout(() => {
         hideMessage();
@@ -359,7 +397,8 @@ function showMessage(message, isError = false) {
 
 // Nascondi messaggio
 function hideMessage() {
-    document.getElementById('loginMessage').style.display = 'none';
+    const messageBox = document.getElementById('loginMessage');
+    if (messageBox) messageBox.style.display = 'none';
 }
 
 // Formatta tempo
@@ -414,8 +453,92 @@ function getPlayerData() {
     } : null;
 }
 
+// Funzione di merge ibrido tra due oggetti account
+function mergeAccountState(local, cloud) {
+    const merged = {};
+    // Stats numeriche
+    merged.stats = {};
+    const statKeys = new Set([
+        ...Object.keys(local.stats || {}),
+        ...Object.keys(cloud.stats || {})
+    ]);
+    for (const key of statKeys) {
+        const localVal = local.stats?.[key] ?? 0;
+        const cloudVal = cloud.stats?.[key] ?? 0;
+        merged.stats[key] = Math.max(localVal, cloudVal);
+    }
+    // Achievements (booleani)
+    merged.achievements = {};
+    const achKeys = new Set([
+        ...Object.keys(local.achievements || {}),
+        ...Object.keys(cloud.achievements || {})
+    ]);
+    for (const key of achKeys) {
+        merged.achievements[key] = Boolean((local.achievements && local.achievements[key]) || (cloud.achievements && cloud.achievements[key]));
+    }
+    // Personaggi sbloccati (booleani)
+    merged.unlockedCharacters = {};
+    const charKeys = new Set([
+        ...Object.keys(local.unlockedCharacters || {}),
+        ...Object.keys(cloud.unlockedCharacters || {})
+    ]);
+    for (const key of charKeys) {
+        merged.unlockedCharacters[key] = Boolean((local.unlockedCharacters && local.unlockedCharacters[key]) || (cloud.unlockedCharacters && cloud.unlockedCharacters[key]));
+    }
+    // Armi sbloccate (booleani)
+    merged.unlockedWeapons = {};
+    const weaponKeys = new Set([
+        ...Object.keys(local.unlockedWeapons || {}),
+        ...Object.keys(cloud.unlockedWeapons || {})
+    ]);
+    for (const key of weaponKeys) {
+        merged.unlockedWeapons[key] = Boolean((local.unlockedWeapons && local.unlockedWeapons[key]) || (cloud.unlockedWeapons && cloud.unlockedWeapons[key]));
+    }
+    // Core sbloccati (booleani)
+    merged.unlockedCores = {};
+    const coreKeys = new Set([
+        ...Object.keys(local.unlockedCores || {}),
+        ...Object.keys(cloud.unlockedCores || {})
+    ]);
+    for (const key of coreKeys) {
+        merged.unlockedCores[key] = Boolean((local.unlockedCores && local.unlockedCores[key]) || (cloud.unlockedCores && cloud.unlockedCores[key]));
+    }
+    // Altri campi generici (prendi dal cloud se esiste, altrimenti locale)
+    merged.username = cloud.username || local.username;
+    merged.id = cloud.id || local.id;
+    merged.createdAt = Math.min(local.createdAt || Date.now(), cloud.createdAt || Date.now());
+    merged.lastLogin = Math.max(local.lastLogin || 0, cloud.lastLogin || 0);
+    merged.isGuest = local.isGuest || cloud.isGuest || false;
+    merged.password = cloud.password || local.password || "";
+    // Puoi aggiungere altri campi qui se necessario
+    return merged;
+}
+
+// Funzione per forzare la sovrascrittura dei dati dell'utente attuale sul cloud
+async function forcePushCurrentUserToCloud() {
+    if (!window.currentPlayer) {
+        alert('Nessun utente loggato!');
+        return;
+    }
+    const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+    // Sovrascrivi l'utente corrente con i dati attuali
+    players[window.currentPlayer.username] = window.currentPlayer;
+    localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+    // Sincronizza forzatamente
+    if (typeof syncUserAccounts === 'function') {
+        const result = await syncUserAccounts();
+        if (result) {
+            alert('✅ Dati utente sovrascritti e sincronizzati sul cloud!');
+        } else {
+            alert('❌ Errore durante la sincronizzazione.');
+        }
+    }
+}
+
 // Inizializza quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', function() {
+    // PATCH: azzera tutti i localStorage all'avvio del gioco
+    localStorage.clear();
     initLogin();
     
     // Controlla se è il primo avvio o se il token è già configurato
@@ -435,12 +558,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     } else {
         // Primo avvio o token non configurato, mostra setup
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('tokenSetupScreen').style.display = 'block';
+        const loginScreen = document.getElementById('loginScreen');
+        if (loginScreen) loginScreen.style.display = 'none';
+        const tokenSetupScreen = document.getElementById('tokenSetupScreen');
+        if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
         
         // Pre-filla token se presente
         if (savedToken && savedToken !== 'ghp_your_token_here') {
-            document.getElementById('startupToken').value = savedToken;
+            const startupToken = document.getElementById('startupToken');
+            if (startupToken) startupToken.value = savedToken;
         }
     }
 });
@@ -544,6 +670,13 @@ async function syncUserAccounts() {
             return true;
         }
         
+        // PATCH: assicurati che ogni account abbia il campo password
+        for (const username in players) {
+            if (!players[username].password && window.currentPlayer && window.currentPlayer.username === username) {
+                players[username].password = window.currentPlayer.password || '';
+            }
+        }
+        
         console.log('🔄 Sincronizzazione account utenti...');
         
         // Rate limiting prima di upload
@@ -633,11 +766,17 @@ async function loadUserAccounts() {
                 const localPlayers = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
                 let accountsLoaded = 0;
                 
-                // Merge intelligente degli account
+                // Modifica il merge in loadUserAccounts per usare la nuova struttura
                 for (const [username, account] of Object.entries(accountsData.accounts)) {
-                    if (!localPlayers[username] || localPlayers[username].lastLogin < account.lastLogin) {
+                    if (!localPlayers[username]) {
                         localPlayers[username] = account;
                         accountsLoaded++;
+                    } else {
+                        // Merge ibrido
+                        const mergedAccount = mergeAccountState(localPlayers[username], account);
+                        localPlayers[username] = mergedAccount;
+                        accountsLoaded++;
+                        console.log(`🔀 Merge ibrido per utente ${username}:`, mergedAccount);
                     }
                 }
                 
@@ -702,24 +841,33 @@ function skipTokenSetup() {
 
 function showStartupStatus(message, type) {
     const statusElement = document.getElementById('tokenSetupStatus');
-    statusElement.textContent = message;
-    statusElement.className = `status-message ${type}`;
+    if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.className = `status-message ${type}`;
+    }
 }
 
 async function startSyncProcess() {
     // Mostra schermata sync
-    document.getElementById('tokenSetupScreen').style.display = 'none';
-    document.getElementById('syncScreen').style.display = 'block';
+    const tokenSetupScreen2 = document.getElementById('tokenSetupScreen');
+    if (tokenSetupScreen2) tokenSetupScreen2.style.display = 'none';
+    const syncScreen = document.getElementById('syncScreen');
+    if (syncScreen) syncScreen.style.display = 'block';
     
     const progressElement = document.getElementById('syncProgress');
     const statusElement = document.getElementById('syncStatus');
     const analyticsStatus = document.getElementById('analyticsStatus');
     const accountsStatus = document.getElementById('accountsStatus');
     
+    if (progressElement) progressElement.style.width = '0%';
+    if (statusElement) statusElement.textContent = 'Test connessione al cloud...';
+    if (analyticsStatus) analyticsStatus.textContent = '⏭️';
+    if (accountsStatus) accountsStatus.textContent = '⏭️';
+
     try {
         // Step 1: Test connessione (25%)
-        statusElement.textContent = 'Test connessione al cloud...';
-        progressElement.style.width = '25%';
+        if (statusElement) statusElement.textContent = 'Test connessione al cloud...';
+        if (progressElement) progressElement.style.width = '25%';
         
         if (window.analyticsManager) {
             const testResult = await window.analyticsManager.testCloudSync();
@@ -729,24 +877,24 @@ async function startSyncProcess() {
         }
         
         // Step 2: Carica analytics (50%)
-        statusElement.textContent = 'Caricamento analytics...';
-        progressElement.style.width = '50%';
-        analyticsStatus.textContent = '✅';
+        if (statusElement) statusElement.textContent = 'Caricamento analytics...';
+        if (progressElement) progressElement.style.width = '50%';
+        if (analyticsStatus) analyticsStatus.textContent = '✅';
         
         // Step 3: Carica account (75%)
-        statusElement.textContent = 'Caricamento account utenti...';
-        progressElement.style.width = '75%';
+        if (statusElement) statusElement.textContent = 'Caricamento account utenti...';
+        if (progressElement) progressElement.style.width = '75%';
         
         if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
             await loadUserAccounts();
-            accountsStatus.textContent = '✅';
+            if (accountsStatus) accountsStatus.textContent = '✅';
         } else {
-            accountsStatus.textContent = '⏭️';
+            if (accountsStatus) accountsStatus.textContent = '⏭️';
         }
         
         // Step 4: Completato (100%)
-        statusElement.textContent = 'Sincronizzazione completata!';
-        progressElement.style.width = '100%';
+        if (statusElement) statusElement.textContent = 'Sincronizzazione completata!';
+        if (progressElement) progressElement.style.width = '100%';
         
         setTimeout(() => {
             showLoginScreen();
@@ -754,9 +902,9 @@ async function startSyncProcess() {
         
     } catch (error) {
         console.error('Errore sync:', error);
-        statusElement.textContent = '❌ Errore sincronizzazione: ' + error.message;
-        analyticsStatus.textContent = '❌';
-        accountsStatus.textContent = '❌';
+        if (statusElement) statusElement.textContent = '❌ Errore sincronizzazione: ' + error.message;
+        if (analyticsStatus) analyticsStatus.textContent = '❌';
+        if (accountsStatus) accountsStatus.textContent = '❌';
         
         setTimeout(() => {
             showLoginScreen();
@@ -804,8 +952,10 @@ function resetTokenConfiguration() {
         
         // Torna alla schermata di setup
         setTimeout(() => {
-            document.getElementById('playerInfoScreen').style.display = 'none';
-            document.getElementById('tokenSetupScreen').style.display = 'block';
+            const playerInfoScreen = document.getElementById('playerInfoScreen');
+            if (playerInfoScreen) playerInfoScreen.style.display = 'none';
+            const tokenSetupScreen = document.getElementById('tokenSetupScreen');
+            if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
         }, 2000);
     }
 }
@@ -819,33 +969,38 @@ function showCloudSyncConfig() {
     // Pre-filla token se disponibile
     const savedToken = localStorage.getItem('ballSurvivalGithubToken');
     if (savedToken) {
-        tokenInput.value = savedToken;
+        if (tokenInput) tokenInput.value = savedToken;
     }
     
     // Aggiorna stato
     updateSyncStatus();
     
-    popup.style.display = 'block';
+    if (popup) popup.style.display = 'block';
 }
 
 function closeCloudSyncConfig() {
-    document.getElementById('cloudSyncPopup').style.display = 'none';
+    const popup = document.getElementById('cloudSyncPopup');
+    if (popup) popup.style.display = 'none';
 }
 
 function updateSyncStatus() {
     const statusDisplay = document.getElementById('syncStatusDisplay');
     
     if (window.analyticsManager && window.analyticsManager.config.enableCloudSync) {
-        statusDisplay.innerHTML = `
-            <p>✅ Cloud Sync Abilitato</p>
-            <p>Token: ${window.analyticsManager.config.githubToken.substring(0, 10)}...</p>
-            <p>Gist ID: ${window.analyticsManager.config.gistId || 'Non configurato'}</p>
-        `;
+        if (statusDisplay) {
+            statusDisplay.innerHTML = `
+                <p>✅ Cloud Sync Abilitato</p>
+                <p>Token: ${window.analyticsManager.config.githubToken.substring(0, 10)}...</p>
+                <p>Gist ID: ${window.analyticsManager.config.gistId || 'Non configurato'}</p>
+            `;
+        }
     } else {
-        statusDisplay.innerHTML = `
-            <p>❌ Cloud Sync Disabilitato</p>
-            <p>Configura un token GitHub per abilitare la sincronizzazione</p>
-        `;
+        if (statusDisplay) {
+            statusDisplay.innerHTML = `
+                <p>❌ Cloud Sync Disabilitato</p>
+                <p>Configura un token GitHub per abilitare la sincronizzazione</p>
+            `;
+        }
     }
 }
 
@@ -917,18 +1072,21 @@ function resetCloudSync() {
         updateSyncStatus();
         
         // Pulisci input
-        document.getElementById('cloudSyncToken').value = '';
+        const tokenInput = document.getElementById('cloudSyncToken');
+        if (tokenInput) tokenInput.value = '';
     }
 }
 
 function showCloudSyncMessage(message, type) {
     const messageElement = document.getElementById('cloudSyncMessage');
-    messageElement.textContent = message;
-    messageElement.style.display = 'block';
-    messageElement.className = `status-message ${type}`;
+    if (messageElement) {
+        messageElement.textContent = message;
+        messageElement.style.display = 'block';
+        messageElement.className = `status-message ${type}`;
+    }
     
     setTimeout(() => {
-        messageElement.style.display = 'none';
+        if (messageElement) messageElement.style.display = 'none';
     }, 5000);
 }
 
@@ -948,6 +1106,7 @@ window.testAccountSync = testAccountSync;
 window.testCloudSync = testCloudSync;
 window.resetCloudSync = resetCloudSync;
 window.closeCloudSyncConfig = closeCloudSyncConfig;
+window.forcePushCurrentUserToCloud = forcePushCurrentUserToCloud; // Aggiunto per la funzione di forza push
 
 // Inizializzazione al caricamento della pagina
 document.addEventListener('DOMContentLoaded', function() {
@@ -967,12 +1126,20 @@ document.addEventListener('DOMContentLoaded', function() {
             window.analyticsManager.config.githubToken = savedToken;
             window.analyticsManager.config.enableCloudSync = true;
         }
-        
         // Avvia processo di sync
         startSyncProcess();
     } else {
         // Mostra schermata di configurazione token
-        document.getElementById('tokenSetupScreen').style.display = 'block';
-        document.getElementById('startScreen').style.display = 'none';
+        const tokenSetupScreen = document.getElementById('tokenSetupScreen');
+        if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
+        const startScreen = document.getElementById('startScreen');
+        if (startScreen) startScreen.style.display = 'none';
     }
-}); 
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+    const syncBtn = document.querySelector('button[onclick*="syncUserAccounts()"]');
+    if (syncBtn) {
+        syncBtn.setAttribute('onclick', 'forcePushCurrentUserToCloud()');
+    }
+});

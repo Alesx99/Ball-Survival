@@ -193,7 +193,6 @@ const CONFIG = {
     stages: {
         '1': { 
             name: "Pianura Eterna", 
-            time: 0, 
             unlocked: true, // Sempre sbloccato
             unlockRequirement: null,
             background: { 
@@ -215,9 +214,8 @@ const CONFIG = {
         },
         '2': { 
             name: "Foresta Oscura", 
-            time: 300, 
             unlocked: false,
-            unlockRequirement: { type: 'survival', stage: 1, time: 300 }, // 5 minuti in stage 1
+            unlockRequirement: { type: 'craft_core', coreId: 'magnetic' }, // Crea il Core Magnetico
             background: { 
                 color: '#1a472a', 
                 gridColor: 'rgba(34, 139, 34, 0.1)',
@@ -237,9 +235,8 @@ const CONFIG = {
         },
         '3': { 
             name: "Deserto Infuocato", 
-            time: 600, 
             unlocked: false,
-            unlockRequirement: { type: 'boss_kill', stage: 2, count: 1 }, // 1 boss in stage 2
+            unlockRequirement: { type: 'craft_weapon', weaponId: 'iron_spikes' }, // Crea le Spine di Ferro
             background: { 
                 color: '#8b4513', 
                 gridColor: 'rgba(255, 165, 0, 0.1)',
@@ -259,9 +256,8 @@ const CONFIG = {
         },
         '4': { 
             name: "Ghiacciaio Perduto", 
-            time: 900, 
             unlocked: false,
-            unlockRequirement: { type: 'level', stage: 3, level: 10 }, // Livello 10 in stage 3
+            unlockRequirement: { type: 'kill_elites', stage: 3, count: 5 }, // Uccidi 5 elite nel Deserto
             background: { 
                 color: '#4682b4', 
                 gridColor: 'rgba(173, 216, 230, 0.15)',
@@ -281,9 +277,8 @@ const CONFIG = {
         },
         '5': { 
             name: "Abisso Cosmico", 
-            time: 1200, 
             unlocked: false,
-            unlockRequirement: { type: 'total_time', time: 900 }, // 15 minuti totali
+            unlockRequirement: { type: 'arsenal_size', cores: 2, weapons: 2 }, // Possiedi almeno 2 core e 2 armi
             background: { 
                 color: '#2c1810', 
                 gridColor: 'rgba(138, 43, 226, 0.2)',
@@ -312,63 +307,248 @@ const CONFIG = {
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
     xpOrbs: { mapSpawn: { interval: 4, batch: 15, max: 300, value: 5 }, pickupRadius: 100 },
     
-    // Sistema di Materiali
+    // Sistema di Materiali Riprogettato - Stage-Specific
     materials: {
         // Materiali per Core (rivestimenti della sfera)
         coreMaterials: {
-            'iron_fragment': { id: 'iron_fragment', name: 'Frammento di Ferro', rarity: 'common', color: '#8B7355', dropChance: 0.0525, enemyTypes: ['all'] }, // 0.05 + 5%
-            'steel_fragment': { id: 'steel_fragment', name: 'Frammento di Acciaio', rarity: 'uncommon', color: '#708090', dropChance: 0.02625, enemyTypes: ['elite', 'boss'] }, // 0.025 + 5%
-            'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'rare', color: '#87CEEB', dropChance: 0.0189, enemyTypes: ['elite', 'boss'] }, // 0.018 + 5%
-            'magma_fragment': { id: 'magma_fragment', name: 'Frammento di Magma', rarity: 'epic', color: '#FF4500', dropChance: 0.0126, enemyTypes: ['boss', 'elite'] }, // 0.012 + 5%
-            'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'legendary', color: '#8A2BE2', dropChance: 0.0063, enemyTypes: ['boss'] } // 0.006 + 5%
+            // STAGE 1: Pianura Eterna - Materiali base della terra
+            'iron_fragment': { 
+                id: 'iron_fragment', 
+                name: 'Frammento di Ferro', 
+                rarity: 'common', 
+                color: '#8B7355', 
+                dropChance: 0.15, 
+                enemyTypes: ['slime'], // Solo slime dello stage 1
+                stage: 1,
+                description: "Metallo grezzo estratto dalle viscere della terra"
+            },
+            'steel_fragment': { 
+                id: 'steel_fragment', 
+                name: 'Frammento di Acciaio', 
+                rarity: 'uncommon', 
+                color: '#708090', 
+                dropChance: 0.08, 
+                enemyTypes: ['slime_elite'], // Elite slime
+                stage: 1,
+                description: "Acciaio temprato dalle fucine degli antichi"
+            },
+            
+            // STAGE 2: Foresta Oscura - Materiali organici e velenosi
+            'wood_fragment': { 
+                id: 'wood_fragment', 
+                name: 'Frammento di Legno Corrotto', 
+                rarity: 'common', 
+                color: '#2d5016', 
+                dropChance: 0.12, 
+                enemyTypes: ['goblin'], // Goblin dello stage 2
+                stage: 2,
+                description: "Legno corrotto dalla magia oscura della foresta"
+            },
+            'poison_fragment': { 
+                id: 'poison_fragment', 
+                name: 'Frammento di Veleno', 
+                rarity: 'uncommon', 
+                color: '#32cd32', 
+                dropChance: 0.06, 
+                enemyTypes: ['goblin_elite'], // Elite goblin
+                stage: 2,
+                description: "Veleno distillato dalle piante carnivore"
+            },
+            
+            // STAGE 3: Deserto Infuocato - Materiali infuocati
+            'sand_fragment': { 
+                id: 'sand_fragment', 
+                name: 'Frammento di Sabbia Ardente', 
+                rarity: 'common', 
+                color: '#daa520', 
+                dropChance: 0.14, 
+                enemyTypes: ['golem'], // Golem dello stage 3
+                stage: 3,
+                description: "Sabbia infuocata dal sole del deserto"
+            },
+            'fire_fragment': { 
+                id: 'fire_fragment', 
+                name: 'Frammento di Fuoco', 
+                rarity: 'uncommon', 
+                color: '#ff4500', 
+                dropChance: 0.07, 
+                enemyTypes: ['golem_elite'], // Elite golem
+                stage: 3,
+                description: "Fuoco eterno racchiuso in cristalli di quarzo"
+            },
+            
+            // STAGE 4: Ghiacciaio Perduto - Materiali glaciali
+            'ice_fragment': { 
+                id: 'ice_fragment', 
+                name: 'Frammento di Ghiaccio Eterno', 
+                rarity: 'common', 
+                color: '#87ceeb', 
+                dropChance: 0.13, 
+                enemyTypes: ['ice_spirit'], // Spiriti di ghiaccio
+                stage: 4,
+                description: "Ghiaccio che non si scioglie mai"
+            },
+            'frost_fragment': { 
+                id: 'frost_fragment', 
+                name: 'Frammento di Brina', 
+                rarity: 'uncommon', 
+                color: '#00ffff', 
+                dropChance: 0.065, 
+                enemyTypes: ['ice_spirit_elite'], // Elite spiriti
+                stage: 4,
+                description: "Brina che congela il tempo stesso"
+            },
+            
+            // STAGE 5: Abisso Cosmico - Materiali cosmici
+            'void_fragment': { 
+                id: 'void_fragment', 
+                name: 'Frammento del Vuoto', 
+                rarity: 'rare', 
+                color: '#8A2BE2', 
+                dropChance: 0.04, 
+                enemyTypes: ['cosmic_demon'], // Demoni cosmici
+                stage: 5,
+                description: "Essenza pura del vuoto interstellare"
+            },
+            'star_fragment': { 
+                id: 'star_fragment', 
+                name: 'Frammento di Stella', 
+                rarity: 'epic', 
+                color: '#ffd700', 
+                dropChance: 0.02, 
+                enemyTypes: ['cosmic_demon_elite'], // Elite demoni
+                stage: 5,
+                description: "Polvere di stelle cadute"
+            }
         },
-        // Materiali per Armi (esterne)
+        
+        // Materiali per Armi (esterne) - Stage-specific
         weaponMaterials: {
-            'wood_fragment': { id: 'wood_fragment', name: 'Frammento di Legno', rarity: 'common', color: '#8B4513', dropChance: 0.042, enemyTypes: ['all'] }, // 0.04 + 5%
-            'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.0315, enemyTypes: ['all'] }, // 0.03 + 5%
-            'metal_fragment': { id: 'metal_fragment', name: 'Frammento di Metallo', rarity: 'uncommon', color: '#C0C0C0', dropChance: 0.02625, enemyTypes: ['elite', 'boss'] }, // 0.025 + 5%
-            'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'rare', color: '#00FFFF', dropChance: 0.01575, enemyTypes: ['elite', 'boss'] }, // 0.015 + 5%
-            'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'epic', color: '#FF1493', dropChance: 0.00945, enemyTypes: ['boss'] } // 0.009 + 5%
+            // STAGE 1: Materiali metallici
+            'stone_fragment': { 
+                id: 'stone_fragment', 
+                name: 'Frammento di Pietra', 
+                rarity: 'common', 
+                color: '#696969', 
+                dropChance: 0.16, 
+                enemyTypes: ['slime'], 
+                stage: 1,
+                description: "Pietra solida della pianura"
+            },
+            'metal_fragment': { 
+                id: 'metal_fragment', 
+                name: 'Frammento di Metallo', 
+                rarity: 'uncommon', 
+                color: '#C0C0C0', 
+                dropChance: 0.08, 
+                enemyTypes: ['slime_elite'], 
+                stage: 1,
+                description: "Metallo raffinato dalle miniere"
+            },
+            
+            // STAGE 2: Materiali organici
+            'vine_fragment': { 
+                id: 'vine_fragment', 
+                name: 'Frammento di Vite', 
+                rarity: 'common', 
+                color: '#228b22', 
+                dropChance: 0.15, 
+                enemyTypes: ['goblin'], 
+                stage: 2,
+                description: "Viti animate della foresta oscura"
+            },
+            'shadow_fragment': { 
+                id: 'shadow_fragment', 
+                name: 'Frammento d\'Ombra', 
+                rarity: 'uncommon', 
+                color: '#2f2f2f', 
+                dropChance: 0.07, 
+                enemyTypes: ['goblin_elite'], 
+                stage: 2,
+                description: "Ombra solidificata dalla magia oscura"
+            },
+            
+            // STAGE 3: Materiali infuocati
+            'obsidian_fragment': { 
+                id: 'obsidian_fragment', 
+                name: 'Frammento di Ossidiana', 
+                rarity: 'common', 
+                color: '#1a1a1a', 
+                dropChance: 0.14, 
+                enemyTypes: ['golem'], 
+                stage: 3,
+                description: "Ossidiana forgiata dal calore del deserto"
+            },
+            'magma_fragment': { 
+                id: 'magma_fragment', 
+                name: 'Frammento di Magma', 
+                rarity: 'uncommon', 
+                color: '#ff4500', 
+                dropChance: 0.06, 
+                enemyTypes: ['golem_elite'], 
+                stage: 3,
+                description: "Magma liquido racchiuso in cristalli"
+            },
+            
+            // STAGE 4: Materiali glaciali
+            'crystal_fragment': { 
+                id: 'crystal_fragment', 
+                name: 'Frammento di Cristallo', 
+                rarity: 'common', 
+                color: '#87CEEB', 
+                dropChance: 0.13, 
+                enemyTypes: ['ice_spirit'], 
+                stage: 4,
+                description: "Cristalli di ghiaccio purissimo"
+            },
+            'energy_fragment': { 
+                id: 'energy_fragment', 
+                name: 'Frammento di Energia', 
+                rarity: 'uncommon', 
+                color: '#00FFFF', 
+                dropChance: 0.065, 
+                enemyTypes: ['ice_spirit_elite'], 
+                stage: 4,
+                description: "Energia pura congelata nel tempo"
+            },
+            
+            // STAGE 5: Materiali cosmici
+            'cosmic_fragment': { 
+                id: 'cosmic_fragment', 
+                name: 'Frammento Cosmico', 
+                rarity: 'rare', 
+                color: '#FF1493', 
+                dropChance: 0.03, 
+                enemyTypes: ['cosmic_demon'], 
+                stage: 5,
+                description: "Essenza cosmica dell'universo"
+            },
+            'nebula_fragment': { 
+                id: 'nebula_fragment', 
+                name: 'Frammento di Nebulosa', 
+                rarity: 'epic', 
+                color: '#9370db', 
+                dropChance: 0.015, 
+                enemyTypes: ['cosmic_demon_elite'], 
+                stage: 5,
+                description: "Polvere di nebulose lontane"
+            }
         }
     },
     
-    // Core disponibili (rivestimenti della sfera) - MAX 1 per tipo
+    // Core disponibili (rivestimenti della sfera) - Stage-Specific
     cores: {
+        // STAGE 1: Core metallici
         'magnetic': { 
             id: 'magnetic', 
             name: 'Core Magnetico', 
             desc: 'Anelli magnetici rotanti che attirano gemme e XP da +25% distanza. Effetto visivo: anelli blu rotanti',
             materials: { 'iron_fragment': 3, 'steel_fragment': 1 },
             effect: { type: 'magnet', range: 1.25 },
-            maxLevel: 1, // Solo 1 livello
-            upgradeCost: null // Non potenziabile
-        },
-        'reflection': { 
-            id: 'reflection', 
-            name: 'Core Riflettente', 
-            desc: 'Scudo dorato che riflette il 30% dei proiettili nemici. Effetto visivo: scudo con scintille bianche',
-            materials: { 'steel_fragment': 2, 'crystal_fragment': 1 },
-            effect: { type: 'reflect', chance: 0.3 },
             maxLevel: 1,
-            upgradeCost: null
-        },
-        'bounce': { 
-            id: 'bounce', 
-            name: 'Core Rimbalzante', 
-            desc: 'Spine arancioni che rimbalzano sui nemici infliggendo +8 danno. Effetto visivo: spine rotanti',
-            materials: { 'iron_fragment': 2, 'wood_fragment': 2 },
-            effect: { type: 'bounce', damage: 8 },
-            maxLevel: 1,
-            upgradeCost: null
-        },
-        'speed': { 
-            id: 'speed', 
-            name: 'Core di Velocità', 
-            desc: 'Scie ciano che aumentano la velocità di +8%. Effetto visivo: scie multiple rotanti',
-            materials: { 'crystal_fragment': 1, 'energy_fragment': 1 },
-            effect: { type: 'speed', bonus: 0.08 },
-            maxLevel: 1,
-            upgradeCost: null
+            upgradeCost: null,
+            stage: 1,
+            theme: 'metallico'
         },
         'resistance': { 
             id: 'resistance', 
@@ -377,17 +557,84 @@ const CONFIG = {
             materials: { 'steel_fragment': 3, 'stone_fragment': 2 },
             effect: { type: 'resistance', dr: 0.05 },
             maxLevel: 1,
-            upgradeCost: null
+            upgradeCost: null,
+            stage: 1,
+            theme: 'metallico'
         },
-        'amplification': { 
-            id: 'amplification', 
-            name: 'Core di Amplificazione', 
-            desc: 'Aura rossa che potenzia il danno da contatto del 25%. Effetto visivo: aura con particelle',
-            materials: { 'magma_fragment': 1, 'energy_fragment': 2 },
-            effect: { type: 'amplify', multiplier: 1.25 },
+        
+        // STAGE 2: Core organici
+        'poison': { 
+            id: 'poison', 
+            name: 'Core Velenoso', 
+            desc: 'Aura verde che avvelena i nemici al contatto infliggendo 3 DPS per 5s. Effetto visivo: vapori velenosi',
+            materials: { 'wood_fragment': 2, 'poison_fragment': 2 },
+            effect: { type: 'poison', damage: 3, duration: 5000 },
             maxLevel: 1,
-            upgradeCost: null
+            upgradeCost: null,
+            stage: 2,
+            theme: 'organico'
         },
+        'shadow': { 
+            id: 'shadow', 
+            name: 'Core d\'Ombra', 
+            desc: 'Ombra che aumenta la velocità di movimento del 12% e riduce la visibilità ai nemici. Effetto visivo: aura scura',
+            materials: { 'vine_fragment': 2, 'shadow_fragment': 1 },
+            effect: { type: 'shadow', speed: 0.12, stealth: 0.3 },
+            maxLevel: 1,
+            upgradeCost: null,
+            stage: 2,
+            theme: 'organico'
+        },
+        
+        // STAGE 3: Core infuocati
+        'fire': { 
+            id: 'fire', 
+            name: 'Core Infuocato', 
+            desc: 'Aura di fuoco che brucia i nemici al contatto infliggendo 5 DPS. Effetto visivo: fiamme danzanti',
+            materials: { 'sand_fragment': 3, 'fire_fragment': 1 },
+            effect: { type: 'fire', damage: 5 },
+            maxLevel: 1,
+            upgradeCost: null,
+            stage: 3,
+            theme: 'infuocato'
+        },
+        'volcanic': { 
+            id: 'volcanic', 
+            name: 'Core Vulcanico', 
+            desc: 'Eruzioni periodiche che respingono i nemici e infliggono 8 danno. Cooldown: 4s. Effetto visivo: lava pulsante',
+            materials: { 'obsidian_fragment': 2, 'magma_fragment': 2 },
+            effect: { type: 'volcanic', damage: 8, knockback: 25, cooldown: 4000 },
+            maxLevel: 1,
+            upgradeCost: null,
+            stage: 3,
+            theme: 'infuocato'
+        },
+        
+        // STAGE 4: Core glaciali
+        'frost': { 
+            id: 'frost', 
+            name: 'Core Glaciale', 
+            desc: 'Aura di ghiaccio che rallenta i nemici del 20% e infligge 4 DPS. Effetto visivo: cristalli di ghiaccio',
+            materials: { 'ice_fragment': 3, 'frost_fragment': 1 },
+            effect: { type: 'frost', slow: 0.2, damage: 4 },
+            maxLevel: 1,
+            upgradeCost: null,
+            stage: 4,
+            theme: 'glaciale'
+        },
+        'crystal': { 
+            id: 'crystal', 
+            name: 'Core di Cristallo', 
+            desc: 'Barriera di cristallo che riflette il 40% dei proiettili e li potenzia del 50%. Effetto visivo: cristalli riflettenti',
+            materials: { 'crystal_fragment': 2, 'energy_fragment': 2 },
+            effect: { type: 'crystal', reflect: 0.4, amplify: 1.5 },
+            maxLevel: 1,
+            upgradeCost: null,
+            stage: 4,
+            theme: 'glaciale'
+        },
+        
+        // STAGE 5: Core cosmici
         'void': { 
             id: 'void', 
             name: 'Core del Vuoto', 
@@ -395,65 +642,143 @@ const CONFIG = {
             materials: { 'void_fragment': 1, 'cosmic_fragment': 1 },
             effect: { type: 'void_teleport', threshold: 0.3, cooldown: 10000 },
             maxLevel: 1,
-            upgradeCost: null
+            upgradeCost: null,
+            stage: 5,
+            theme: 'cosmico'
+        },
+        'stellar': { 
+            id: 'stellar', 
+            name: 'Core Stellare', 
+            desc: 'Aura stellare che aumenta tutti i danni del 15% e rigenera 1 HP ogni 3 secondi. Effetto visivo: stelle pulsanti',
+            materials: { 'star_fragment': 1, 'nebula_fragment': 1 },
+            effect: { type: 'stellar', damage: 0.15, regen: 1, interval: 3000 },
+            maxLevel: 1,
+            upgradeCost: null,
+            stage: 5,
+            theme: 'cosmico'
         }
     },
     
-    // Armi esterne - MAX 3 livelli per tipo
+    // Armi esterne - Stage-Specific
     weapons: {
-        'spike_ring': { 
-            id: 'spike_ring', 
-            name: 'Anello di Spine', 
-            desc: '3 spine marroni che danneggiano i nemici per +8 danno al contatto. Raggio: 25px. Effetto visivo: spine triangolari',
-            materials: { 'wood_fragment': 3, 'stone_fragment': 2 },
-            effect: { type: 'spikes', damage: 8, radius: 25, count: 3 },
+        // STAGE 1: Armi metalliche
+        'iron_spikes': { 
+            id: 'iron_spikes', 
+            name: 'Spine di Ferro', 
+            desc: '4 spine metalliche che danneggiano i nemici per +10 danno al contatto. Raggio: 30px. Effetto visivo: spine argentate',
+            materials: { 'iron_fragment': 3, 'stone_fragment': 2 },
+            effect: { type: 'spikes', damage: 10, radius: 30, count: 4 },
             maxLevel: 3,
-            upgradeCost: { 'wood_fragment': 2, 'stone_fragment': 1 } // Costo per potenziamento
+            upgradeCost: { 'iron_fragment': 2, 'stone_fragment': 1 },
+            stage: 1,
+            theme: 'metallico'
         },
-        'energy_field': { 
-            id: 'energy_field', 
-            name: 'Campo Energetico', 
-            desc: 'Campo ciano che rallenta nemici del 15% e infligge 4 DPS. Raggio: 40px. Effetto visivo: onde energetiche',
-            materials: { 'energy_fragment': 2, 'crystal_fragment': 1 },
-            effect: { type: 'field', damage: 4, slow: 0.15, radius: 40 },
+        'steel_barrier': { 
+            id: 'steel_barrier', 
+            name: 'Barriera d\'Acciaio', 
+            desc: 'Barriera metallica che blocca il 50% dei proiettili e infligge 6 danno al contatto. Effetto visivo: scudo metallico',
+            materials: { 'steel_fragment': 2, 'metal_fragment': 2 },
+            effect: { type: 'barrier', blockChance: 0.5, damage: 6 },
             maxLevel: 3,
-            upgradeCost: { 'energy_fragment': 1, 'crystal_fragment': 1 }
+            upgradeCost: { 'steel_fragment': 1, 'metal_fragment': 1 },
+            stage: 1,
+            theme: 'metallico'
         },
-        'orbital_shield': { 
-            id: 'orbital_shield', 
-            name: 'Scudo Orbitale', 
-            desc: '1 scudo bianco che orbita intorno alla palla infliggendo +8 danno. Effetto visivo: scudo orbitante',
-            materials: { 'metal_fragment': 2, 'steel_fragment': 1 },
-            effect: { type: 'orbital', count: 1, damage: 8 },
+        
+        // STAGE 2: Armi organiche
+        'poison_vines': { 
+            id: 'poison_vines', 
+            name: 'Viti Velenose', 
+            desc: 'Viti animate che avvelenano i nemici infliggendo 3 DPS per 4s. Raggio: 35px. Effetto visivo: viti verdi',
+            materials: { 'vine_fragment': 3, 'poison_fragment': 1 },
+            effect: { type: 'poison_vines', damage: 3, duration: 4000, radius: 35 },
             maxLevel: 3,
-            upgradeCost: { 'metal_fragment': 1, 'steel_fragment': 1 }
+            upgradeCost: { 'vine_fragment': 2, 'poison_fragment': 1 },
+            stage: 2,
+            theme: 'organico'
         },
-        'pulse_wave': { 
-            id: 'pulse_wave', 
-            name: 'Onda Pulsante', 
-            desc: 'Onde rosa che respingono i nemici infliggendo +15 danno. Cooldown: 3s. Effetto visivo: onde multiple',
-            materials: { 'cosmic_fragment': 1, 'energy_fragment': 1 },
-            effect: { type: 'pulse', damage: 15, knockback: 30, cooldown: 3000 },
+        'shadow_cloak': { 
+            id: 'shadow_cloak', 
+            name: 'Mantello d\'Ombra', 
+            desc: 'Mantello che riduce la visibilità ai nemici del 40% e aumenta la velocità del 8%. Effetto visivo: aura scura',
+            materials: { 'shadow_fragment': 2, 'wood_fragment': 2 },
+            effect: { type: 'shadow_cloak', stealth: 0.4, speed: 0.08 },
             maxLevel: 3,
-            upgradeCost: { 'cosmic_fragment': 1, 'energy_fragment': 1 }
+            upgradeCost: { 'shadow_fragment': 1, 'wood_fragment': 1 },
+            stage: 2,
+            theme: 'organico'
         },
+        
+        // STAGE 3: Armi infuocate
+        'fire_ring': { 
+            id: 'fire_ring', 
+            name: 'Anello di Fuoco', 
+            desc: 'Anello di fiamme che brucia i nemici infliggendo 6 DPS. Raggio: 40px. Effetto visivo: fiamme danzanti',
+            materials: { 'fire_fragment': 2, 'sand_fragment': 2 },
+            effect: { type: 'fire_ring', damage: 6, radius: 40 },
+            maxLevel: 3,
+            upgradeCost: { 'fire_fragment': 1, 'sand_fragment': 1 },
+            stage: 3,
+            theme: 'infuocato'
+        },
+        'obsidian_blade': { 
+            id: 'obsidian_blade', 
+            name: 'Lama di Ossidiana', 
+            desc: '2 lame di ossidiana che tagliano i nemici per +15 danno e li bruciano per 3s. Effetto visivo: lame nere fumanti',
+            materials: { 'obsidian_fragment': 3, 'magma_fragment': 1 },
+            effect: { type: 'obsidian_blade', damage: 15, burn: 3, count: 2 },
+            maxLevel: 3,
+            upgradeCost: { 'obsidian_fragment': 2, 'magma_fragment': 1 },
+            stage: 3,
+            theme: 'infuocato'
+        },
+        
+        // STAGE 4: Armi glaciali
+        'ice_shards': { 
+            id: 'ice_shards', 
+            name: 'Schegge di Ghiaccio', 
+            desc: '5 schegge di ghiaccio che rallentano i nemici del 25% e infliggono 8 danno. Effetto visivo: cristalli di ghiaccio',
+            materials: { 'ice_fragment': 3, 'crystal_fragment': 2 },
+            effect: { type: 'ice_shards', damage: 8, slow: 0.25, count: 5 },
+            maxLevel: 3,
+            upgradeCost: { 'ice_fragment': 2, 'crystal_fragment': 1 },
+            stage: 4,
+            theme: 'glaciale'
+        },
+        'frost_field': { 
+            id: 'frost_field', 
+            name: 'Campo di Brina', 
+            desc: 'Campo di brina che rallenta i nemici del 30% e infligge 5 DPS. Raggio: 45px. Effetto visivo: brina pulsante',
+            materials: { 'frost_fragment': 2, 'energy_fragment': 2 },
+            effect: { type: 'frost_field', damage: 5, slow: 0.3, radius: 45 },
+            maxLevel: 3,
+            upgradeCost: { 'frost_fragment': 1, 'energy_fragment': 1 },
+            stage: 4,
+            theme: 'glaciale'
+        },
+        
+        // STAGE 5: Armi cosmiche
         'void_blade': { 
             id: 'void_blade', 
             name: 'Lama del Vuoto', 
-            desc: '3 lame viola che tagliano i nemici per +12 danno e li rallentano del 20% per 3s. Effetto visivo: lame rotanti',
-            materials: { 'void_fragment': 1, 'metal_fragment': 2 },
-            effect: { type: 'void_blade', damage: 12, slow: 0.2, duration: 3000, count: 3 },
+            desc: '3 lame del vuoto che tagliano i nemici per +18 danno e li rallentano del 25% per 4s. Effetto visivo: lame viola',
+            materials: { 'void_fragment': 2, 'cosmic_fragment': 1 },
+            effect: { type: 'void_blade', damage: 18, slow: 0.25, duration: 4000, count: 3 },
             maxLevel: 3,
-            upgradeCost: { 'void_fragment': 1, 'metal_fragment': 1 }
+            upgradeCost: { 'void_fragment': 1, 'cosmic_fragment': 1 },
+            stage: 5,
+            theme: 'cosmico'
         },
-        'crystal_barrier': { 
-            id: 'crystal_barrier', 
-            name: 'Barriera di Cristallo', 
-            desc: 'Barriera azzurra che blocca il 60% dei proiettili e riflette +10 danno. Effetto visivo: cristalli riflettenti',
-            materials: { 'crystal_fragment': 2, 'stone_fragment': 3 },
-            effect: { type: 'crystal_barrier', blockChance: 0.6, reflectDamage: 10 },
+        'stellar_pulse': { 
+            id: 'stellar_pulse', 
+            name: 'Impulso Stellare', 
+            desc: 'Impulso cosmico che respinge i nemici infliggendo +20 danno. Cooldown: 4s. Effetto visivo: esplosione stellare',
+            materials: { 'star_fragment': 1, 'nebula_fragment': 1 },
+            effect: { type: 'stellar_pulse', damage: 20, knockback: 40, cooldown: 4000 },
             maxLevel: 3,
-            upgradeCost: { 'crystal_fragment': 1, 'stone_fragment': 2 }
+            upgradeCost: { 'star_fragment': 1, 'nebula_fragment': 1 },
+            stage: 5,
+            theme: 'cosmico'
         }
     },
     
@@ -2727,6 +3052,8 @@ class Enemy extends Entity {
         super(x, y); this.stats = stats; this.hp = this.stats.hp; this.slowTimer = 0;
         this.stunTimer = 0; this.color = `hsl(${Math.random() * 60}, 70%, 50%)`;
         this.spawnImmunityTimer = CONFIG.enemies.spawnImmunity; this.isDead = false;
+        this.isElite = stats.isElite || false; // Copia la proprietà isElite dagli stats
+        this.isBoss = false; // I nemici normali non sono boss
     }
     update(game) {
         if (this.spawnImmunityTimer > 0) { this.spawnImmunityTimer--; }
@@ -2781,6 +3108,7 @@ class Enemy extends Entity {
             // Elite kill
             if (this.stats.isElite) {
                 game.achievementSystem.updateProgress('elite_kill_count', 1, game);
+                game.elitesKilledThisStage++; // Tracking per sblocco stage
             }
             
             // Boss kill
@@ -2805,59 +3133,111 @@ class Enemy extends Entity {
     }
     
     dropMaterials(game) {
-        const enemyType = this.isElite ? 'elite' : (this.isBoss ? 'boss' : 'normal');
+        // Determina il tipo di nemico basato sullo stage selezionato e se è elite
+        const selectedStage = game.currentStage || '1';
+        let enemyType = 'normal';
         
-        // Ottieni i bonus dello stage corrente
-        const stageInfo = CONFIG.stages[game.currentStage];
+        // Mappa stage -> tipo nemico
+        const stageEnemyMap = {
+            '1': { normal: 'slime', elite: 'slime_elite' },
+            '2': { normal: 'goblin', elite: 'goblin_elite' },
+            '3': { normal: 'golem', elite: 'golem_elite' },
+            '4': { normal: 'ice_spirit', elite: 'ice_spirit_elite' },
+            '5': { normal: 'cosmic_demon', elite: 'cosmic_demon_elite' }
+        };
+        
+        if (stageEnemyMap[selectedStage]) {
+            enemyType = this.isElite ? stageEnemyMap[selectedStage].elite : stageEnemyMap[selectedStage].normal;
+        }
+        
+        // Ottieni i bonus dello stage selezionato
+        const stageInfo = CONFIG.stages[selectedStage];
         const dropBonus = stageInfo && stageInfo.effects ? stageInfo.effects.dropBonus : 1.0;
         
-        // Bonus speciale per elite e boss (garantisce drop rari)
-        const eliteBonus = this.isElite ? 1.5 : (this.isBoss ? 2.0 : 1.0);
+        // Bonus speciale per elite e boss
+        const eliteBonus = (this.isElite ? 1.5 : 1.0) * (this.isBoss ? 2.0 : 1.0);
         
-        // Tempo di gioco in secondi
-        const gameTime = game.gameTime || 0;
-        // Soglie di sblocco (in secondi)
-        const rareUnlockTime = 60; // 1 minuto
-        const epicUnlockTime = 180; // 3 minuti
-        const legendaryUnlockTime = 300; // 5 minuti
-        
-        // Drop di materiali per core
+        // Drop di materiali per core - Solo materiali dello stage selezionato
         for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
-            let canDrop = material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType);
-            // Permetti drop rari da nemici normali dopo tempo specifico
-            if (enemyType === 'normal') {
-                if (material.rarity === 'rare' && gameTime >= rareUnlockTime) canDrop = true;
-                if (material.rarity === 'epic' && gameTime >= epicUnlockTime) canDrop = true;
-                if (material.rarity === 'legendary' && gameTime >= legendaryUnlockTime) canDrop = true;
-            }
-            if (canDrop) {
-                let dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
-                // Riduci drasticamente le chance per materiali rari da nemici normali
-                if (enemyType === 'normal' && material.rarity !== 'common') {
-                    dropChance *= 0.1; // 90% riduzione per rari da nemici normali
+            // Controlla se il materiale appartiene allo stage selezionato
+            if (material.stage && material.stage.toString() === selectedStage.toString()) {
+                // Controlla se il nemico può droppare questo materiale
+                let canDrop = material.enemyTypes.includes(enemyType);
+                
+                // Boss possono droppare materiali di tutti gli stage precedenti
+                if (this.isBoss && material.stage <= parseInt(selectedStage)) {
+                    canDrop = true;
                 }
-                if (Math.random() < dropChance) {
-                    game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                
+                if (canDrop) {
+                    let dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
+                    
+                    // Bonus speciale per materiali dello stage selezionato
+                    if (material.stage.toString() === selectedStage.toString()) {
+                        dropChance *= 1.5; // +50% per materiali dello stage selezionato
+                    }
+                    
+                    if (Math.random() < dropChance) {
+                        game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                    }
                 }
             }
         }
         
-        // Drop di materiali per armi
+        // Drop di materiali per armi - Solo materiali dello stage selezionato
         for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
-            let canDrop = material.enemyTypes.includes('all') || material.enemyTypes.includes(enemyType);
-            // Permetti drop rari da nemici normali dopo tempo specifico
-            if (enemyType === 'normal') {
-                if (material.rarity === 'rare' && gameTime >= rareUnlockTime) canDrop = true;
-                if (material.rarity === 'epic' && gameTime >= epicUnlockTime) canDrop = true;
-            }
-            if (canDrop) {
-                let dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
-                // Riduci drasticamente le chance per materiali rari da nemici normali
-                if (enemyType === 'normal' && material.rarity !== 'common') {
-                    dropChance *= 0.1; // 90% riduzione per rari da nemici normali
+            // Controlla se il materiale appartiene allo stage selezionato
+            if (material.stage && material.stage.toString() === selectedStage.toString()) {
+                // Controlla se il nemico può droppare questo materiale
+                let canDrop = material.enemyTypes.includes(enemyType);
+                
+                // Boss possono droppare materiali di tutti gli stage precedenti
+                if (this.isBoss && material.stage <= parseInt(selectedStage)) {
+                    canDrop = true;
                 }
-                if (Math.random() < dropChance) {
-                    game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                
+                if (canDrop) {
+                    let dropChance = material.dropChance * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus;
+                    
+                    // Bonus speciale per materiali dello stage selezionato
+                    if (material.stage.toString() === selectedStage.toString()) {
+                        dropChance *= 1.5; // +50% per materiali dello stage selezionato
+                    }
+                    
+                    if (Math.random() < dropChance) {
+                        game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                    }
+                }
+            }
+        }
+        
+        // Drop speciale: Materiali di stage precedenti (chance ridotta)
+        if (parseInt(selectedStage) > 1) {
+            const previousStage = (parseInt(selectedStage) - 1).toString();
+            
+            // Drop materiali core dello stage precedente (chance ridotta)
+            for (const [materialId, material] of Object.entries(CONFIG.materials.coreMaterials)) {
+                if (material.stage && material.stage.toString() === previousStage) {
+                    let canDrop = material.enemyTypes.includes(enemyType);
+                    if (canDrop) {
+                        let dropChance = material.dropChance * 0.3 * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus; // 70% riduzione
+                        if (Math.random() < dropChance) {
+                            game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                        }
+                    }
+                }
+            }
+            
+            // Drop materiali armi dello stage precedente (chance ridotta)
+            for (const [materialId, material] of Object.entries(CONFIG.materials.weaponMaterials)) {
+                if (material.stage && material.stage.toString() === previousStage) {
+                    let canDrop = material.enemyTypes.includes(enemyType);
+                    if (canDrop) {
+                        let dropChance = material.dropChance * 0.3 * (1 + game.player.modifiers.luck) * dropBonus * eliteBonus; // 70% riduzione
+                        if (Math.random() < dropChance) {
+                            game.addEntity('materialOrbs', new MaterialOrb(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, materialId));
+                        }
+                    }
                 }
             }
         }
@@ -2903,7 +3283,13 @@ class Enemy extends Entity {
     }
 }
 class Boss extends Enemy {
-    constructor(x, y, stats) { super(x, y, stats); this.color = '#8e44ad'; this.lastAttack = 0; }
+    constructor(x, y, stats) { 
+        super(x, y, stats); 
+        this.color = '#8e44ad'; 
+        this.lastAttack = 0; 
+        this.isBoss = true; // I boss sono sempre boss
+        this.isElite = false; // I boss non sono elite (sono una categoria separata)
+    }
     update(game) {
         super.update(game);
         if (this.spawnImmunityTimer > 0) return; 
@@ -4078,6 +4464,7 @@ class BallSurvivalGame {
         this.currentStage = 1;
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
         this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
+        this.elitesKilledThisStage = 0; // Elite uccisi nello stage corrente
         
         // NON reinizializzare materiali e arsenale - vengono mantenuti tra le run
         // this.materials, this.cores, this.weapons, this.arsenal rimangono invariati
@@ -4285,14 +4672,10 @@ class BallSurvivalGame {
     
     // Sistema di gestione materiali
     addMaterial(materialId, amount = 1) {
-        console.log(`addMaterial chiamato: ${materialId}, quantità: ${amount}`);
-        
         if (!this.materials[materialId]) {
             this.materials[materialId] = 0;
         }
         this.materials[materialId] += amount;
-        
-        console.log(`Materiali aggiornati:`, this.materials);
         
         // Notifica al giocatore
         const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
@@ -4312,6 +4695,12 @@ class BallSurvivalGame {
         const core = CONFIG.cores[coreId];
         if (!core) return false;
         
+        // Controlla se il core è sbloccato per lo stage corrente
+        const currentStage = parseInt(this.currentStage || '1');
+        if (core.stage && core.stage > currentStage) {
+            return false; // Core non ancora sbloccato
+        }
+        
         // Controlla se il core esiste già
         if (this.cores[coreId]) {
             return false; // Core già posseduto
@@ -4329,6 +4718,12 @@ class BallSurvivalGame {
     canCraftWeapon(weaponId) {
         const weapon = CONFIG.weapons[weaponId];
         if (!weapon) return false;
+        
+        // Controlla se l'arma è sbloccata per lo stage corrente
+        const currentStage = parseInt(this.currentStage || '1');
+        if (weapon.stage && weapon.stage > currentStage) {
+            return false; // Arma non ancora sbloccata
+        }
         
         const weaponData = this.weapons[weaponId];
         
@@ -4666,13 +5061,7 @@ class BallSurvivalGame {
     }
     
     checkStage() {
-        // Controlla se è il momento di cambiare stage automaticamente
-        const nextStage = this.currentStage + 1;
-        if (CONFIG.stages[nextStage] && this.totalElapsedTime >= CONFIG.stages[nextStage].time) {
-            this.changeStage(nextStage);
-        }
-        
-        // Controlla se gli stage possono essere sbloccati
+        // Controlla solo se gli stage possono essere sbloccati
         this.checkStageUnlocks();
     }
     
@@ -4680,6 +5069,7 @@ class BallSurvivalGame {
         this.currentStage = newStage;
         this.stageStartTime = this.totalElapsedTime;
         this.bossesKilledThisStage = 0;
+        this.elitesKilledThisStage = 0;
         
         const stageInfo = CONFIG.stages[newStage];
         this.notifications.push({ text: `STAGE ${newStage}: ${stageInfo.message}`, life: 400 });
@@ -4714,6 +5104,31 @@ class BallSurvivalGame {
     
     checkUnlockRequirement(requirement) {
         switch (requirement.type) {
+            case 'craft_core':
+                // Crea un core specifico
+                return this.cores[requirement.coreId] !== undefined;
+                
+            case 'craft_weapon':
+                // Crea un'arma specifica
+                return this.weapons[requirement.weaponId] !== undefined;
+                
+            case 'kill_elites':
+                // Uccidi X elite in uno stage specifico
+                if (this.currentStage.toString() === requirement.stage.toString()) {
+                    return this.elitesKilledThisStage >= requirement.count;
+                }
+                return false;
+                
+            case 'reach_level':
+                // Raggiungi un livello specifico
+                return this.player.level >= requirement.level;
+                
+            case 'arsenal_size':
+                // Possiedi un numero minimo di core e armi
+                const coreCount = Object.keys(this.cores).length;
+                const weaponCount = Object.keys(this.weapons).length;
+                return coreCount >= requirement.cores && weaponCount >= requirement.weapons;
+                
             case 'survival':
                 // Sopravvivi X secondi in uno stage specifico
                 return this.totalElapsedTime >= requirement.time;
@@ -4721,10 +5136,6 @@ class BallSurvivalGame {
             case 'boss_kill':
                 // Uccidi X boss in uno stage specifico
                 return this.bossesKilledThisStage >= requirement.count;
-                
-            case 'level':
-                // Raggiungi livello X in uno stage specifico
-                return this.player.level >= requirement.level;
                 
             case 'total_time':
                 // Tempo totale di gioco
@@ -5572,12 +5983,22 @@ class BallSurvivalGame {
         if (!requirement) return 'Sempre disponibile';
         
         switch (requirement.type) {
+            case 'craft_core':
+                const core = CONFIG.cores[requirement.coreId];
+                return `Crea il ${core ? core.name : 'Core'}`;
+            case 'craft_weapon':
+                const weapon = CONFIG.weapons[requirement.weaponId];
+                return `Crea le ${weapon ? weapon.name : 'Armi'}`;
+            case 'kill_elites':
+                return `Uccidi ${requirement.count} elite in Stage ${requirement.stage}`;
+            case 'reach_level':
+                return `Raggiungi livello ${requirement.level}`;
+            case 'arsenal_size':
+                return `Possiedi almeno ${requirement.cores} core e ${requirement.weapons} armi`;
             case 'survival':
                 return `Sopravvivi ${Math.floor(requirement.time / 60)} min in Stage ${requirement.stage}`;
             case 'boss_kill':
                 return `Uccidi ${requirement.count} boss in Stage ${requirement.stage}`;
-            case 'level':
-                return `Raggiungi livello ${requirement.level} in Stage ${requirement.stage}`;
             case 'total_time':
                 return `Gioca ${Math.floor(requirement.time / 60)} min totali`;
             default:
@@ -5639,6 +6060,7 @@ class BallSurvivalGame {
         this.currentStage = 1;
         this.stageStartTime = 0;
         this.bossesKilledThisStage = 0;
+        this.elitesKilledThisStage = 0;
         
         // Reset degli spell
         this.resetSpells();
