@@ -535,56 +535,30 @@ async function forcePushCurrentUserToCloud() {
     }
 }
 
-// Inizializza quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', function() {
-    // PATCH: azzera tutti i localStorage all'avvio del gioco
-    localStorage.clear();
-    initLogin();
-    
-    // Controlla se è il primo avvio o se il token è già configurato
-    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-    
-    if (savedToken && savedToken !== 'ghp_your_token_here') {
-        // Token già configurato, vai direttamente al login
-        showLoginScreen();
-        
-        // Carica account in background
-        setTimeout(async () => {
-            if (window.analyticsManager) {
-                window.analyticsManager.config.githubToken = savedToken;
-                window.analyticsManager.config.enableCloudSync = true;
-                await loadUserAccounts();
-            }
-        }, 1000);
-    } else {
-        // Primo avvio o token non configurato, mostra setup
-        const loginScreen = document.getElementById('loginScreen');
-        if (loginScreen) loginScreen.style.display = 'none';
-        const tokenSetupScreen = document.getElementById('tokenSetupScreen');
-        if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
-        
-        // Pre-filla token se presente
-        if (savedToken && savedToken !== 'ghp_your_token_here') {
-            const startupToken = document.getElementById('startupToken');
-            if (startupToken) startupToken.value = savedToken;
-        }
-    }
-});
+// Nota: l'inizializzazione principale è gestita più in basso in un unico
+// listener DOMContentLoaded per evitare duplicazioni e side-effect
 
-// Configura cloud sync con token GitHub
+// Configura cloud sync con token GitHub (API principale, usata anche da login/registrazione)
 async function configureCloudSync(githubToken) {
     try {
         if (!window.analyticsManager) {
             console.log('⚠️ AnalyticsManager non disponibile');
             return;
         }
+
+        if (!githubToken || githubToken.trim() === '') {
+            console.log('⚠️ Nessun token GitHub fornito per configureCloudSync');
+            return;
+        }
         
+        const normalizedToken = githubToken.trim();
+
         // Aggiorna la configurazione dell'analytics manager
-        window.analyticsManager.config.githubToken = githubToken;
+        window.analyticsManager.config.githubToken = normalizedToken;
         window.analyticsManager.config.enableCloudSync = true;
         
         // Salva il token localmente per uso futuro
-        localStorage.setItem('ballSurvivalGithubToken', githubToken);
+        localStorage.setItem('ballSurvivalGithubToken', normalizedToken);
         
         // Test della configurazione
         const testResult = await window.analyticsManager.testCloudSync();
@@ -1004,7 +978,9 @@ function updateSyncStatus() {
     }
 }
 
-function configureCloudSync() {
+// Variante per il popup di configurazione: legge il token dall'input e
+// delega alla funzione principale async configureCloudSync(token)
+function configureCloudSyncFromPopup() {
     const token = document.getElementById('cloudSyncToken').value.trim();
     const messageElement = document.getElementById('cloudSyncMessage');
     
@@ -1020,17 +996,8 @@ function configureCloudSync() {
     
     showCloudSyncMessage('🔄 Configurazione in corso...', 'info');
     
-    // Salva token
-    localStorage.setItem('ballSurvivalGithubToken', token);
-    
-    // Configura analytics manager
-    if (window.analyticsManager) {
-        window.analyticsManager.config.githubToken = token;
-        window.analyticsManager.config.enableCloudSync = true;
-    }
-    
-    // Testa connessione
-    testCloudSync().then(success => {
+    // Configura tramite API principale (che salva anche il token)
+    configureCloudSync(token).then(success => {
         if (success) {
             showCloudSyncMessage('✅ Cloud Sync configurato con successo!', 'success');
             updateSyncStatus();
