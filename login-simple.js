@@ -535,48 +535,17 @@ async function forcePushCurrentUserToCloud() {
     }
 }
 
-// Inizializza quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', function() {
-    // PATCH: azzera tutti i localStorage all'avvio del gioco
-    localStorage.clear();
-    initLogin();
-    
-    // Controlla se è il primo avvio o se il token è già configurato
-    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-    
-    if (savedToken && savedToken !== 'ghp_your_token_here') {
-        // Token già configurato, vai direttamente al login
-        showLoginScreen();
-        
-        // Carica account in background
-        setTimeout(async () => {
-            if (window.analyticsManager) {
-                window.analyticsManager.config.githubToken = savedToken;
-                window.analyticsManager.config.enableCloudSync = true;
-                await loadUserAccounts();
-            }
-        }, 1000);
-    } else {
-        // Primo avvio o token non configurato, mostra setup
-        const loginScreen = document.getElementById('loginScreen');
-        if (loginScreen) loginScreen.style.display = 'none';
-        const tokenSetupScreen = document.getElementById('tokenSetupScreen');
-        if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
-        
-        // Pre-filla token se presente
-        if (savedToken && savedToken !== 'ghp_your_token_here') {
-            const startupToken = document.getElementById('startupToken');
-            if (startupToken) startupToken.value = savedToken;
-        }
-    }
-});
-
 // Configura cloud sync con token GitHub
 async function configureCloudSync(githubToken) {
     try {
+        if (!githubToken) {
+            console.warn('⚠️ configureCloudSync chiamato senza token valido');
+            return false;
+        }
+        
         if (!window.analyticsManager) {
             console.log('⚠️ AnalyticsManager non disponibile');
-            return;
+            return false;
         }
         
         // Aggiorna la configurazione dell'analytics manager
@@ -592,14 +561,17 @@ async function configureCloudSync(githubToken) {
         if (testResult) {
             console.log('✅ Cloud sync configurato con successo');
             showMessage('☁️ Cloud sync configurato! I dati verranno sincronizzati automaticamente.', false);
+            return true;
         } else {
             console.log('⚠️ Configurazione cloud sync fallita');
             showMessage('⚠️ Token GitHub non valido o errore di configurazione', true);
+            return false;
         }
         
     } catch (error) {
         console.error('❌ Errore configurazione cloud sync:', error);
         showMessage('❌ Errore configurazione cloud sync', true);
+        return false;
     }
 }
 
@@ -610,28 +582,6 @@ function loadSavedToken() {
         window.analyticsManager.config.githubToken = savedToken;
         window.analyticsManager.config.enableCloudSync = true;
         console.log('✅ Token GitHub caricato da localStorage');
-    }
-}
-
-// Mostra configurazione cloud sync
-function showCloudSyncConfig() {
-    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-    
-    if (savedToken) {
-        const useSaved = confirm(`🔧 Token GitHub già configurato!\n\nVuoi usare il token salvato o inserirne uno nuovo?\n\n✅ OK = Usa token salvato\n❌ Annulla = Inserisci nuovo token`);
-        
-        if (useSaved) {
-            configureCloudSync(savedToken);
-            return;
-        }
-    }
-    
-    const token = prompt('🔧 Inserisci il tuo Token GitHub per abilitare il Cloud Sync:\n\n💡 Ottieni il token da: https://github.com/settings/tokens\n\n⚠️ Seleziona solo il permesso "gist"');
-    
-    if (token && token.trim() !== '') {
-        configureCloudSync(token.trim());
-    } else if (token !== null) {
-        showMessage('⚠️ Token non valido', true);
     }
 }
 
@@ -1004,9 +954,9 @@ function updateSyncStatus() {
     }
 }
 
-function configureCloudSync() {
-    const token = document.getElementById('cloudSyncToken').value.trim();
-    const messageElement = document.getElementById('cloudSyncMessage');
+async function configureCloudSyncFromPopup() {
+    const tokenInput = document.getElementById('cloudSyncToken');
+    const token = tokenInput ? tokenInput.value.trim() : '';
     
     if (!token) {
         showCloudSyncMessage('⚠️ Inserisci un token GitHub valido', 'error');
@@ -1020,28 +970,17 @@ function configureCloudSync() {
     
     showCloudSyncMessage('🔄 Configurazione in corso...', 'info');
     
-    // Salva token
-    localStorage.setItem('ballSurvivalGithubToken', token);
+    const success = await configureCloudSync(token);
     
-    // Configura analytics manager
-    if (window.analyticsManager) {
-        window.analyticsManager.config.githubToken = token;
-        window.analyticsManager.config.enableCloudSync = true;
+    if (success) {
+        updateSyncStatus();
+        showCloudSyncMessage('✅ Cloud Sync configurato con successo!', 'success');
+    } else {
+        showCloudSyncMessage('❌ Errore configurazione. Verifica il token o riprova più tardi.', 'error');
     }
-    
-    // Testa connessione
-    testCloudSync().then(success => {
-        if (success) {
-            showCloudSyncMessage('✅ Cloud Sync configurato con successo!', 'success');
-            updateSyncStatus();
-        } else {
-            showCloudSyncMessage('❌ Errore configurazione. Verifica il token.', 'error');
-        }
-    });
 }
 
 function testCloudSync() {
-    const messageElement = document.getElementById('cloudSyncMessage');
     showCloudSyncMessage('🧪 Test connessione in corso...', 'info');
     
     if (window.analyticsManager) {
@@ -1099,6 +1038,7 @@ window.isGuest = isGuest;
 window.updatePlayerStats = updatePlayerStats;
 window.getPlayerData = getPlayerData;
 window.configureCloudSync = configureCloudSync;
+window.configureCloudSyncFromPopup = configureCloudSyncFromPopup;
 window.showCloudSyncConfig = showCloudSyncConfig;
 window.syncUserAccounts = syncUserAccounts;
 window.loadUserAccounts = loadUserAccounts;
