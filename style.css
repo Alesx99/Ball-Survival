@@ -14,6 +14,20 @@
     --success-color: #228b22; /* Verde foresta */
     --danger-color: #8b0000; /* Rosso scuro */
     --warning-color: #daa520; /* Oro antico */
+    
+    /* Transizioni e animazioni globali */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* Prefers reduced motion per accessibilità */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* Stile Custom per la scrollbar */
@@ -43,6 +57,16 @@ body, html {
     margin: 0; padding: 0; width: 100%; height: 100%; background: #000;
     display: flex; justify-content: center; align-items: center;
     font-family: 'Crimson Text', serif; color: var(--text-color); overflow: hidden;
+    /* Miglioramenti rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Focus visibile per accessibilità keyboard */
+*:focus-visible {
+    outline: 3px solid var(--highlight-color);
+    outline-offset: 2px;
 }
 #gameContainer {
     position: relative; width: 100%; max-width: 1200px;
@@ -58,6 +82,10 @@ body, html {
     display: block;
     margin: 0 auto;
     border: none;
+    /* Ottimizzazione rendering canvas */
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 #menuOverlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -139,11 +167,25 @@ body, html {
     width: 90%; max-width: 800px;
     box-sizing: border-box;
     flex-direction: column; 
-    max-height: 80vh; /* Ridotto da 85vh a 80vh per più spazio */
+    max-height: 80vh;
     box-shadow: 0 0 25px rgba(139, 69, 19, 0.5), 0 0 50px rgba(139, 69, 19, 0.3);
     padding: clamp(20px, 4vw, 30px);
     backdrop-filter: blur(10px);
-    overflow: hidden; /* Assicura che il contenuto non esca */
+    overflow: hidden;
+    /* Animazione apertura popup */
+    opacity: 0;
+    animation: popupFadeIn var(--transition-normal) forwards;
+}
+
+@keyframes popupFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 .popup-menu h2, .popup-menu h3 {
     margin-top: 0; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 3px;
@@ -193,8 +235,36 @@ body, html {
     padding: 15px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all var(--transition-normal);
     text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animazione shimmer per elementi hover */
+.upgrade-option::before, 
+.permanent-upgrade-option::before, 
+.character-option::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.upgrade-option:hover::before,
+.permanent-upgrade-option:hover::before,
+.character-option:hover::before {
+    transform: translateX(100%);
 }
 .upgrade-option:hover, .permanent-upgrade-option:hover, .character-option:hover {
     background: var(--dark-bg);
@@ -394,12 +464,35 @@ body, html {
 button {
     background: linear-gradient(145deg, var(--secondary-color), var(--primary-color));
     color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;
-    font-size: clamp(14px, 2.2vw, 16px); margin: 5px; transition: all 0.2s ease-in-out;
+    font-size: clamp(14px, 2.2vw, 16px); margin: 5px; transition: all var(--transition-normal);
     -webkit-tap-highlight-color: transparent; flex-shrink: 0;
     border-bottom: 2px solid var(--dark-bg);
     text-transform: uppercase; font-weight: bold;
     font-family: 'Cinzel', serif;
     letter-spacing: 1px;
+    /* Miglioramenti accessibilità e performance */
+    position: relative;
+    overflow: hidden;
+    will-change: transform;
+}
+
+/* Effetto ripple al click */
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button:active::after {
+    width: 300px;
+    height: 300px;
 }
 button:hover { 
     filter: brightness(1.15); 
