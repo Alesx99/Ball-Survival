@@ -535,41 +535,7 @@ async function forcePushCurrentUserToCloud() {
     }
 }
 
-// Inizializza quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', function() {
-    // PATCH: azzera tutti i localStorage all'avvio del gioco
-    localStorage.clear();
-    initLogin();
-    
-    // Controlla se è il primo avvio o se il token è già configurato
-    const savedToken = localStorage.getItem('ballSurvivalGithubToken');
-    
-    if (savedToken && savedToken !== 'ghp_your_token_here') {
-        // Token già configurato, vai direttamente al login
-        showLoginScreen();
-        
-        // Carica account in background
-        setTimeout(async () => {
-            if (window.analyticsManager) {
-                window.analyticsManager.config.githubToken = savedToken;
-                window.analyticsManager.config.enableCloudSync = true;
-                await loadUserAccounts();
-            }
-        }, 1000);
-    } else {
-        // Primo avvio o token non configurato, mostra setup
-        const loginScreen = document.getElementById('loginScreen');
-        if (loginScreen) loginScreen.style.display = 'none';
-        const tokenSetupScreen = document.getElementById('tokenSetupScreen');
-        if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
-        
-        // Pre-filla token se presente
-        if (savedToken && savedToken !== 'ghp_your_token_here') {
-            const startupToken = document.getElementById('startupToken');
-            if (startupToken) startupToken.value = savedToken;
-        }
-    }
-});
+// RIMOSSO: Listener duplicato consolidato nel listener principale alla fine del file
 
 // Configura cloud sync con token GitHub
 async function configureCloudSync(githubToken) {
@@ -1108,8 +1074,9 @@ window.resetCloudSync = resetCloudSync;
 window.closeCloudSyncConfig = closeCloudSyncConfig;
 window.forcePushCurrentUserToCloud = forcePushCurrentUserToCloud; // Aggiunto per la funzione di forza push
 
-// Inizializzazione al caricamento della pagina
+// Inizializzazione al caricamento della pagina - CONSOLIDATO
 document.addEventListener('DOMContentLoaded', function() {
+    // Inizializza sistema login
     initLogin();
     
     // Event listener per chiudere popup cloud sync
@@ -1118,28 +1085,42 @@ document.addEventListener('DOMContentLoaded', function() {
         closeCloudSyncBtn.addEventListener('click', closeCloudSyncConfig);
     }
     
+    // Modifica pulsante sync per forzare push
+    const syncBtn = document.querySelector('button[onclick*="syncUserAccounts()"]');
+    if (syncBtn) {
+        syncBtn.setAttribute('onclick', 'forcePushCurrentUserToCloud()');
+    }
+    
     // Controlla se c'è un token salvato per il cloud sync
     const savedToken = localStorage.getItem('ballSurvivalGithubToken');
     if (savedToken && savedToken !== 'ghp_your_token_here') {
+        // Token già configurato
         // Configura analytics manager se disponibile
         if (window.analyticsManager) {
             window.analyticsManager.config.githubToken = savedToken;
             window.analyticsManager.config.enableCloudSync = true;
         }
-        // Avvia processo di sync
-        startSyncProcess();
+        
+        // Vai al login e avvia processo di sync
+        showLoginScreen();
+        
+        // Carica account in background
+        setTimeout(async () => {
+            if (window.analyticsManager) {
+                await loadUserAccounts();
+            }
+        }, 1000);
     } else {
-        // Mostra schermata di configurazione token
+        // Primo avvio o token non configurato, mostra setup
         const tokenSetupScreen = document.getElementById('tokenSetupScreen');
         if (tokenSetupScreen) tokenSetupScreen.style.display = 'block';
         const startScreen = document.getElementById('startScreen');
         if (startScreen) startScreen.style.display = 'none';
-    }
-});
-
-window.addEventListener('DOMContentLoaded', function() {
-    const syncBtn = document.querySelector('button[onclick*="syncUserAccounts()"]');
-    if (syncBtn) {
-        syncBtn.setAttribute('onclick', 'forcePushCurrentUserToCloud()');
+        
+        // Pre-filla token se presente
+        if (savedToken && savedToken !== 'ghp_your_token_here') {
+            const startupToken = document.getElementById('startupToken');
+            if (startupToken) startupToken.value = savedToken;
+        }
     }
 });
