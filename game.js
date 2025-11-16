@@ -6686,9 +6686,46 @@ class BallSurvivalGame {
     copyDebugCode() {
         const debugCode = this.dom.inputs.debugSaveOutput ? this.dom.inputs.debugSaveOutput.value : '';
         if(debugCode) {
-            navigator.clipboard.writeText(debugCode).then(() => {
+            // Usa l'API moderna con fallback per browser legacy
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(debugCode).then(() => {
+                    this.notifications.push({ text: "Codice Debug Copiato!", life: 120 });
+                }).catch(err => {
+                    console.error("Copia fallita:", err);
+                    // Fallback per browser che non supportano clipboard API
+                    this.fallbackCopyText(debugCode);
+                });
+            } else {
+                // Fallback per browser legacy
+                this.fallbackCopyText(debugCode);
+            }
+        }
+    }
+    
+    /**
+     * Fallback per copiare testo nei browser che non supportano Clipboard API
+     * @param {string} text - Testo da copiare
+     */
+    fallbackCopyText(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
                 this.notifications.push({ text: "Codice Debug Copiato!", life: 120 });
-            });
+            } else {
+                console.error("Fallback copy fallito");
+            }
+        } catch (err) {
+            console.error("Errore durante la copia:", err);
+        } finally {
+            document.body.removeChild(textArea);
         }
     }
     generateSaveCode(isDebug = false) {
@@ -6820,19 +6857,6 @@ class BallSurvivalGame {
                 console.error("Copia fallita", err); 
             } 
         } 
-    }
-    copyDebugCode() {
-        const debugCode = this.dom.inputs.debugSaveOutput.value;
-        if(debugCode) {
-            this.dom.inputs.debugSaveOutput.select();
-            this.dom.inputs.debugSaveOutput.setSelectionRange(0, 99999);
-            try {
-                document.execCommand('copy');
-                this.notifications.push({ text: "Codice Debug Copiato!", life: 120 });
-            } catch (err) {
-                console.error("Copia fallita", err);
-            }
-        }
     }
     loadGameData() { 
         this.permanentUpgrades = {}; 

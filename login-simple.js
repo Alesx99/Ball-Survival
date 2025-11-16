@@ -26,13 +26,36 @@ let currentPlayer = null;
 let isLoggedIn = false;
 let isGuest = false;
 
-// Inizializza il sistema
+/**
+ * Genera un hash semplice per le password (non crittografia completa, ma meglio del testo in chiaro)
+ * @param {string} password - Password da hashare
+ * @returns {string} Hash della password
+ */
+function hashPassword(password) {
+    let hash = 0;
+    if (password.length === 0) return hash.toString();
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    // Aggiungi un salt basato sulla lunghezza per maggiore sicurezza
+    return (hash + password.length * 31).toString(36);
+}
+
+/**
+ * Inizializza il sistema di login
+ * Carica i dati del giocatore salvati e aggiorna l'interfaccia utente
+ */
 function initLogin() {
     loadPlayerData();
     updateLoginUI();
 }
 
-// Carica dati giocatore
+/**
+ * Carica i dati del giocatore dal localStorage
+ * @returns {void}
+ */
 function loadPlayerData() {
     const savedPlayer = localStorage.getItem('ballSurvivalPlayer');
     if (savedPlayer) {
@@ -48,7 +71,10 @@ function loadPlayerData() {
     }
 }
 
-// Salva dati giocatore
+/**
+ * Salva i dati del giocatore corrente nel localStorage
+ * @returns {void}
+ */
 function savePlayerData() {
     if (currentPlayer) {
         localStorage.setItem('ballSurvivalPlayer', JSON.stringify(currentPlayer));
@@ -173,12 +199,34 @@ function playAsGuest() {
 
 // Login
 async function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const githubToken = document.getElementById('githubToken').value;
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const githubTokenInput = document.getElementById('githubToken');
     
-    if (!username || !password) {
-        showMessage('⚠️ Compila tutti i campi obbligatori', true);
+    if (!usernameInput || !passwordInput) {
+        showMessage('❌ Errore: Elementi del form non trovati', true);
+        console.error('Elementi del form non trovati');
+        return;
+    }
+    
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const githubToken = githubTokenInput ? githubTokenInput.value.trim() : '';
+    
+    // Validazione input più robusta
+    if (!username || username.length < 3) {
+        showMessage('⚠️ Username deve essere di almeno 3 caratteri', true);
+        return;
+    }
+    
+    if (!password || password.length < 4) {
+        showMessage('⚠️ Password deve essere di almeno 4 caratteri', true);
+        return;
+    }
+    
+    // Validazione caratteri username (solo alfanumerici e underscore)
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showMessage('⚠️ Username può contenere solo lettere, numeri e underscore', true);
         return;
     }
     
@@ -221,35 +269,69 @@ async function login() {
             showMessage('❌ Username o password non validi', true);
         }
     } catch (error) {
-        showMessage('❌ Errore durante il login', true);
-        console.error('Login error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
+        showMessage(`❌ Errore durante il login: ${errorMessage}`, true);
+        console.error('Login error:', {
+            message: errorMessage,
+            stack: error instanceof Error ? error.stack : undefined,
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
 // Registrazione
 async function register() {
-    const username = document.getElementById('regUsername').value;
-    const password = document.getElementById('regPassword').value;
-    const passwordConfirm = document.getElementById('regPasswordConfirm').value;
-    const githubToken = document.getElementById('regGithubToken').value;
+    const usernameInput = document.getElementById('regUsername');
+    const passwordInput = document.getElementById('regPassword');
+    const passwordConfirmInput = document.getElementById('regPasswordConfirm');
+    const githubTokenInput = document.getElementById('regGithubToken');
     
-    if (!username || !password || !passwordConfirm) {
-        showMessage('⚠️ Compila tutti i campi obbligatori', true);
+    if (!usernameInput || !passwordInput || !passwordConfirmInput) {
+        showMessage('❌ Errore: Elementi del form non trovati', true);
+        console.error('Elementi del form non trovati');
         return;
     }
     
-    if (username.length < 3) {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const passwordConfirm = passwordConfirmInput.value;
+    const githubToken = githubTokenInput ? githubTokenInput.value.trim() : '';
+    
+    // Validazione input più robusta
+    if (!username || username.length < 3) {
         showMessage('⚠️ Username deve essere di almeno 3 caratteri', true);
+        usernameInput.focus();
         return;
     }
     
-    if (password.length < 4) {
+    if (username.length > 20) {
+        showMessage('⚠️ Username non può superare i 20 caratteri', true);
+        usernameInput.focus();
+        return;
+    }
+    
+    // Validazione caratteri username (solo alfanumerici e underscore)
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showMessage('⚠️ Username può contenere solo lettere, numeri e underscore', true);
+        usernameInput.focus();
+        return;
+    }
+    
+    if (!password || password.length < 4) {
         showMessage('⚠️ Password deve essere di almeno 4 caratteri', true);
+        passwordInput.focus();
+        return;
+    }
+    
+    if (password.length > 100) {
+        showMessage('⚠️ Password troppo lunga (massimo 100 caratteri)', true);
+        passwordInput.focus();
         return;
     }
     
     if (password !== passwordConfirm) {
         showMessage('⚠️ Le password non coincidono', true);
+        passwordConfirmInput.focus();
         return;
     }
     
@@ -289,10 +371,17 @@ async function register() {
             }
         } else {
             showMessage('❌ Username già esistente', true);
+            usernameInput.focus();
         }
     } catch (error) {
-        showMessage('❌ Errore durante la registrazione', true);
-        console.error('Registration error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
+        showMessage(`❌ Errore durante la registrazione: ${errorMessage}`, true);
+        console.error('Registration error:', {
+            message: errorMessage,
+            stack: error instanceof Error ? error.stack : undefined,
+            username: username,
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
@@ -309,7 +398,20 @@ async function authenticatePlayer(username, password) {
     const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
     const player = players[username];
     
-    if (player && player.password === password) {
+    // Verifica password usando hash (supporta anche password vecchie in chiaro per compatibilità)
+    const passwordHash = hashPassword(password);
+    const passwordMatch = player && (
+        player.password === passwordHash || // Password hashata
+        player.password === password // Compatibilità con password vecchie in chiaro
+    );
+    
+    if (passwordMatch) {
+        // Migra password in chiaro a hash se necessario
+        if (player.password === password) {
+            player.password = passwordHash;
+            players[username] = player;
+            localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+        }
         // Inizializza sempre i campi richiesti se mancanti
         if (!player.achievements) player.achievements = {};
         if (!player.unlockedCharacters) player.unlockedCharacters = { standard: true };
@@ -348,7 +450,7 @@ async function createPlayer(username, password) {
     const newPlayer = {
         username: username,
         id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-        password: password, // <-- salva sempre la password in chiaro
+        password: hashPassword(password), // Hash della password invece di testo in chiaro
         createdAt: Date.now(),
         lastLogin: Date.now(),
         stats: {
@@ -369,7 +471,7 @@ async function createPlayer(username, password) {
     return {
         username: newPlayer.username,
         id: newPlayer.id,
-        password: newPlayer.password,
+        password: newPlayer.password, // Hash, non password in chiaro
         createdAt: newPlayer.createdAt,
         lastLogin: newPlayer.lastLogin,
         stats: newPlayer.stats,
@@ -408,7 +510,14 @@ function formatTime(ms) {
     return `${minutes}m ${seconds}s`;
 }
 
-// Aggiorna statistiche giocatore
+/**
+ * Aggiorna le statistiche del giocatore dopo una partita
+ * @param {Object} gameStats - Statistiche della partita
+ * @param {number} gameStats.duration - Durata della partita in millisecondi
+ * @param {number} gameStats.level - Livello raggiunto
+ * @param {string} [gameStats.archetype] - Archetipo utilizzato
+ * @returns {void}
+ */
 function updatePlayerStats(gameStats) {
     if (!currentPlayer) return;
     
@@ -443,7 +552,14 @@ function updatePlayerStats(gameStats) {
     console.log(`📊 Statistiche aggiornate per ${currentPlayer.username}${isGuest ? ' (Guest)' : ''}`);
 }
 
-// Ottieni dati giocatore per analytics
+/**
+ * Ottiene i dati del giocatore corrente per analytics
+ * @returns {Object|null} Dati del giocatore o null se non loggato
+ * @returns {string} returns.id - ID univoco del giocatore
+ * @returns {string} returns.username - Nome utente
+ * @returns {Object} returns.stats - Statistiche del giocatore
+ * @returns {boolean} returns.isGuest - Se il giocatore è un guest
+ */
 function getPlayerData() {
     return currentPlayer ? {
         id: currentPlayer.id,

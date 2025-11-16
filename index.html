@@ -100,7 +100,11 @@
                 <!-- Form login -->
                 <div id="loginForm" style="display: none;">
                     <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Accedi</h4>
-                    <input type="text" id="username" placeholder="Nome Giocatore" style="
+                    <input type="text" id="username" placeholder="Nome Giocatore" 
+                        aria-label="Nome Giocatore" 
+                        aria-required="true"
+                        autocomplete="username"
+                        style="
                         width: 100%;
                         padding: 8px;
                         margin: 5px 0;
@@ -109,7 +113,11 @@
                         font-size: 14px;
                         box-sizing: border-box;
                     ">
-                    <input type="password" id="password" placeholder="Password" style="
+                    <input type="password" id="password" placeholder="Password" 
+                        aria-label="Password" 
+                        aria-required="true"
+                        autocomplete="current-password"
+                        style="
                         width: 100%;
                         padding: 8px;
                         margin: 5px 0;
@@ -136,7 +144,9 @@
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
-                        <button onclick="login()" style="
+                        <button onclick="login()" 
+                            aria-label="Accedi al gioco"
+                            style="
                             background: #4CAF50;
                             color: white;
                             padding: 8px 16px;
@@ -162,7 +172,11 @@
                 <!-- Form registrazione -->
                 <div id="registerForm" style="display: none;">
                     <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Registrati</h4>
-                    <input type="text" id="regUsername" placeholder="Nome Giocatore" style="
+                    <input type="text" id="regUsername" placeholder="Nome Giocatore" 
+                        aria-label="Nome Giocatore" 
+                        aria-required="true"
+                        autocomplete="username"
+                        style="
                         width: 100%;
                         padding: 8px;
                         margin: 5px 0;
@@ -171,7 +185,11 @@
                         font-size: 14px;
                         box-sizing: border-box;
                     ">
-                    <input type="password" id="regPassword" placeholder="Password" style="
+                    <input type="password" id="regPassword" placeholder="Password" 
+                        aria-label="Password" 
+                        aria-required="true"
+                        autocomplete="new-password"
+                        style="
                         width: 100%;
                         padding: 8px;
                         margin: 5px 0;
@@ -180,7 +198,11 @@
                         font-size: 14px;
                         box-sizing: border-box;
                     ">
-                    <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" style="
+                    <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" 
+                        aria-label="Conferma Password" 
+                        aria-required="true"
+                        autocomplete="new-password"
+                        style="
                         width: 100%;
                         padding: 8px;
                         margin: 5px 0;
@@ -207,7 +229,9 @@
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
-                        <button onclick="register()" style="
+                        <button onclick="register()" 
+                            aria-label="Registra nuovo account"
+                            style="
                             background: #2196F3;
                             color: white;
                             padding: 8px 16px;
