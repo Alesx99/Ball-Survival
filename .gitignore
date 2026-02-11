@@ -38,4 +38,7 @@ saves/
 *.save
 
 # File di cache
-.cache/ 
+.cache/
+
+# Old/deprecated files (kept for reference during migration)
+*.old
