@@ -17,13 +17,16 @@ export const RenderSystem = {
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
+        const margin = 80;
+        const inView = (e) => e.x >= this.camera.x - margin && e.x <= this.camera.x + this.camera.width + margin &&
+            e.y >= this.camera.y - margin && e.y <= this.camera.y + this.camera.height + margin;
         if (this.entities) {
-            this.entities.fireTrails.forEach(e => e.draw(this.ctx, this));
+            this.entities.fireTrails.filter(inView).forEach(e => e.draw(this.ctx, this));
             this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));
             this.entities.staticFields.forEach(e => e.draw(this.ctx, this));
-            this.entities.xpOrbs.forEach(e => e.draw(this.ctx, this));
-            this.entities.gemOrbs.forEach(e => e.draw(this.ctx, this));
-            this.entities.materialOrbs.forEach(e => e.draw(this.ctx, this));
+            this.entities.xpOrbs.filter(inView).forEach(e => e.draw(this.ctx, this));
+            this.entities.gemOrbs.filter(inView).forEach(e => e.draw(this.ctx, this));
+            this.entities.materialOrbs.filter(inView).forEach(e => e.draw(this.ctx, this));
             this.entities.chests.forEach(e => e.draw(this.ctx, this));
             this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
             this.entities.enemies.forEach(e => e.draw(this.ctx, this));
@@ -32,8 +35,8 @@ export const RenderSystem = {
             this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
             this.entities.auras.forEach(e => e.draw(this.ctx, this));
             this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
-            this.entities.particles.forEach(e => e.draw(this.ctx, this));
-            this.entities.effects.forEach(e => e.draw(this.ctx, this));
+            this.entities.particles.filter(inView).forEach(e => e.draw(this.ctx, this));
+            this.entities.effects.filter(inView).forEach(e => e.draw(this.ctx, this));
         }
         if (this.player) this.player.draw(this.ctx, this);
         this.drawMerchant();
@@ -48,28 +51,33 @@ export const RenderSystem = {
         const stageInfo = CONFIG.stages[this.currentStage];
         if (!stageInfo) return;
         
+        // Culling: disegna solo l'area visibile (ottimizzazione mobile)
+        const pad = CONFIG.world.gridSize * 2;
+        const vx0 = Math.max(0, Math.floor((this.camera.x - pad) / CONFIG.world.gridSize) * CONFIG.world.gridSize);
+        const vy0 = Math.max(0, Math.floor((this.camera.y - pad) / CONFIG.world.gridSize) * CONFIG.world.gridSize);
+        const vx1 = Math.min(CONFIG.world.width, this.camera.x + this.camera.width + pad);
+        const vy1 = Math.min(CONFIG.world.height, this.camera.y + this.camera.height + pad);
+        
         // Sfondo base
         this.ctx.fillStyle = stageInfo.background.color;
         this.ctx.fillRect(0, 0, CONFIG.world.width, CONFIG.world.height);
         
-        // Griglia o pattern specifico dello stage
+        // Griglia o pattern specifico dello stage (solo area visibile)
         this.ctx.strokeStyle = stageInfo.background.gridColor;
         this.ctx.lineWidth = 2;
         
         switch (stageInfo.background.pattern) {
             case 'grid':
-                // Griglia standard
-                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
-                    this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, CONFIG.world.height); this.ctx.stroke();
+                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
+                    this.ctx.beginPath(); this.ctx.moveTo(x, vy0); this.ctx.lineTo(x, vy1); this.ctx.stroke();
                 }
-                for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
-                    this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(CONFIG.world.width, y); this.ctx.stroke();
+                for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
+                    this.ctx.beginPath(); this.ctx.moveTo(vx0, y); this.ctx.lineTo(vx1, y); this.ctx.stroke();
                 }
                 break;
             case 'forest':
-                // Pattern foresta - alberi stilizzati
-                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize * 2) {
-                    for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize * 2) {
+                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize * 2) {
+                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize * 2) {
                         this.ctx.beginPath();
                         this.ctx.moveTo(x, y + 20);
                         this.ctx.lineTo(x - 10, y);
@@ -80,8 +88,7 @@ export const RenderSystem = {
                 }
                 break;
             case 'desert':
-                // Pattern deserto - dune
-                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
+                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
                     this.ctx.beginPath();
                     this.ctx.moveTo(x, CONFIG.world.height);
                     this.ctx.quadraticCurveTo(x + 50, CONFIG.world.height - 30, x + 100, CONFIG.world.height);
@@ -89,9 +96,8 @@ export const RenderSystem = {
                 }
                 break;
             case 'ice':
-                // Pattern ghiaccio - cristalli
-                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
-                    for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
+                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
+                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
                         this.ctx.beginPath();
                         this.ctx.moveTo(x, y);
                         this.ctx.lineTo(x + 5, y - 10);
@@ -103,12 +109,16 @@ export const RenderSystem = {
                 }
                 break;
             case 'cosmic':
-                // Pattern cosmico - stelle
-                for (let x = 0; x < CONFIG.world.width; x += CONFIG.world.gridSize) {
-                    for (let y = 0; y < CONFIG.world.height; y += CONFIG.world.gridSize) {
-                        if (Math.random() < 0.3) {
+                // Stelle deterministiche (no Math.random in draw - causa jank su mobile)
+                this.ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
+                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
+                        const h = (x * 31 + y * 7) % 100;
+                        if (h < 30) {
+                            const sx = x + (h * 17 % 20);
+                            const sy = y + ((h * 13 + 7) % 20);
                             this.ctx.beginPath();
-                            this.ctx.arc(x + Math.random() * 20, y + Math.random() * 20, 1, 0, Math.PI * 2);
+                            this.ctx.arc(sx, sy, 1, 0, Math.PI * 2);
                             this.ctx.fill();
                         }
                     }
@@ -177,11 +187,17 @@ export const RenderSystem = {
         if (!this.dom.gameContainer || !this.canvas) return;
         
         const rect = this.dom.gameContainer.getBoundingClientRect();
-        // Full display: usa l'intero viewport senza limiti artificiali
-        const width = Math.floor(rect.width);
-        const height = Math.floor(rect.height);
+        const w = Math.floor(rect.width);
+        const h = Math.floor(rect.height);
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const dpr = window.devicePixelRatio || 1;
+        const scale = isMobile ? Math.min(dpr, 1.5) : Math.min(dpr, 2);
+        const width = Math.floor(w * scale);
+        const height = Math.floor(h * scale);
         this.canvas.width = width;
         this.canvas.height = height;
+        this.canvas.style.width = w + 'px';
+        this.canvas.style.height = h + 'px';
         this.camera.width = width;
         this.camera.height = height;
         if (this.state !== 'running') this.draw();

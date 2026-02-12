@@ -8,7 +8,8 @@ import { Utils } from '../utils/index.js';
 export const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
-        base: { hp: 150, speed: 3, radius: 15, dr: 0 },
+        base: { hp: 200, speed: 3, radius: 15, dr: 0 },
+        iFramesDuration: 0.8,
         xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
     },
     characterArchetypes: {
@@ -137,17 +138,19 @@ export const CONFIG = {
     enemies: {
         spawnInterval: 0.8,
         spawnImmunity: 60,
+        /** Cooldown (secondi) tra un hit da contatto e il successivo per ogni nemico. Limita DPS da swarm. */
+        contactDamageCooldown: 0.9,
         scaling: {
             timeFactor: 15,
             hpPerFactor: 5,
             speedPerFactor: 0.02,
-            damagePerFactor: 1.05,
+            damagePerFactor: 0.65,
             xpPerFactor: 1.25,
             xpPowerFactor: 1.05,
             levelFactorMultiplier: 0.7,
             drPerFactor: 0.0006
         },
-        base: { hp: 25, speed: 1.2, radius: 12, damage: 7, xp: 4, dr: 0 }
+        base: { hp: 25, speed: 1.2, radius: 12, damage: 8, xp: 4, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" },

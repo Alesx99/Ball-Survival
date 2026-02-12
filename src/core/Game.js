@@ -29,6 +29,8 @@ export class BallSurvivalGame {
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
         this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
+        this._joystickPending = { dx: 0, dy: 0 };
+        this._joystickRAF = null;
         this.state = 'startScreen'; 
         this.selectedArchetype = 'standard';
         this.selectedStage = 1; // Stage selezionato dal giocatore
@@ -130,7 +132,11 @@ export class BallSurvivalGame {
         };
     }
     initInputHandlers() {
-        window.addEventListener('resize', () => this.resizeCanvas());
+        let resizeT = null;
+        window.addEventListener('resize', () => {
+            if (resizeT) clearTimeout(resizeT);
+            resizeT = setTimeout(() => this.resizeCanvas(), 150);
+        });
         if (this.dom.buttons.start) this.dom.buttons.start.onclick = () => this.startGame();
         if (this.dom.buttons.restart) this.dom.buttons.restart.onclick = () => this.startGame();
         if (this.dom.buttons.restartFromPause) this.dom.buttons.restartFromPause.onclick = () => this.startGame();
@@ -286,8 +292,8 @@ export class BallSurvivalGame {
         };
         
         this.analyticsManager.updatePlayerGameStats(gameStats);
-        // PATCH: aggiorna anche playerData negli analytics
         if (this.playerAuth && this.playerAuth.currentPlayer) {
+            this.playerAuth.updatePlayerStats(gameStats);
             this.analyticsManager.syncPlayerData(this.playerAuth.currentPlayer);
         }
     }
@@ -473,11 +479,21 @@ export class BallSurvivalGame {
             deltaX = (deltaX / distance) * maxDistance; 
             deltaY = (deltaY / distance) * maxDistance; 
         } 
-        if (this.dom.joystick && this.dom.joystick.stick) {
-            this.dom.joystick.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`; 
+        const dxNorm = deltaX / maxDistance;
+        const dyNorm = deltaY / maxDistance;
+        this.joystick.dx = dxNorm;
+        this.joystick.dy = dyNorm;
+        this._joystickPending.dx = deltaX;
+        this._joystickPending.dy = deltaY;
+        if (!this._joystickRAF) {
+            this._joystickRAF = requestAnimationFrame(() => {
+                this._joystickRAF = null;
+                if (this.dom.joystick && this.dom.joystick.stick) {
+                    this.dom.joystick.stick.style.transform = 
+                        `translate(${this._joystickPending.dx}px, ${this._joystickPending.dy}px)`;
+                }
+            });
         }
-        this.joystick.dx = deltaX / maxDistance; 
-        this.joystick.dy = deltaY / maxDistance; 
     }
     handlePointerEnd(e) { 
         if (this.joystick.active && e.pointerId === this.joystick.touchId) { 

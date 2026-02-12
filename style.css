@@ -422,7 +422,7 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
 
 .controls { margin-top: 20px; font-size: clamp(10px, 1.8vw, 12px); color: var(--text-muted-color); }
 #joystick-container { position: fixed; width: 120px; height: 120px; background: rgba(128, 128, 128, 0.4); border-radius: 50%; z-index: 150; display: none; pointer-events: none; }
-#joystick-stick { position: absolute; top: 30px; left: 30px; width: 60px; height: 60px; background: rgba(200, 200, 200, 0.6); border-radius: 50%; }
+#joystick-stick { position: absolute; top: 30px; left: 30px; width: 60px; height: 60px; background: rgba(200, 200, 200, 0.6); border-radius: 50%; will-change: transform; }
 #pauseButton { 
     position: absolute; 
     top: 15px; 

@@ -11,6 +11,11 @@ export class LoginManager {
         this.currentPlayer = null;
         this.isLoggedIn = false;
         this.isGuest = false;
+        this.analyticsManager = null;
+    }
+
+    setDependencies({ analyticsManager }) {
+        this.analyticsManager = analyticsManager;
     }
 
     initLogin() {
@@ -21,9 +26,9 @@ export class LoginManager {
         const savedToken = localStorage.getItem('ballSurvivalGithubToken');
         if (savedToken && savedToken !== 'ghp_your_token_here') {
             cloudSyncManager.configure(savedToken);
-            if (typeof window !== 'undefined' && window.analyticsManager) {
-                window.analyticsManager.config.githubToken = savedToken;
-                window.analyticsManager.config.enableCloudSync = true;
+            if (this.analyticsManager) {
+                this.analyticsManager.config.githubToken = savedToken;
+                this.analyticsManager.config.enableCloudSync = true;
             }
             setTimeout(() => this.loadUserAccounts(), 1000);
         }
@@ -190,8 +195,8 @@ export class LoginManager {
                     this._showMessage('✅ Login completato!', false);
                 }
 
-                if (typeof window !== 'undefined' && window.analyticsManager) {
-                    await window.analyticsManager.syncPlayerData(this.currentPlayer);
+                if (this.analyticsManager) {
+                    await this.analyticsManager.syncPlayerData(this.currentPlayer);
                 }
             } else {
                 this._showMessage('❌ Username o password non validi', true);
@@ -253,8 +258,8 @@ export class LoginManager {
                     this._showMessage('✅ Registrazione completata!', false);
                 }
 
-                if (typeof window !== 'undefined' && window.analyticsManager) {
-                    await window.analyticsManager.syncPlayerData(this.currentPlayer);
+                if (this.analyticsManager) {
+                    await this.analyticsManager.syncPlayerData(this.currentPlayer);
                 }
             } else {
                 this._showMessage('❌ Username già esistente', true);
@@ -336,9 +341,9 @@ export class LoginManager {
             if (fromPopup) this.showCloudSyncMessage('🔄 Configurazione in corso...', 'info');
             cloudSyncManager.configure(token);
 
-            if (typeof window !== 'undefined' && window.analyticsManager) {
-                window.analyticsManager.config.githubToken = token;
-                window.analyticsManager.config.enableCloudSync = true;
+            if (this.analyticsManager) {
+                this.analyticsManager.config.githubToken = token;
+                this.analyticsManager.config.enableCloudSync = true;
             }
 
             const testResult = await cloudSyncManager.testConnection();
@@ -412,7 +417,7 @@ export class LoginManager {
                 accounts: sanitizedPlayers
             };
 
-            const analyticsData = (typeof window !== 'undefined' && window.analyticsManager) ? window.analyticsManager.analyticsData : null;
+            const analyticsData = this.analyticsManager ? this.analyticsManager.analyticsData : null;
             return await cloudSyncManager.syncAll(analyticsData, accountsData);
         } catch (error) {
             console.error('❌ Errore sync account:', error);
@@ -465,7 +470,7 @@ export class LoginManager {
         const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
         console.log('Account locali:', Object.keys(players));
 
-        if (typeof window !== 'undefined' && window.analyticsManager?.config?.enableCloudSync) {
+        if (this.analyticsManager?.config?.enableCloudSync) {
             const syncResult = await this.syncUserAccounts();
             const loadResult = await this.loadUserAccounts();
             console.log('Sync result:', syncResult);
@@ -493,9 +498,9 @@ export class LoginManager {
         if (confirm('⚠️ Sei sicuro di voler resettare la configurazione del cloud sync?\n\nQuesto rimuoverà il token salvato.')) {
             cloudSyncManager.reset();
 
-            if (typeof window !== 'undefined' && window.analyticsManager) {
-                window.analyticsManager.config.githubToken = '';
-                window.analyticsManager.config.enableCloudSync = false;
+            if (this.analyticsManager) {
+                this.analyticsManager.config.githubToken = '';
+                this.analyticsManager.config.enableCloudSync = false;
             }
 
             this.showCloudSyncMessage('✅ Configurazione resettata', 'success');
@@ -510,9 +515,9 @@ export class LoginManager {
         if (confirm('⚠️ Sei sicuro di voler resettare la configurazione del token?\n\nQuesto rimuoverà il token salvato.')) {
             cloudSyncManager.reset();
 
-            if (typeof window !== 'undefined' && window.analyticsManager) {
-                window.analyticsManager.config.githubToken = '';
-                window.analyticsManager.config.enableCloudSync = false;
+            if (this.analyticsManager) {
+                this.analyticsManager.config.githubToken = '';
+                this.analyticsManager.config.enableCloudSync = false;
             }
 
             this._showMessage('✅ Configurazione token resettata. Usa il pulsante Cloud Sync per riconfigurare.', false);
@@ -753,56 +758,36 @@ export class LoginManager {
 export const playerAuth = new LoginManager();
 
 /**
- * Attaches login-related handlers to window for HTML inline onclick handlers.
- * Call this after DOM is ready (e.g. on DOMContentLoaded).
- * @param {LoginManager} auth - The LoginManager instance (default: playerAuth)
+ * Attaches login-related handlers. Call after DOM is ready.
+ * @param {LoginManager} auth - The LoginManager instance
+ * @param {{ analyticsManager?: object }} deps - Dependencies (analyticsManager from game)
  */
-export function setupLoginHandlers(auth = playerAuth) {
-    // Bind handlers for inline onclick attributes
-    window.showLoginForm = () => auth.showLoginForm();
-    window.showRegisterForm = () => auth.showRegisterForm();
-    window.playAsGuest = () => auth.playAsGuest();
-    window.backToLoginMenu = () => auth.backToLoginMenu();
-    window.login = () => auth.login();
-    window.register = () => auth.register();
-    window.logout = () => auth.logout();
-    window.showCloudSyncConfig = () => auth.showCloudSyncConfig();
-    window.syncUserAccounts = () => auth.syncUserAccounts();
-    window.resetTokenConfiguration = () => auth.resetTokenConfiguration();
-    window.configureCloudSync = () => auth.configureCloudSync();
-    window.testCloudSync = () => auth.testCloudSync();
-    window.resetCloudSync = () => auth.resetCloudSync();
-    window.closeCloudSyncConfig = () => auth.closeCloudSyncConfig();
-    window.forcePushCurrentUserToCloud = () => auth.forcePushCurrentUserToCloud();
+export function setupLoginHandlers(auth = playerAuth, deps = {}) {
+    if (deps.analyticsManager) auth.setDependencies({ analyticsManager: deps.analyticsManager });
 
-    // For backward compatibility with game.js and other scripts
-    Object.defineProperty(window, 'currentPlayer', {
-        get: () => auth.currentPlayer,
-        configurable: true
-    });
-    Object.defineProperty(window, 'isLoggedIn', {
-        get: () => auth.isLoggedIn,
-        configurable: true
-    });
-    Object.defineProperty(window, 'isGuest', {
-        get: () => auth.isGuest,
-        configurable: true
-    });
-    window.updatePlayerStats = (stats) => auth.updatePlayerStats(stats);
-    window.getPlayerData = () => auth.getPlayerData();
+    // Attach event listeners (no inline onclick)
+    const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', () => fn()); };
+    bind('showLoginFormBtn', () => auth.showLoginForm());
+    bind('showRegisterFormBtn', () => auth.showRegisterForm());
+    bind('playAsGuestBtn', () => auth.playAsGuest());
+    bind('backToLoginMenuBtn1', () => auth.backToLoginMenu());
+    bind('backToLoginMenuBtn2', () => auth.backToLoginMenu());
+    bind('loginBtn', () => auth.login());
+    bind('registerBtn', () => auth.register());
+    bind('logoutBtn', () => auth.logout());
+    bind('showCloudSyncConfigBtn', () => auth.showCloudSyncConfig());
+    bind('syncUserAccountsBtn', () => auth.syncUserAccounts());
+    bind('resetTokenConfigBtn', () => auth.resetTokenConfiguration());
+    bind('configureCloudSyncBtn', () => auth.configureCloudSync());
+    bind('testCloudSyncBtn', () => auth.testCloudSync());
+    bind('resetCloudSyncBtn', () => auth.resetCloudSync());
+    bind('cloudSyncBtn', () => auth.showCloudSyncConfig());
 
-    // Initialize
-    auth.initLogin();
-
-    // Close cloud sync popup button
     const closeCloudSyncBtn = document.getElementById('closeCloudSyncBtn');
-    if (closeCloudSyncBtn) {
-        closeCloudSyncBtn.addEventListener('click', () => auth.closeCloudSyncConfig());
-    }
+    if (closeCloudSyncBtn) closeCloudSyncBtn.addEventListener('click', () => auth.closeCloudSyncConfig());
 
-    // Modify sync button for force push (optional)
-    const syncBtn = document.querySelector('button[onclick*="syncUserAccounts()"]');
-    if (syncBtn) {
-        syncBtn.setAttribute('onclick', 'forcePushCurrentUserToCloud()');
-    }
+    const forcePushBtn = document.getElementById('forcePushSyncBtn');
+    if (forcePushBtn) forcePushBtn.addEventListener('click', () => auth.forcePushCurrentUserToCloud());
+
+    auth.initLogin();
 }

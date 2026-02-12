@@ -19,6 +19,7 @@ export class Enemy extends Entity {
         this.stunTimer = 0;
         this.burnTimer = 0;
         this.burnDamage = 0;
+        this.lastContactDamageTime = -999;
     }
 
     update(game) {
@@ -60,7 +61,11 @@ export class Enemy extends Entity {
         this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y));
 
         if (dist < game.player.stats.radius + this.stats.radius) {
-            game.player.takeDamage(this.stats.damage, game, this);
+            const cooldown = CONFIG.enemies.contactDamageCooldown ?? 0.9;
+            if (game.totalElapsedTime - this.lastContactDamageTime >= cooldown) {
+                game.player.takeDamage(this.stats.damage, game, this);
+                this.lastContactDamageTime = game.totalElapsedTime;
+            }
 
             // Contact effects from player archetype
             if (game.player.modifiers.contactBurn) {

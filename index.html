@@ -51,7 +51,7 @@
                 <div id="loginMainMenu">
                     <p style="color: #e0e0e0; font-size: 14px; margin-bottom: 15px;">Come vuoi giocare?</p>
                     
-                    <button onclick="showLoginForm()" style="
+                    <button id="showLoginFormBtn" style="
                         background: #4CAF50;
                         color: white;
                         padding: 12px 20px;
@@ -66,7 +66,7 @@
                         🔑 Ho già un account
                     </button>
                     
-                    <button onclick="showRegisterForm()" style="
+                    <button id="showRegisterFormBtn" style="
                         background: #2196F3;
                         color: white;
                         padding: 12px 20px;
@@ -81,7 +81,7 @@
                         ✨ Crea nuovo account
                     </button>
                     
-                    <button onclick="playAsGuest()" style="
+                    <button id="playAsGuestBtn" style="
                         background: #FF9800;
                         color: white;
                         padding: 12px 20px;
@@ -136,7 +136,7 @@
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
-                        <button onclick="login()" style="
+                        <button id="loginBtn" style="
                             background: #4CAF50;
                             color: white;
                             padding: 8px 16px;
@@ -146,7 +146,7 @@
                             margin: 2px;
                             cursor: pointer;
                         ">Accedi</button>
-                        <button onclick="backToLoginMenu()" style="
+                        <button id="backToLoginMenuBtn1" style="
                             background: #666;
                             color: white;
                             padding: 8px 16px;
@@ -207,7 +207,7 @@
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
-                        <button onclick="register()" style="
+                        <button id="registerBtn" style="
                             background: #2196F3;
                             color: white;
                             padding: 8px 16px;
@@ -217,7 +217,7 @@
                             margin: 2px;
                             cursor: pointer;
                         ">Registrati</button>
-                        <button onclick="backToLoginMenu()" style="
+                        <button id="backToLoginMenuBtn2" style="
                             background: #666;
                             color: white;
                             padding: 8px 16px;
@@ -236,7 +236,7 @@
                     <div id="playerName" style="font-size: 16px; margin: 5px 0; color: var(--text-color);"></div>
                     <div id="playerStats" style="font-size: 12px; margin: 5px 0; color: #ccc;"></div>
                     <div style="margin: 10px 0;">
-                        <button onclick="showCloudSyncConfig()" style="
+                        <button id="showCloudSyncConfigBtn" style="
                             background: #4a90e2;
                             color: white;
                             padding: 8px 16px;
@@ -246,7 +246,7 @@
                             margin: 2px;
                             cursor: pointer;
                         ">☁️ Configura Cloud Sync</button>
-                        <button onclick="syncUserAccounts()" style="
+                        <button id="forcePushSyncBtn" style="
                             background: #4CAF50;
                             color: white;
                             padding: 8px 16px;
@@ -256,7 +256,7 @@
                             margin: 2px;
                             cursor: pointer;
                         ">🔄 Sync Account</button>
-                        <button onclick="resetTokenConfiguration()" style="
+                        <button id="resetTokenConfigBtn" style="
                             background: #ff9800;
                             color: white;
                             padding: 8px 16px;
@@ -266,7 +266,7 @@
                             margin: 2px;
                             cursor: pointer;
                         ">🔧 Reset Token</button>
-                        <button onclick="logout()" style="
+                        <button id="logoutBtn" style="
                             background: #f44336;
                             color: white;
                             padding: 8px 16px;
@@ -317,7 +317,7 @@
                 <button id="startGameBtn">Inizia Partita</button>
                 <button id="inventoryBtn" style="background: #8e44ad; margin-top: 10px;">📦 Inventario</button>
                 <button id="achievementsBtn" style="background: #f39c12; margin-top: 10px;">🏆 Achievements</button>
-                <button id="cloudSyncBtn" style="background: #4a90e2; margin-top: 10px;" onclick="showCloudSyncConfig()">☁️ Cloud Sync</button>
+                <button id="cloudSyncBtn" style="background: #4a90e2; margin-top: 10px;">☁️ Cloud Sync</button>
             </div>
             <div class="save-load-container">
                 <p>Carica i tuoi progressi:</p>
@@ -477,10 +477,10 @@
                 </div>
                 
                 <div class="sync-actions">
-                    <button onclick="configureCloudSync()" style="background: #4CAF50; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">✅ Configura e Sincronizza</button>
-                    <button onclick="testCloudSync()" style="background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🧪 Test Connessione</button>
-                    <button onclick="syncUserAccounts()" style="background: #FF9800; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔄 Sync Account</button>
-                    <button onclick="resetCloudSync()" style="background: #f44336; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔧 Reset Config</button>
+                    <button id="configureCloudSyncBtn" style="background: #4CAF50; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">✅ Configura e Sincronizza</button>
+                    <button id="testCloudSyncBtn" style="background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🧪 Test Connessione</button>
+                    <button id="syncUserAccountsBtn" style="background: #FF9800; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔄 Sync Account</button>
+                    <button id="resetCloudSyncBtn" style="background: #f44336; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔧 Reset Config</button>
                 </div>
                 
                 <div id="cloudSyncMessage" style="margin: 10px 0; padding: 8px; border-radius: 4px; display: none; font-size: 12px;"></div>
@@ -505,8 +505,8 @@
             </div>
             
             <div class="button-group">
-                <button onclick="configureStartupToken()" class="btn btn-primary">✅ Configura e Sincronizza</button>
-                <button onclick="skipTokenSetup()" class="btn btn-secondary">⏭️ Salta (Solo Locale)</button>
+                <button id="configureStartupTokenBtn" class="btn btn-primary">✅ Configura e Sincronizza</button>
+                <button id="skipTokenSetupBtn" class="btn btn-secondary">⏭️ Salta (Solo Locale)</button>
             </div>
             
             <div id="tokenSetupStatus" class="status-message"></div>

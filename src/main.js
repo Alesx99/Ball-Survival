@@ -14,30 +14,24 @@ import { playerAuth, setupLoginHandlers } from './auth/LoginManager.js';
  * Initialize the application when the DOM is ready.
  */
 function initApp() {
-    // 1. Setup login handlers (attaches global functions for inline onclick)
-    setupLoginHandlers(playerAuth);
-
-    // 2. Create the game instance
+    // 1. Create the game instance
     const game = new BallSurvivalGame('gameCanvas');
 
-    // 3. Wire auth into game
+    // 2. Wire auth into game and setup login (pass analyticsManager for cloud sync)
     game.playerAuth = playerAuth;
+    setupLoginHandlers(playerAuth, { analyticsManager: game.analyticsManager });
 
-    // 4. Expose game and analyticsManager globally (needed for LoginManager cloud sync)
-    window.game = game;
-    window.analyticsManager = game.analyticsManager;
-
-    // 5. Wire up token setup screen buttons (HTML references these but they were never implemented)
-    window.configureStartupToken = () => {
+    // 3. Wire token setup screen buttons
+    const configureBtn = document.getElementById('configureStartupTokenBtn');
+    const skipBtn = document.getElementById('skipTokenSetupBtn');
+    if (configureBtn) configureBtn.addEventListener('click', () => {
         const tokenInput = document.getElementById('startupToken');
-        if (tokenInput && tokenInput.value.trim()) {
-            playerAuth.configureCloudSync();
-        }
-    };
-    window.skipTokenSetup = () => {
+        if (tokenInput?.value?.trim()) playerAuth.configureCloudSync(tokenInput.value.trim());
+    });
+    if (skipBtn) skipBtn.addEventListener('click', () => {
         const tokenScreen = document.getElementById('tokenSetupScreen');
         if (tokenScreen) tokenScreen.style.display = 'none';
-    };
+    });
 
     console.log('Ball Survival initialized via ES modules.');
 }

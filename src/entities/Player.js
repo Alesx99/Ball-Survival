@@ -27,6 +27,7 @@ export class Player extends Entity {
         if (this.xpNext <= 0) this.xpNext = 1;
 
         this.powerUpTimers = { invincibility: 0, damageBoost: 0, lifesteal: 0 };
+        this.iFramesTimer = 0;
         this.stats = { ...this.baseStats };
         this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false };
         this.hp = this.stats.maxHp;
@@ -177,6 +178,7 @@ export class Player extends Entity {
         for (const key in this.powerUpTimers) {
             if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--;
         }
+        if (this.iFramesTimer > 0) this.iFramesTimer--;
     }
 
     gainXP(amount) {
@@ -200,7 +202,7 @@ export class Player extends Entity {
 
     takeDamage(amount, game, sourceEnemy = null) {
         const shieldSpell = game?.spells?.shield;
-        if ((shieldSpell && shieldSpell.active && shieldSpell.evolution !== 'reflect') || this.powerUpTimers.invincibility > 0) return;
+        if ((shieldSpell && shieldSpell.active && shieldSpell.evolution !== 'reflect') || this.powerUpTimers.invincibility > 0 || this.iFramesTimer > 0) return;
 
         let maxDR = 0.85;
         if (this.archetype && this.archetype.id === 'steel') {
@@ -225,6 +227,7 @@ export class Player extends Entity {
 
         const finalDamage = amount * (1 - damageReduction);
         this.hp -= finalDamage;
+        this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
         if (this.hp <= 0 && game) game.gameOver?.();
     }
 
@@ -257,9 +260,10 @@ export class Player extends Entity {
         ctx.strokeRect(barX, barY, barWidth, barHeight);
 
         const shieldSpell = game?.spells?.shield;
-        if ((shieldSpell && shieldSpell.active) || this.powerUpTimers.invincibility > 0) {
+        if ((shieldSpell && shieldSpell.active) || this.powerUpTimers.invincibility > 0 || this.iFramesTimer > 0) {
             const shieldRadius = this.stats.radius + 8 + Math.sin(Date.now() / 200) * 3;
-            const alpha = this.powerUpTimers.invincibility > 0 ? (this.powerUpTimers.invincibility % 60 < 30 ? 0.9 : 0.5) : 0.8;
+            const isIFrames = this.iFramesTimer > 0 && this.powerUpTimers.invincibility <= 0;
+            const alpha = this.powerUpTimers.invincibility > 0 ? (this.powerUpTimers.invincibility % 60 < 30 ? 0.9 : 0.5) : (isIFrames ? (this.iFramesTimer % 8 < 4 ? 0.6 : 0.2) : 0.8);
             ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
             ctx.fillStyle = `rgba(255, 255, 0, ${alpha / 4})`;
             ctx.lineWidth = 3;
