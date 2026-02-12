@@ -20,6 +20,7 @@ import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { BalanceSystem } from '../systems/BalanceSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { UISystem } from '../systems/UISystem.js';
+import { AudioManager } from '../systems/AudioManager.js';
 
 export class BallSurvivalGame {
     constructor(canvasId) {
@@ -52,6 +53,8 @@ export class BallSurvivalGame {
         this.achievementSystem = new AchievementSystem();
         
         this.analyticsManager = new AnalyticsManager();
+        this.audio = new AudioManager();
+        this.audio.init();
         this._entityClasses = { Projectile, Aura, Orbital, StaticField, Sanctuary, XpOrb, GemOrb, MaterialOrb, Chest, DroppedItem, Particle, FireTrail, Effect, Boss, Enemy };
         this.unlockedArchetypes = new Set(['standard']);
         
@@ -208,6 +211,7 @@ export class BallSurvivalGame {
             if (p) p.addEventListener('click', e => e.stopPropagation());
         });
         document.addEventListener('keydown', (e) => {
+            this.audio?.unlock();
             this.player.keys[e.code] = true;
             if (e.code === 'Escape') this.handleEscapeKey();
             if (e.code === 'KeyE') this.handleInteractionKey();
@@ -266,8 +270,10 @@ export class BallSurvivalGame {
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
-        this.state = 'running'; 
+        this.state = 'running';
+        this._updateAccumulator = 0;
         this.lastFrameTime = performance.now();
+        this.audio?.unlock();
         if (!this.gameLoopId) this.gameLoop();
     }
     gameOver() {
@@ -308,7 +314,8 @@ export class BallSurvivalGame {
     this.dom.inGameUI.container.style.display = 'none';
     this.hideAllPopups(true); 
     this.showPopup('gameOver');
-    
+    this.audio?.playGameOver();
+
     // Pulisci il canvas dopo aver mostrato il popup di game over
     setTimeout(() => {
         this.clearCanvas();
@@ -333,15 +340,25 @@ export class BallSurvivalGame {
     }
     gameLoop() {
         this.gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
-        const now = performance.now(); const deltaTime = (now - this.lastFrameTime) / 1000;
+        const now = performance.now();
+        const deltaTime = Math.min((now - this.lastFrameTime) / 1000, 0.1);
+        this.lastFrameTime = now;
+        const FIXED_DT = 1 / 60;
+        const MAX_STEPS = 3;
         if (this.state === 'running') {
-            this.totalElapsedTime += deltaTime;
-            if (this.menuCooldown > 0) this.menuCooldown--;
-            this.update(deltaTime);
+            this._updateAccumulator = (this._updateAccumulator ?? 0) + deltaTime;
+            let steps = 0;
+            while (this._updateAccumulator >= FIXED_DT && steps < MAX_STEPS) {
+                this.totalElapsedTime += FIXED_DT;
+                if (this.menuCooldown > 0) this.menuCooldown--;
+                this.update(FIXED_DT);
+                this._updateAccumulator -= FIXED_DT;
+                steps++;
+            }
+            if (this._updateAccumulator > FIXED_DT * 2) this._updateAccumulator = FIXED_DT;
             this.updateInGameUI();
         }
-        this.draw(); 
-        this.lastFrameTime = now;
+        this.draw();
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
@@ -443,6 +460,7 @@ export class BallSurvivalGame {
         }
     }
     handlePointerDown(e) { 
+        this.audio?.unlock();
         if (this.state === 'gameOver' || this.state === 'startScreen') return; 
         if (!this.canvas) return;
         

@@ -97,6 +97,7 @@ export class Enemy extends Entity {
 
     onDeath(game) {
         this.toRemove = true;
+        game.audio?.playEnemyDeath();
         game.enemiesKilled++;
         game.score += 10 * (this.stats.isElite ? 3 : 1);
 

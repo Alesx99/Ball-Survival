@@ -185,7 +185,7 @@ export class Player extends Entity {
         this.xp += amount * this.modifiers.xpGain;
     }
 
-    levelUp() {
+    levelUp(game) {
         this.level++;
         this.xp -= this.xpNext;
         const c = CONFIG.player.xpCurve;
@@ -198,6 +198,7 @@ export class Player extends Entity {
 
         this.hp = this.stats.maxHp;
         this.powerUpTimers.invincibility = 120;
+        game?.audio?.playLevelUp();
     }
 
     takeDamage(amount, game, sourceEnemy = null) {
@@ -227,6 +228,7 @@ export class Player extends Entity {
 
         const finalDamage = amount * (1 - damageReduction);
         this.hp -= finalDamage;
+        game?.audio?.playDamage();
         this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
         if (this.hp <= 0 && game) game.gameOver?.();
     }

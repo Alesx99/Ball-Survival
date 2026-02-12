@@ -29,6 +29,15 @@ Cali di framerate su dispositivi mobile quando si muove il personaggio (joystick
 ### 6. Culling entità
 - Fire trails, particelle, orbs ed effetti disegnati solo se nella viewport (+ margine 80px)
 
+### 7. Fixed timestep (schermi ad alto refresh rate)
+- **Prima**: Update ogni frame → su 120Hz+ la logica girava 2x più veloce, microlag
+- **Dopo**: Timestep fisso 1/60s, max 3 step per frame; rendering a refresh rate nativo
+
+## Audio
+- **AudioManager** con Web Audio API, suoni procedurali (no asset esterni)
+- Unlock al primo click/tocco (policy browser)
+- Suoni: hit nemico, danno, level up, pickup XP/gem, spell, game over
+
 ## Come verificare
 - Testare su dispositivo mobile reale (o Chrome DevTools → Toggle device toolbar)
 - Profilare con Chrome Performance per individuare ulteriori colli di bottiglia

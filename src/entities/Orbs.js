@@ -26,6 +26,7 @@ export class XpOrb extends Entity {
         }
         if (dist < 20) {
             player.gainXP(this.value);
+            game.audio?.playPickup();
             this.toRemove = true;
         }
     }
@@ -54,6 +55,7 @@ export class GemOrb extends Entity {
         }
         if (dist < 20) {
             game.gemsThisRun += this.value;
+            game.audio?.playGemPickup();
             this.toRemove = true;
         }
     }

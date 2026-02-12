@@ -21,7 +21,7 @@ export const ProgressionSystem = {
     },
 
     handleLevelUp() {
-        this.player.levelUp();
+        this.player.levelUp(this);
         this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'level_up_burst', maxRadius: 60, life: 30, initialLife: 30 }));
         this.notifications.push({ text: "Scudo temporaneo attivato!", life: 120 });
         this.populateUpgradeMenu();

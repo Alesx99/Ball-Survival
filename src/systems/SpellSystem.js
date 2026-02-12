@@ -42,6 +42,7 @@ export const SpellSystem = {
 
                     if (this[castFunctionName](now)) {
                         s.lastCast = now;
+                        this.audio?.playSpell();
                     }
                 }
             }
