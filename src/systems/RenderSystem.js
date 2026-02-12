@@ -177,11 +177,9 @@ export const RenderSystem = {
         if (!this.dom.gameContainer || !this.canvas) return;
         
         const rect = this.dom.gameContainer.getBoundingClientRect();
-        // Limiti massimi desktop
-        const maxW = window.innerWidth <= 700 ? CONFIG.world.width : Math.min(CONFIG.world.width, 1200);
-        const maxH = window.innerWidth <= 700 ? CONFIG.world.height : Math.min(CONFIG.world.height, 900);
-        let width = Math.min(rect.width, maxW);
-        let height = Math.min(rect.height, maxH);
+        // Full display: usa l'intero viewport senza limiti artificiali
+        const width = Math.floor(rect.width);
+        const height = Math.floor(rect.height);
         this.canvas.width = width;
         this.canvas.height = height;
         this.camera.width = width;
