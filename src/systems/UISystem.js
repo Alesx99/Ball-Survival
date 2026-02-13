@@ -138,35 +138,34 @@ export const UISystem = {
         
         const progress = this.achievementSystem.getProgress();
         
-        // Header con progresso
-        const header = document.createElement('div');
-        header.className = 'achievements-header';
-        header.innerHTML = `
-            <h3>🏆 Achievements</h3>
-            <p>Progresso: ${progress.unlocked}/${progress.total} (${progress.percentage}%)</p>
-        `;
-        container.appendChild(header);
+        const progressPara = document.createElement('p');
+        progressPara.style.cssText = 'margin-bottom: 12px; color: var(--text-muted-color);';
+        progressPara.textContent = `Progresso: ${progress.unlocked}/${progress.total} (${progress.percentage}%)`;
+        container.appendChild(progressPara);
         
         // Lista achievements
         Object.values(this.achievementSystem.achievements).forEach(achievement => {
             const div = document.createElement('div');
             div.className = `achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
             
-            const progressPercent = Math.min(100, (achievement.progress / achievement.target) * 100);
+            const progress = achievement.bestValue ?? achievement.currentValue ?? 0;
+            const target = Array.isArray(achievement.thresholds) && achievement.thresholds.length > 0
+                ? Math.max(...achievement.thresholds)
+                : 1;
+            const progressPercent = target > 0 ? Math.min(100, (progress / target) * 100) : 0;
+            const rewardGems = achievement.reward?.gems ?? (achievement.tier + 1) * 5;
             
             div.innerHTML = `
                 <div class="achievement-icon">${achievement.icon}</div>
                 <div class="achievement-info">
-                    <h4>${achievement.name}</h4>
-                    <p>${achievement.description}</p>
+                    <h4 class="achievement-name">${achievement.name}</h4>
+                    <p class="achievement-description">${achievement.description}</p>
                     <div class="achievement-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
-                        </div>
-                        <span>${achievement.progress}/${achievement.target}</span>
+                        <div class="achievement-progress-fill" style="width: ${progressPercent}%"></div>
                     </div>
+                    <span style="font-size:12px;">${progress}/${target}</span>
                     <div class="achievement-reward">
-                        <span>💰 ${achievement.reward.gems} gemme</span>
+                        <span>💰 ${rewardGems} gemme</span>
                     </div>
                 </div>
                 <div class="achievement-status">

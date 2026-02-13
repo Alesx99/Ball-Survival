@@ -174,7 +174,7 @@ export class BallSurvivalGame {
         if (this.dom.buttons.closeAchievements) {
             this.dom.buttons.closeAchievements.onclick = () => {
                 this.hideAllPopups();
-                this.returnToStartScreen();
+                this.showPopup('start');
             };
         }
         

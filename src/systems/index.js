@@ -217,6 +217,7 @@ class AchievementSystem {
             survival_time_5min: { id: 'survival_time_5min', name: 'Survivor 5min', description: 'Survive 5 minutes', icon: '⏱️', thresholds: [300], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             survival_time_10min: { id: 'survival_time_10min', name: 'Survivor 10min', description: 'Survive 10 minutes', icon: '⏱️', thresholds: [600], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             survival_time_15min: { id: 'survival_time_15min', name: 'Survivor 15min', description: 'Survive 15 minutes', icon: '⏱️', thresholds: [900], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
+            survival_time_666: { id: 'survival_time_666', name: '666', description: 'Sopravvivi 666 secondi (11:06)', icon: '👿', thresholds: [666], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             level_10: { id: 'level_10', name: 'Level 10', description: 'Reach level 10', icon: '📈', thresholds: [10], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             level_20: { id: 'level_20', name: 'Level 20', description: 'Reach level 20', icon: '📈', thresholds: [20], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             level_30: { id: 'level_30', name: 'Level 30', description: 'Reach level 30', icon: '📈', thresholds: [30], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 }
@@ -262,7 +263,7 @@ class AchievementSystem {
     }
 
     checkTimeBasedAchievements(gameTime, game) {
-        const timeAchievements = ['survival_time_5min', 'survival_time_10min', 'survival_time_15min'];
+        const timeAchievements = ['survival_time_5min', 'survival_time_10min', 'survival_time_15min', 'survival_time_666'];
         for (const id of timeAchievements) {
             this.updateProgress(id, gameTime, game);
         }
@@ -297,6 +298,16 @@ class AchievementSystem {
 
     getAchievementsList() {
         return Object.values(this.achievements);
+    }
+
+    getProgress() {
+        const list = Object.values(this.achievements);
+        const unlocked = list.filter(a => a.unlocked).length;
+        return {
+            unlocked,
+            total: list.length,
+            percentage: list.length ? Math.round((unlocked / list.length) * 100) : 0
+        };
     }
 
     unlockAchievement(achievementId, tier, game) {
