@@ -353,7 +353,9 @@ export class BallSurvivalGame {
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
         this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
         this.elitesKilledThisStage = 0; // Elite uccisi nello stage corrente
-        
+        this.screenShakeIntensity = 0;
+        this.hitFlashTimer = 0;
+
         // NON reinizializzare materiali e arsenale - vengono mantenuti tra le run
         // this.materials, this.cores, this.weapons, this.arsenal rimangono invariati
         
@@ -378,8 +380,18 @@ export class BallSurvivalGame {
             }
             if (this._updateAccumulator > FIXED_DT * 2) this._updateAccumulator = FIXED_DT;
             this.updateInGameUI();
+            if (this.screenShakeIntensity > 0) {
+                this.screenShakeIntensity *= 0.88;
+                if (this.screenShakeIntensity < 0.5) this.screenShakeIntensity = 0;
+            }
+            if (this.hitFlashTimer > 0) this.hitFlashTimer--;
         }
         this.draw();
+    }
+
+    addScreenShake(amount) {
+        if (CONFIG.accessibility?.reduceMotion) return;
+        this.screenShakeIntensity = Math.min(25, (this.screenShakeIntensity || 0) + amount);
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco

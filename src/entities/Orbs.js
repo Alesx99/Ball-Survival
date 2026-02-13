@@ -32,10 +32,14 @@ export class XpOrb extends Entity {
     }
 
     draw(ctx, game) {
+        ctx.save();
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 12;
         ctx.fillStyle = '#00ff88';
         ctx.beginPath();
         ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
     }
 }
 
@@ -64,6 +68,8 @@ export class GemOrb extends Entity {
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(Date.now() / 500);
+        ctx.shadowColor = '#72f5f5';
+        ctx.shadowBlur = 14;
         ctx.fillStyle = '#72f5f5';
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2;
@@ -75,6 +81,7 @@ export class GemOrb extends Entity {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        ctx.shadowBlur = 0;
         ctx.restore();
     }
 }
@@ -127,10 +134,13 @@ export class MaterialOrb extends Entity {
         const pulse = Math.sin(Date.now() / 200) * 2;
         const size = 8 + (rarity === 'legendary' ? pulse : 0);
 
+        ctx.shadowColor = color;
+        ctx.shadowBlur = rarity === 'legendary' ? 18 : rarity === 'epic' ? 14 : 10;
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(0, 0, size, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
         if (rarity !== 'common') {
             ctx.strokeStyle = rarity === 'legendary' ? '#FFD700' : '#FFFFFF';

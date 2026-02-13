@@ -17,6 +17,10 @@ export const RenderSystem = {
         this.ctx.save();
         const scale = this.canvasScale ?? 1;
         this.ctx.scale(scale, scale);
+        const shake = this.screenShakeIntensity || 0;
+        if (shake > 0) {
+            this.ctx.translate((Math.random() - 0.5) * 2 * shake, (Math.random() - 0.5) * 2 * shake);
+        }
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
         const margin = 120;
@@ -47,6 +51,19 @@ export const RenderSystem = {
         if (this.player) this.player.draw(this.ctx, this);
         this.drawMerchant();
         this.ctx.restore();
+        const flash = this.hitFlashTimer || 0;
+        if (flash > 0) {
+            this.ctx.fillStyle = `rgba(255, 50, 50, ${0.35 * (flash / 10)})`;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        const cx = this.canvas.width / 2;
+        const cy = this.canvas.height / 2;
+        const r = Math.sqrt(cx * cx + cy * cy);
+        const vig = this.ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
+        vig.addColorStop(0, 'rgba(0,0,0,0)');
+        vig.addColorStop(1, 'rgba(0,0,0,0.4)');
+        this.ctx.fillStyle = vig;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawOffscreenIndicators();
         this.drawNotifications();
     },
@@ -142,10 +159,12 @@ export const RenderSystem = {
         // Pulisci le notifiche
         this.notifications = [];
         
-        // Reset della camera al centro
-        this.camera.x = 0;
-        this.camera.y = 0;
-        
+        // Reset della camera centrata sul player (evita salto al primo frame con lerp)
+        this.camera.x = CONFIG.world.width / 2 - this.camera.width / 2;
+        this.camera.y = CONFIG.world.height / 2 - this.camera.height / 2;
+        this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width));
+        this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height));
+
         // Pulisci il canvas con sfondo nero
         this.ctx.fillStyle = 'black';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -187,7 +206,15 @@ export const RenderSystem = {
         console.log('Canvas pulito completamente');
     },
 
-    updateCamera() { this.camera.x = this.player.x - this.camera.width / 2; this.camera.y = this.player.y - this.camera.height / 2; this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width)); this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height)); },
+    updateCamera() {
+        const lerp = 0.1;
+        const targetX = this.player.x - this.camera.width / 2;
+        const targetY = this.player.y - this.camera.height / 2;
+        this.camera.x += (targetX - this.camera.x) * lerp;
+        this.camera.y += (targetY - this.camera.y) * lerp;
+        this.camera.x = Math.max(0, Math.min(this.camera.x, CONFIG.world.width - this.camera.width));
+        this.camera.y = Math.max(0, Math.min(this.camera.y, CONFIG.world.height - this.camera.height));
+    },
 
     resizeCanvas() {
         if (!this.dom.gameContainer || !this.canvas) return;

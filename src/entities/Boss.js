@@ -36,6 +36,18 @@ export class Boss extends Enemy {
     }
 
     onDeath(game) {
+        const { Particle } = game._entityClasses;
+        for (let i = 0; i < 20; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 3 + Math.random() * 6;
+            game.addEntity('particles', new Particle(this.x, this.y, {
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 35 + Math.floor(Math.random() * 20),
+                color: this.color
+            }));
+        }
+        game.addScreenShake?.(12);
         super.onDeath(game);
         game.bossesKilledThisStage++;
         game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);

@@ -98,19 +98,32 @@ export class AudioManager {
         return Promise.resolve();
     }
 
+    /** Pitch variation: 95%–105% of base freq to avoid mechanical repetition */
+    _pitchVariation(freq, amount = 0.1) {
+        return freq * (1 - amount / 2 + Math.random() * amount);
+    }
+
+    /** AD envelope: short attack then decay to avoid "flat" clicks */
+    _applyEnvelope(gainNode, startTime, duration, vol, attackRatio = 0.15) {
+        const attackTime = Math.min(duration * attackRatio, 0.02);
+        gainNode.gain.setValueAtTime(0.001, startTime);
+        gainNode.gain.linearRampToValueAtTime(vol, startTime + attackTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    }
+
     _beep(freq, duration, type = 'square', vol = 0.15) {
         if (!this._ensureContext() || !this._effectsGain) return;
         try {
+            const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.connect(gain);
             gain.connect(this._effectsGain);
-            osc.frequency.value = freq;
+            osc.frequency.value = this._pitchVariation(freq);
             osc.type = type;
-            gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-            osc.start(this.ctx.currentTime);
-            osc.stop(this.ctx.currentTime + duration);
+            this._applyEnvelope(gain, now, duration, vol);
+            osc.start(now);
+            osc.stop(now + duration);
         } catch (e) { /* ignore */ }
     }
 
@@ -142,11 +155,10 @@ export class AudioManager {
                 const gain = this.ctx.createGain();
                 osc.connect(gain);
                 gain.connect(this._effectsGain);
-                osc.frequency.value = freq;
+                osc.frequency.value = this._pitchVariation(freq, 0.04);
                 osc.type = 'sine';
                 const t = this.ctx.currentTime + i * 0.08;
-                gain.gain.setValueAtTime(0.15, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                this._applyEnvelope(gain, t, 0.15, 0.15, 0.2);
                 osc.start(t);
                 osc.stop(t + 0.15);
             });
@@ -174,11 +186,10 @@ export class AudioManager {
                 const gain = this.ctx.createGain();
                 osc.connect(gain);
                 gain.connect(this._effectsGain);
-                osc.frequency.value = freq;
+                osc.frequency.value = this._pitchVariation(freq, 0.04);
                 osc.type = 'sine';
                 const t = this.ctx.currentTime + i * 0.2;
-                gain.gain.setValueAtTime(0.2, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                this._applyEnvelope(gain, t, 0.3, 0.2, 0.15);
                 osc.start(t);
                 osc.stop(t + 0.3);
             });
@@ -191,20 +202,62 @@ export class AudioManager {
 
     _createBgmBuffer() {
         if (!this._ensureContext()) return null;
-        const duration = 6;
+        const duration = 8;
         const sampleRate = this.ctx.sampleRate;
         const length = sampleRate * duration;
         const buffer = this.ctx.createBuffer(1, length, sampleRate);
         const data = buffer.getChannelData(0);
-        const chordFreqs = [130.81, 164.81, 196];
+        const t = (i) => i / sampleRate;
+
+        // C minor chord (slightly quieter to leave room)
+        const chordFreqs = [130.81, 155.56, 196]; // C3, Eb3, G3
+        const chordAmp = 0.06;
+
+        // Arpeggio: C4, Eb4, G4, C5, cycle every 0.35s
+        const arpFreqs = [261.63, 311.13, 392, 523.25];
+        const arpInterval = 0.35;
+        const arpAmp = 0.04;
+
+        // Melody: simple 8-note phrase (C4, Eb4, G4, C5, G4, Eb4, C4, rest) @ 0.5s per note
+        const melNotes = [261.63, 311.13, 392, 523.25, 392, 311.13, 261.63, 0];
+        const melInterval = 0.5;
+        const melAmp = 0.05;
+
+        // Bass: C2 on beats (every 0.5s), short pluck
+        const bassFreq = 65.41;
+        const bassInterval = 0.5;
+        const bassAmp = 0.1;
+
         for (let i = 0; i < length; i++) {
-            const t = i / sampleRate;
+            const ti = t(i);
             let v = 0;
+
+            // Chord pad
             chordFreqs.forEach((freq, idx) => {
-                const phase = (t * freq * 2 * Math.PI) + idx * 0.5;
-                v += Math.sin(phase) * 0.08;
+                const phase = (ti * freq * 2 * Math.PI) + idx * 0.5;
+                v += Math.sin(phase) * chordAmp;
             });
-            data[i] = v;
+
+            // Arpeggio
+            const arpIdx = Math.floor(ti / arpInterval) % arpFreqs.length;
+            const arpPhase = (ti % arpInterval) / arpInterval;
+            const arpEnv = arpPhase < 0.3 ? Math.sin(arpPhase * Math.PI / 0.3) : 0;
+            v += Math.sin(ti * arpFreqs[arpIdx] * 2 * Math.PI) * arpAmp * arpEnv;
+
+            // Melody
+            const melIdx = Math.floor(ti / melInterval) % melNotes.length;
+            const melPhase = (ti % melInterval) / melInterval;
+            const melEnv = melPhase < 0.4 ? Math.sin(melPhase * Math.PI / 0.4) : 0;
+            if (melNotes[melIdx] > 0) {
+                v += Math.sin(ti * melNotes[melIdx] * 2 * Math.PI) * melAmp * melEnv;
+            }
+
+            // Bass pluck
+            const bassBeat = (ti % bassInterval) / bassInterval;
+            const bassEnv = bassBeat < 0.15 ? Math.sin(bassBeat * Math.PI / 0.15) : 0;
+            v += Math.sin(ti * bassFreq * 2 * Math.PI) * bassAmp * bassEnv;
+
+            data[i] = Math.max(-1, Math.min(1, v));
         }
         return buffer;
     }

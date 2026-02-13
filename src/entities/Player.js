@@ -14,6 +14,7 @@ export class Player extends Entity {
         const baseStats = { ...CONFIG.player.base, maxHp: CONFIG.player.base.hp };
         this.baseStats = baseStats;
         this.keys = {};
+        this._trail = [];
         this.cores = [];
         this.weapons = [];
         this.initStats();
@@ -69,6 +70,7 @@ export class Player extends Entity {
         }
 
         this.hp = this.stats.maxHp;
+        this._trail = [];
 
         if (game) {
             if (this.cores && this.cores.length > 0) {
@@ -131,6 +133,12 @@ export class Player extends Entity {
         this.y += fDy * this.stats.speed;
         this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x));
         this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y));
+
+        if ((fDx !== 0 || fDy !== 0) && this.stats.speed > 0.5) {
+            if (!this._trail) this._trail = [];
+            this._trail.unshift({ x: this.x, y: this.y });
+            if (this._trail.length > 12) this._trail.pop();
+        }
 
         if (this.voidTeleportConfig && this.cores && this.cores.includes('void') && game) {
             const healthPercentage = this.hp / this.stats.maxHp;
@@ -229,11 +237,28 @@ export class Player extends Entity {
         const finalDamage = amount * (1 - damageReduction);
         this.hp -= finalDamage;
         game?.audio?.playDamage();
+        game?.addScreenShake?.(10);
+        game.hitFlashTimer = 10;
         this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
         if (this.hp <= 0 && game) game.gameOver?.();
     }
 
     draw(ctx, game) {
+        const trailColor = this.archetype?.color || '#4488ff';
+        if (this._trail && this._trail.length > 0) {
+            const hex = trailColor.startsWith('#') ? trailColor : '#4488ff';
+            const rs = parseInt(hex.slice(1, 3), 16);
+            const gs = parseInt(hex.slice(3, 5), 16);
+            const bs = parseInt(hex.slice(5, 7), 16);
+            this._trail.forEach((p, i) => {
+                const alpha = (1 - i / this._trail.length) * 0.35;
+                const rad = this.stats.radius * (0.6 + (i / this._trail.length) * 0.4);
+                ctx.fillStyle = `rgba(${rs},${gs},${bs},${alpha})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
         if (this.archetype && this.archetype.draw) {
             this.archetype.draw(ctx, this);
         } else {

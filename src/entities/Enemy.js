@@ -98,8 +98,27 @@ export class Enemy extends Entity {
     onDeath(game) {
         this.toRemove = true;
         game.audio?.playEnemyDeath();
+        game.addScreenShake?.(this.stats.isElite ? 5 : 3);
         game.enemiesKilled++;
         game.score += 10 * (this.stats.isElite ? 3 : 1);
+
+        // Death particles
+        const stageInfo = CONFIG.stages[game.currentStage];
+        const particleColor = this.stats.isElite
+            ? (stageInfo?.enemies?.eliteColor || '#c0392b')
+            : (stageInfo?.enemies?.baseColor || '#e74c3c');
+        const { Particle } = game._entityClasses;
+        const count = this.stats.isElite ? 14 : 8;
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+            game.addEntity('particles', new Particle(this.x, this.y, {
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 25 + Math.floor(Math.random() * 15),
+                color: particleColor
+            }));
+        }
 
         // Drop XP orb
         const { XpOrb } = game._entityClasses;

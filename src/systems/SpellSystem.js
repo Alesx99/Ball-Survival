@@ -308,6 +308,7 @@ export const SpellSystem = {
     },
 
     createExplosion(x, y, radius, damage, onHitCallback = null) {
+        this.addScreenShake(4 + Math.min(12, Math.floor(radius / 15)));
         this.addEntity('effects', new Effect(x, y, { type: 'explosion', maxRadius: radius, life: 20, initialLife: 20 }));
         for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
             if (Utils.getDistance({x,y}, enemy) <= radius) {

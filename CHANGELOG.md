@@ -1,5 +1,26 @@
 # 📋 CHANGELOG - Ball Survival
 
+## [6.0.2] - 2026-02-11 - Miglioramenti grafica e audio
+
+### Grafica
+- **Glow orbs**: Shadow blur su XP, gemme e materiali (colore per rarità)
+- **Particelle morte nemici**: Esplosione particelle colorate (elite/boss: più intense)
+- **Camera smooth**: Lerp sulla camera per movimento più fluido
+- **Screen shake**: Al danno player, morte nemici, esplosioni (rispetta `reduceMotion`)
+- **Hit flash**: Overlay rosso al danno del player
+- **Vignette**: Gradiente scuro ai bordi dello schermo
+- **Trail player**: Scia colorata dietro il player in movimento (colore archetipo)
+
+### Audio
+- **Variabilità pitch**: Suoni effetti meno ripetitivi
+- **Envelope AD**: Attack-Decay su beep e melodie
+- **BGM più ricca**: C minor, melodia, arpeggio e basso (loop 8s)
+
+### Documentazione
+- `docs/GRAPHICS_AUDIO_IMPROVEMENTS.md` – piano e checklist completata
+
+---
+
 ## [6.0.1] - 2026-02-11 - Balance tuning (Phase 4)
 
 ### Balance
