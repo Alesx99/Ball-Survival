@@ -288,12 +288,11 @@ export const UISystem = {
     },
     
     closeInventory() {
-        // Se siamo in gioco, riporta al menu principale
         if (this.state === 'running' || this.state === 'paused') {
             this.returnToStartScreen();
         } else {
-            // Altrimenti chiudi semplicemente il popup
             this.hideAllPopups();
+            this.showPopup('start');
         }
     },
     
@@ -646,13 +645,18 @@ export const UISystem = {
         if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'none'; 
         if (wasSettings) {
             if (this.state === 'startScreen') this.showPopup('start');
+            else if (this.state === 'paused') this.showPopup('pause');
             return;
         }
-        if (this.state === 'paused' && !forceNoResume) { 
-            this.state = 'running'; 
-            this.lastFrameTime = performance.now(); 
-            this.menuCooldown = 5; 
-        } 
+        if (this.state === 'paused' && !forceNoResume) {
+            if (this.gameLoopId != null) {
+                this.state = 'running';
+                this.lastFrameTime = performance.now();
+                this.menuCooldown = 5;
+            } else {
+                this.showPopup('start');
+            }
+        }
     },
 
     togglePause() { 

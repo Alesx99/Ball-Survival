@@ -181,7 +181,10 @@ export class BallSurvivalGame {
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
         if (closeShopBtn) {
-            closeShopBtn.onclick = () => this.hideAllPopups();
+            closeShopBtn.onclick = () => {
+                this.hideAllPopups();
+                if (this.state === 'startScreen') this.showPopup('start');
+            };
         }
         
         // Dropdown stage
@@ -473,6 +476,11 @@ export class BallSurvivalGame {
         });
         if (mute) mute.addEventListener('change', () => {
             this.audio?.setMuted(mute.checked);
+        });
+        const testSoundBtn = document.getElementById('testSoundBtn');
+        if (testSoundBtn) testSoundBtn.addEventListener('click', () => {
+            this.audio?.unlock();
+            this.audio?.playPickup();
         });
     }
     addEntity(type, entity) { if (this.entities[type]) this.entities[type].push(entity); }
