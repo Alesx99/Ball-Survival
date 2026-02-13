@@ -109,7 +109,8 @@ export class StaticField extends Entity {
                 const target = targets[Math.floor(Math.random() * targets.length)];
                 target.takeDamage(this.damage, game);
                 const { Effect } = game._entityClasses;
-                game.addEntity('effects', new Effect(0, 0, {
+                const midX = (this.x + target.x) / 2, midY = (this.y + target.y) / 2;
+                game.addEntity('effects', new Effect(midX, midY, {
                     type: 'lightning_chain',
                     from: { x: this.x, y: this.y },
                     to: { x: target.x, y: target.y },

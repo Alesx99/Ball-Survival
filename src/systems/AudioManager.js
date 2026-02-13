@@ -21,18 +21,25 @@ export class AudioManager {
     }
 
     init() {
-        if (this.ctx) return;
+        this.loadSettings();
+        // AudioContext non creato qui: su iOS deve essere creato DOPO un gesto utente.
+        // Verrà creato al primo unlock() (tap su Start, canvas, ecc.)
+    }
+
+    _ensureContext() {
+        if (this.ctx) return !!this.ctx;
         try {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             this._masterGain = this.ctx.createGain();
             this._masterGain.connect(this.ctx.destination);
             this._effectsGain = this.ctx.createGain();
             this._effectsGain.connect(this._masterGain);
-            this.loadSettings();
             this._masterGain.gain.value = this.muted ? 0 : 1;
             this._effectsGain.gain.value = this.muted ? 0 : this.effectsVolume;
+            return true;
         } catch (e) {
             console.warn('Web Audio API not supported:', e);
+            return false;
         }
     }
 
@@ -83,7 +90,7 @@ export class AudioManager {
     }
 
     unlock() {
-        if (!this.ctx) return Promise.resolve();
+        if (!this._ensureContext()) return Promise.resolve();
         if (this.ctx.state === 'suspended') {
             return this.ctx.resume().then(() => { this.unlocked = true; });
         }
@@ -92,7 +99,7 @@ export class AudioManager {
     }
 
     _beep(freq, duration, type = 'square', vol = 0.15) {
-        if (!this.ctx || this._effectsGain == null) return;
+        if (!this._ensureContext() || !this._effectsGain) return;
         try {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
@@ -127,7 +134,7 @@ export class AudioManager {
     }
 
     playLevelUp() {
-        if (!this.ctx || !this._effectsGain) return;
+        if (!this._ensureContext() || !this._effectsGain) return;
         try {
             const notes = [523, 659, 784, 1047];
             notes.forEach((freq, i) => {
@@ -159,7 +166,7 @@ export class AudioManager {
     }
 
     playGameOver() {
-        if (!this.ctx || !this._effectsGain) return;
+        if (!this._ensureContext() || !this._effectsGain) return;
         try {
             const notes = [392, 349, 262];
             notes.forEach((freq, i) => {
@@ -183,7 +190,7 @@ export class AudioManager {
     }
 
     _createBgmBuffer() {
-        if (!this.ctx) return null;
+        if (!this._ensureContext()) return null;
         const duration = 6;
         const sampleRate = this.ctx.sampleRate;
         const length = sampleRate * duration;
@@ -220,13 +227,15 @@ export class AudioManager {
     }
 
     playBackgroundMusic() {
-        if (!this.ctx) return;
+        if (!this._ensureContext()) return;
         this.stopBackgroundMusic();
+        // Su mobile (iOS/Android) l'audio deve partire nello stesso gesto utente.
+        // Chiamare _startBgmNow() subito e resume() in parallelo: start(0) pianifica la riproduzione,
+        // che partirà quando il context riprende.
         if (this.ctx.state === 'suspended') {
-            this.ctx.resume().then(() => this._startBgmNow()).catch(e => console.warn('BGM resume failed:', e));
-        } else {
-            this._startBgmNow();
+            this.ctx.resume().catch(e => console.warn('BGM resume failed:', e));
         }
+        this._startBgmNow();
     }
 
     stopBackgroundMusic() {

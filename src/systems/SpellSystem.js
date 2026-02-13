@@ -97,7 +97,8 @@ export const SpellSystem = {
             let nextTarget = Utils.findNearest(lastTarget, [...this.entities.enemies, ...this.entities.bosses].filter(e => !chainedEnemies.includes(e)), 200 * area);
             if (nextTarget) {
                 nextTarget.takeDamage(this.getDamage(s.damage), this);
-                this.addEntity('effects', new Effect(0, 0, { type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 }));
+                const midX = (lastTarget.x + nextTarget.x) / 2, midY = (lastTarget.y + nextTarget.y) / 2;
+                this.addEntity('effects', new Effect(midX, midY, { type: 'lightning_chain', from: { x: lastTarget.x, y: lastTarget.y }, to: { x: nextTarget.x, y: nextTarget.y }, life: 10, initialLife: 10 }));
                 lastTarget = nextTarget;
                 chainedEnemies.push(nextTarget);
             } else break;

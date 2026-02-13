@@ -19,9 +19,13 @@ export const RenderSystem = {
         this.ctx.scale(scale, scale);
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
-        const margin = 80;
-        const inView = (e) => e.x >= this.camera.x - margin && e.x <= this.camera.x + this.camera.width + margin &&
-            e.y >= this.camera.y - margin && e.y <= this.camera.y + this.camera.height + margin;
+        const margin = 120;
+        const inView = (e) => {
+            const ok = (x, y) => x >= this.camera.x - margin && x <= this.camera.x + this.camera.width + margin &&
+                y >= this.camera.y - margin && y <= this.camera.y + this.camera.height + margin;
+            if (e.from && e.to) return ok(e.from.x, e.from.y) || ok(e.to.x, e.to.y) || ok(e.x, e.y);
+            return ok(e.x, e.y);
+        };
         if (this.entities) {
             this.entities.fireTrails.filter(inView).forEach(e => e.draw(this.ctx, this));
             this.entities.sanctuaries.forEach(e => e.draw(this.ctx, this));

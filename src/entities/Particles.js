@@ -89,7 +89,8 @@ export class Effect extends Entity {
             ctx.stroke();
         } else if (this.type === 'lightning_chain') {
             ctx.strokeStyle = `rgba(255,255,0,${opacity})`;
-            ctx.lineWidth = Math.random() * 3 + 2;
+            const baseLw = (game?.canvasScale ?? 1) > 1 ? 5 : 3;
+            ctx.lineWidth = Math.random() * 3 + baseLw;
             Utils.drawJaggedLine(ctx, this.from.x, this.from.y, this.to.x, this.to.y, 10);
         } else if (this.type === 'meteor_indicator') {
             ctx.strokeStyle = `rgba(${this.color || '255,100,0'},${1 - opacity})`;
