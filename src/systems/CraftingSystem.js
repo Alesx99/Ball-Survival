@@ -21,6 +21,37 @@ export const CraftingSystem = {
         this.saveGameData();
     },
 
+    /**
+     * Roll material drops from enemy death. Spawns MaterialOrb on success.
+     * @param {Enemy} enemy - Dead enemy (has x, y, stats.isElite)
+     */
+    tryDropMaterial(enemy) {
+        const stage = parseInt(this.currentStage || '1', 10);
+        const enemyTypes = [
+            ['slime', 'slime_elite'],
+            ['goblin', 'goblin_elite'],
+            ['golem', 'golem_elite'],
+            ['ice_spirit', 'ice_spirit_elite'],
+            ['cosmic_demon', 'cosmic_demon_elite']
+        ];
+        const typeIndex = Math.min(stage - 1, enemyTypes.length - 1);
+        const enemyType = enemy.stats?.isElite ? enemyTypes[typeIndex][1] : enemyTypes[typeIndex][0];
+        const luck = this.player?.modifiers?.luck ?? 0;
+        const dropBonus = CONFIG.stages[this.currentStage]?.effects?.dropBonus ?? 1;
+
+        const allMaterials = { ...CONFIG.materials.coreMaterials, ...CONFIG.materials.weaponMaterials };
+        const MaterialOrb = this._entityClasses?.MaterialOrb;
+        if (!MaterialOrb) return;
+
+        for (const [materialId, def] of Object.entries(allMaterials)) {
+            if (!def || def.stage !== stage) continue;
+            if (!def.enemyTypes || !def.enemyTypes.includes(enemyType)) continue;
+            const chance = (def.dropChance ?? 0) * dropBonus * (1 + luck);
+            if (Math.random() >= chance) continue;
+            this.addEntity('materialOrbs', new MaterialOrb(enemy.x, enemy.y, materialId));
+        }
+    },
+
     canCraftCore(coreId) {
         const core = CONFIG.cores[coreId];
         if (!core) return false;

@@ -68,6 +68,23 @@ class AnalyticsManager {
         return scores;
     }
 
+    getAnalyticsReport() {
+        let totalSessions = 0;
+        let totalDuration = 0;
+        for (const data of Object.values(this.archetypeData)) {
+            totalSessions += data.totalSessions || 0;
+            totalDuration += data.totalDuration || 0;
+        }
+        const avgSessionTime = totalSessions > 0 ? totalDuration / totalSessions : 0;
+        return {
+            sessionStats: {
+                totalSessions,
+                avgSessionTime
+            },
+            recommendations: []
+        };
+    }
+
     calculateArchetypeScore(data) {
         if (!data || data.totalSessions === 0) return 0;
         const levelWeight = 0.4;
