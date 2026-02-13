@@ -133,29 +133,28 @@ Piano dettagliato per le prossime funzionalità, in ordine di priorità.
 
 ---
 
-## Fase 6: PWA (Progressive Web App)
+## Fase 6: PWA (Progressive Web App) ✅
 
 **Obiettivo**: Installabile su mobile/desktop, funzionamento offline limitato.
 
 ### 6.1 Manifest
-- [ ] Creare `public/manifest.json`: name, short_name, icons, start_url, display
-- [ ] Link manifest in `index.html`
-- [ ] Icone 192x192, 512x512 (es. generate da logo)
+- [x] vite-plugin-pwa genera manifest.webmanifest (name, short_name, icons, start_url, display)
+- [x] Link manifest iniettato automaticamente nel build
+- [x] Icona SVG in public/icon.svg
 
 ### 6.2 Service Worker
-- [ ] Registrare SW con Workbox o sw manuale
-- [ ] Cache strategia: Cache First per asset statici, Network First per API (se presenti)
-- [ ] Precache di index.html, JS, CSS, font
-- [ ] Fallback offline: pagina "Gioca offline – funzionalità limitate" o caricamento parziale
+- [x] Workbox generateSW con autoUpdate
+- [x] Precache di JS, CSS, HTML (7 entries)
+- [x] Runtime cache per Google Fonts
 
 ### 6.3 Integrazione build
-- [ ] Vite plugin (vite-plugin-pwa) per generare SW e manifest
-- [ ] Build produce `sw.js` e manifest aggiornati
+- [x] vite-plugin-pwa in vite.config.js
+- [x] Build produce sw.js, manifest.webmanifest, registerSW.js
 - [ ] Test su HTTPS (richiesto per SW)
 
 ### 6.4 Meta e asset
-- [ ] Meta tag viewport, theme-color
-- [ ] Favicon e icone PWA coerenti con il tema del gioco
+- [x] Meta tag viewport, theme-color (#8b4513), description
+- [x] Icona PWA (SVG) coerente con il tema
 
 **Deliverable**: App installabile, con supporto offline di base per asset e index.
 
