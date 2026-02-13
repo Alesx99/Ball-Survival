@@ -2,6 +2,17 @@ import { CONFIG } from '../config/index.js';
 import { Effect } from '../entities/Particles.js';
 
 export const ProgressionSystem = {
+    /** Returns Set of archetype ids unlocked (persisted + affordable from CONFIG costs) */
+    getUnlockedArchetypes() {
+        const totalGems = this.totalGems ?? 0;
+        const set = new Set(this.unlockedArchetypes || []);
+        for (const key in CONFIG.characterArchetypes) {
+            const a = CONFIG.characterArchetypes[key];
+            if (a.cost === 0 || totalGems >= a.cost) set.add(a.id);
+        }
+        return set;
+    },
+
     checkForLevelUp() {
         if (this.state !== 'running') return;
         

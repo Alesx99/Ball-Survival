@@ -32,7 +32,7 @@ export class Projectile extends Entity {
             }));
         }
 
-        const targets = [...game.entities.enemies, ...game.entities.bosses];
+        const targets = game.getEnemiesAndBosses();
         for (const target of targets) {
             if (target.toRemove) continue;
             const hitRadius = this.size || this.radius || 0;

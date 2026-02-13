@@ -52,8 +52,9 @@ export const RenderSystem = {
         this.drawMerchant();
         this.ctx.restore();
         const flash = this.hitFlashTimer || 0;
+        const maxFlash = CONFIG.effects?.hitFlashFrames ?? 10;
         if (flash > 0) {
-            this.ctx.fillStyle = `rgba(255, 50, 50, ${0.35 * (flash / 10)})`;
+            this.ctx.fillStyle = `rgba(255, 50, 50, ${0.35 * (flash / maxFlash)})`;
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
         const cx = this.canvas.width / 2;
@@ -207,7 +208,7 @@ export const RenderSystem = {
     },
 
     updateCamera() {
-        const lerp = 0.1;
+        const lerp = CONFIG.effects?.cameraLerp ?? 0.1;
         const targetX = this.player.x - this.camera.width / 2;
         const targetY = this.player.y - this.camera.height / 2;
         this.camera.x += (targetX - this.camera.x) * lerp;

@@ -53,7 +53,7 @@ export const SpellSystem = {
 
     castMagicMissile(now) {
         const s = this.spells.magicMissile;
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
@@ -70,7 +70,7 @@ export const SpellSystem = {
             if (bonuses.burnDamage) burnDamage *= bonuses.burnDamage;
             if (bonuses.damage) damage *= bonuses.damage;
         }
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
@@ -79,8 +79,8 @@ export const SpellSystem = {
         }));
         return true;
     },
-    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; },
-    castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = [...this.entities.enemies, ...this.entities.bosses].filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 2.5)); for(let k=0; k<15; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 40, color: '#ffaa00' })); }, 750); } return true; },
+    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses()); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; },
+    castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = this.getEnemiesAndBosses().filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 2.5)); for(let k=0; k<15; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 40, color: '#ffaa00' })); }, 750); } return true; },
     castLightning(now) {
         const s = this.spells.lightning;
         let chains = s.chains, area = 1;
@@ -89,12 +89,12 @@ export const SpellSystem = {
             if (bonuses.chains) chains += bonuses.chains;
             if (bonuses.area) area *= bonuses.area;
         }
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses], s.range);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses(), s.range);
         if (!nearest) return false;
         let lastTarget = this.player;
         let chainedEnemies = [];
         for (let c = 0; c < chains; c++) {
-            let nextTarget = Utils.findNearest(lastTarget, [...this.entities.enemies, ...this.entities.bosses].filter(e => !chainedEnemies.includes(e)), 200 * area);
+            let nextTarget = Utils.findNearest(lastTarget, this.getEnemiesAndBosses().filter(e => !chainedEnemies.includes(e)), 200 * area);
             if (nextTarget) {
                 nextTarget.takeDamage(this.getDamage(s.damage), this);
                 const midX = (lastTarget.x + nextTarget.x) / 2, midY = (lastTarget.y + nextTarget.y) / 2;
@@ -107,7 +107,7 @@ export const SpellSystem = {
     },
     castStorm(now) {
         const s = this.spells.lightning;
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses], 1000);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses(), 1000);
         const position = nearest ? {x: nearest.x, y: nearest.y} : {x: this.player.x + (Math.random()-0.5)*400, y: this.player.y + (Math.random()-0.5)*400};
         this.addEntity('staticFields', new StaticField(position.x, position.y, {
             damage: this.getDamage(s.damage), radius: s.range * this.player.modifiers.area,
@@ -117,7 +117,7 @@ export const SpellSystem = {
     },
     castSpear(now) {
         const s = this.spells.lightning;
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
@@ -137,7 +137,7 @@ export const SpellSystem = {
             if (bonuses.damage) damage *= bonuses.damage;
             if (bonuses.penetration) penetration *= bonuses.penetration;
         }
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
@@ -156,7 +156,7 @@ export const SpellSystem = {
     },
     castComet(now) {
         const s = this.spells.frostbolt;
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const targetPos = {x: nearest.x, y: nearest.y};
         const explosionRadius = 100 * this.player.modifiers.area;
@@ -177,7 +177,7 @@ export const SpellSystem = {
             if (bonuses.critChance) critChance = bonuses.critChance;
             if (bonuses.damage) damage *= bonuses.damage;
         }
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         for (let i = 0; i < count; i++) {
@@ -192,7 +192,7 @@ export const SpellSystem = {
     },
     castExplosive(now) {
         const s = this.spells.shotgun;
-        const nearest = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         for (let i = 0; i < s.count; i++) {
@@ -229,7 +229,7 @@ export const SpellSystem = {
             if (bonuses.knockback) knockback *= bonuses.knockback;
             if (bonuses.radius) radius *= bonuses.radius;
         }
-        for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
+        for (let enemy of this.getEnemiesAndBosses()) {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(damage, this);
                 const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
@@ -244,7 +244,7 @@ export const SpellSystem = {
         const s = this.spells.shockwave;
         const radius = s.radius * this.player.modifiers.area * 1.5;
         this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30, color: '148,0,211' }));
-        [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+        this.getEnemiesAndBosses().forEach(enemy => {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(this.getDamage(s.damage), this);
                 const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
@@ -257,7 +257,7 @@ export const SpellSystem = {
         const s = this.spells.shockwave;
         const radius = s.radius * this.player.modifiers.area * 1.5;
         this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30, color: '148,0,211' }));
-        [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+        this.getEnemiesAndBosses().forEach(enemy => {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(this.getDamage(s.damage), this);
                 const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
@@ -310,7 +310,7 @@ export const SpellSystem = {
     createExplosion(x, y, radius, damage, onHitCallback = null) {
         this.addScreenShake(4 + Math.min(12, Math.floor(radius / 15)));
         this.addEntity('effects', new Effect(x, y, { type: 'explosion', maxRadius: radius, life: 20, initialLife: 20 }));
-        for (let enemy of [...this.entities.enemies, ...this.entities.bosses]) {
+        for (let enemy of this.getEnemiesAndBosses()) {
             if (Utils.getDistance({x,y}, enemy) <= radius) {
                 enemy.takeDamage(damage, this);
                 if (onHitCallback) onHitCallback(enemy);

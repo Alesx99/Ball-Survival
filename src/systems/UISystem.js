@@ -30,13 +30,8 @@ export const UISystem = {
     populateCharacterSelection() {
         const container = this.dom.containers.characterSelectionContainer;
         container.innerHTML = '';
-        const unlockedArchetypes = new Set(['standard']); // Standard sempre sbloccato
-        if (this.totalGems >= 200) unlockedArchetypes.add('steel');
-        if (this.totalGems >= 300) unlockedArchetypes.add('magma');
-        if (this.totalGems >= 300) unlockedArchetypes.add('frost');
-        if (this.totalGems >= 400) unlockedArchetypes.add('shadow');
-        if (this.totalGems >= 800) unlockedArchetypes.add('tech');
-        
+        const unlockedArchetypes = this.getUnlockedArchetypes();
+
         for (const key in CONFIG.characterArchetypes) {
             const archetype = CONFIG.characterArchetypes[key];
             const unlocked = unlockedArchetypes.has(archetype.id);
@@ -64,7 +59,8 @@ export const UISystem = {
                     e.stopPropagation();
                     if (this.totalGems >= archetype.cost) {
                         this.totalGems -= archetype.cost;
-                        unlockedArchetypes.add(archetype.id);
+                        this.unlockedArchetypes.add(archetype.id);
+                        this.saveGameData?.();
                         this.populateCharacterSelection();
                         this.updateCharacterPreview();
                         this.notifications.push({ text: `${archetype.name} sbloccato!`, life: 120 });
@@ -82,13 +78,7 @@ export const UISystem = {
     },
 
     selectCharacter(archetypeId) {
-        const unlockedArchetypes = new Set(['standard']); // Standard sempre sbloccato
-        if (this.totalGems >= 200) unlockedArchetypes.add('steel');
-        if (this.totalGems >= 300) unlockedArchetypes.add('magma');
-        if (this.totalGems >= 300) unlockedArchetypes.add('frost');
-        if (this.totalGems >= 400) unlockedArchetypes.add('shadow');
-        if (this.totalGems >= 800) unlockedArchetypes.add('tech');
-        
+        const unlockedArchetypes = this.getUnlockedArchetypes();
         if (!unlockedArchetypes.has(archetypeId)) return;
         this.selectedArchetype = archetypeId;
         document.querySelectorAll('.character-option').forEach(el => {

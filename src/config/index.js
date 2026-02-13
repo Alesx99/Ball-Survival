@@ -7,6 +7,12 @@ import { Utils } from '../utils/index.js';
 
 export const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
+    effects: {
+        screenShakeDecay: 0.88,
+        screenShakeMax: 25,
+        cameraLerp: 0.1,
+        hitFlashFrames: 10,
+    },
     player: {
         base: { hp: 220, speed: 3, radius: 15, dr: 0 },
         iFramesDuration: 0.8,

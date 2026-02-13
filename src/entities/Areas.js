@@ -20,7 +20,7 @@ export class Aura extends Entity {
         this.x = game.player.x;
         this.y = game.player.y;
 
-        const targets = [...game.entities.enemies, ...game.entities.bosses];
+        const targets = game.getEnemiesAndBosses();
         for (const target of targets) {
             if (target.toRemove) continue;
             if (Utils.getDistance(this, target) < this.radius + target.stats.radius) {
@@ -65,7 +65,7 @@ export class Orbital extends Entity {
         this.x = game.player.x + Math.cos(this.angle) * this.distance;
         this.y = game.player.y + Math.sin(this.angle) * this.distance;
 
-        [...game.entities.enemies, ...game.entities.bosses].forEach(enemy => {
+        game.getEnemiesAndBosses().forEach(enemy => {
             if (enemy.toRemove) return;
             if (Utils.getDistance(this, enemy) < this.radius + enemy.stats.radius) {
                 enemy.takeDamage(this.damage / 60, game);
@@ -102,7 +102,7 @@ export class StaticField extends Entity {
         if (this.life <= 0) this.toRemove = true;
         this.tick++;
         if (this.tick % this.tickRate === 0) {
-            const targets = [...game.entities.enemies, ...game.entities.bosses].filter(e =>
+            const targets = game.getEnemiesAndBosses().filter(e =>
                 !e.toRemove && Utils.getDistance(this, e) < this.radius
             );
             if (targets.length > 0) {

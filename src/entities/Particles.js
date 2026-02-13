@@ -43,7 +43,7 @@ export class FireTrail extends Entity {
     update(game) {
         this.life--;
         if (this.life <= 0) this.toRemove = true;
-        [...game.entities.enemies, ...game.entities.bosses].forEach(enemy => {
+        game.getEnemiesAndBosses().forEach(enemy => {
             if (enemy.toRemove) return;
             if (Utils.getDistance(enemy, this) < enemy.stats.radius + this.radius) {
                 enemy.takeDamage(this.damage / 60, game);

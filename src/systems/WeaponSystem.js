@@ -154,7 +154,7 @@ export const WeaponSystem = {
             switch (weapon.effect.type) {
                 case 'spikes':
                     // Danno da contatto con spine
-                    [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+                    this.getEnemiesAndBosses().forEach(enemy => {
                         const dist = Utils.getDistance(this.player, enemy);
                         if (dist < this.player.stats.radius + radius) {
                             enemy.takeDamage(damage, this);
@@ -164,7 +164,7 @@ export const WeaponSystem = {
 
                 case 'field':
                     // Campo energetico che rallenta e danneggia
-                    [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+                    this.getEnemiesAndBosses().forEach(enemy => {
                         const dist = Utils.getDistance(this.player, enemy);
                         if (dist < radius) {
                             enemy.takeDamage(damage / 60, this); // DPS
@@ -200,7 +200,7 @@ export const WeaponSystem = {
 
                 case 'void_blade':
                     // Lame del vuoto che rallentano
-                    [...this.entities.enemies, ...this.entities.bosses].forEach(enemy => {
+                    this.getEnemiesAndBosses().forEach(enemy => {
                         const dist = Utils.getDistance(this.player, enemy);
                         if (dist < this.player.stats.radius + 35) {
                             enemy.takeDamage(damage / 60, this); // DPS
@@ -218,7 +218,7 @@ export const WeaponSystem = {
                             if (Math.random() < weapon.effect.blockChance) {
                                 proj.toRemove = true;
                                 // Riflette danno al nemico più vicino
-                                const nearestEnemy = Utils.findNearest(this.player, [...this.entities.enemies, ...this.entities.bosses]);
+                                const nearestEnemy = Utils.findNearest(this.player, this.getEnemiesAndBosses());
                                 if (nearestEnemy) {
                                     nearestEnemy.takeDamage(weapon.effect.reflectDamage, this);
                                 }

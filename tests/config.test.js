@@ -31,6 +31,13 @@ describe('CONFIG', () => {
         expect(stageIds.length).toBeGreaterThanOrEqual(1);
     });
 
+    it('has effects config for screen shake, camera, hit flash', () => {
+        expect(CONFIG.effects).toBeDefined();
+        expect(typeof CONFIG.effects.screenShakeDecay).toBe('number');
+        expect(typeof CONFIG.effects.cameraLerp).toBe('number');
+        expect(typeof CONFIG.effects.hitFlashFrames).toBe('number');
+    });
+
     it('stage 1 has required structure', () => {
         const stage = CONFIG.stages[1];
         expect(stage).toBeDefined();

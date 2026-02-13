@@ -381,7 +381,7 @@ export class BallSurvivalGame {
             if (this._updateAccumulator > FIXED_DT * 2) this._updateAccumulator = FIXED_DT;
             this.updateInGameUI();
             if (this.screenShakeIntensity > 0) {
-                this.screenShakeIntensity *= 0.88;
+                this.screenShakeIntensity *= (CONFIG.effects?.screenShakeDecay ?? 0.88);
                 if (this.screenShakeIntensity < 0.5) this.screenShakeIntensity = 0;
             }
             if (this.hitFlashTimer > 0) this.hitFlashTimer--;
@@ -391,7 +391,8 @@ export class BallSurvivalGame {
 
     addScreenShake(amount) {
         if (CONFIG.accessibility?.reduceMotion) return;
-        this.screenShakeIntensity = Math.min(25, (this.screenShakeIntensity || 0) + amount);
+        const max = CONFIG.effects?.screenShakeMax ?? 25;
+        this.screenShakeIntensity = Math.min(max, (this.screenShakeIntensity || 0) + amount);
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
@@ -443,13 +444,7 @@ export class BallSurvivalGame {
                 this.achievementSystem.updateProgress('stages_unlocked', unlockedStages, this);
                 
                 // Controlla achievement per archetipi sbloccati
-                const unlockedArchetypes = ['standard']; // Standard sempre sbloccato
-                if (this.totalGems >= 200) unlockedArchetypes.push('steel');
-                if (this.totalGems >= 300) unlockedArchetypes.push('magma');
-                if (this.totalGems >= 300) unlockedArchetypes.push('frost');
-                if (this.totalGems >= 400) unlockedArchetypes.push('shadow');
-                if (this.totalGems >= 800) unlockedArchetypes.push('tech');
-                this.achievementSystem.updateProgress('archetypes_unlocked', unlockedArchetypes.length, this);
+                this.achievementSystem.updateProgress('archetypes_unlocked', this.getUnlockedArchetypes().size, this);
             }
         }
         
@@ -506,6 +501,9 @@ export class BallSurvivalGame {
         });
     }
     addEntity(type, entity) { if (this.entities[type]) this.entities[type].push(entity); }
+
+    getEnemiesAndBosses() { return [...(this.entities?.enemies || []), ...(this.entities?.bosses || [])]; }
+
     handleEscapeKey() { 
         const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex'); 
         

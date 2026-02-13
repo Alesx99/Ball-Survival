@@ -238,7 +238,7 @@ export class Player extends Entity {
         this.hp -= finalDamage;
         game?.audio?.playDamage();
         game?.addScreenShake?.(10);
-        game.hitFlashTimer = 10;
+        game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;
         this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
         if (this.hp <= 0 && game) game.gameOver?.();
     }
