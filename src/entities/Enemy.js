@@ -108,7 +108,7 @@ export class Enemy extends Entity {
             ? (stageInfo?.enemies?.eliteColor || '#c0392b')
             : (stageInfo?.enemies?.baseColor || '#e74c3c');
         const { Particle } = game._entityClasses;
-        const count = this.stats.isElite ? 14 : 8;
+        const count = CONFIG.accessibility?.reduceMotion ? (this.stats.isElite ? 4 : 2) : (this.stats.isElite ? 14 : 8);
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 2 + Math.random() * 4;

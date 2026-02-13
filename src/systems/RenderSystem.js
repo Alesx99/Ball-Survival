@@ -51,7 +51,7 @@ export const RenderSystem = {
         if (this.player) this.player.draw(this.ctx, this);
         this.drawMerchant();
         this.ctx.restore();
-        const flash = this.hitFlashTimer || 0;
+        const flash = CONFIG.accessibility?.reduceMotion ? 0 : (this.hitFlashTimer || 0);
         const maxFlash = CONFIG.effects?.hitFlashFrames ?? 10;
         if (flash > 0) {
             this.ctx.fillStyle = `rgba(255, 50, 50, ${0.35 * (flash / maxFlash)})`;
@@ -60,11 +60,13 @@ export const RenderSystem = {
         const cx = this.canvas.width / 2;
         const cy = this.canvas.height / 2;
         const r = Math.sqrt(cx * cx + cy * cy);
+        if (!CONFIG.accessibility?.reduceMotion) {
         const vig = this.ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
         vig.addColorStop(0, 'rgba(0,0,0,0)');
         vig.addColorStop(1, 'rgba(0,0,0,0.4)');
         this.ctx.fillStyle = vig;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
         this.drawOffscreenIndicators();
         this.drawNotifications();
     },

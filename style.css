@@ -1663,4 +1663,27 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
 .sync-actions button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* ♿ Alta visibilità – bordi più marcati, contrasto aumentato */
+body.high-contrast button,
+body.high-contrast .menu-actions button,
+body.high-contrast .popup-menu button {
+    border: 3px solid #fff !important;
+    box-shadow: 0 0 0 1px #000;
+}
+body.high-contrast .popup-menu {
+    border: 3px solid var(--secondary-color);
+    box-shadow: 0 0 12px rgba(218, 165, 32, 0.5);
+}
+body.high-contrast input[type="range"] {
+    border: 2px solid #fff;
+}
+body.high-contrast label,
+body.high-contrast p,
+body.high-contrast h2,
+body.high-contrast h3,
+body.high-contrast h4 {
+    text-shadow: 0 0 2px #000, 0 0 4px #000;
+    color: #fff !important;
 } 

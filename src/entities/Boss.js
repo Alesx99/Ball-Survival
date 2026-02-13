@@ -37,7 +37,8 @@ export class Boss extends Enemy {
 
     onDeath(game) {
         const { Particle } = game._entityClasses;
-        for (let i = 0; i < 20; i++) {
+        const count = CONFIG.accessibility?.reduceMotion ? 6 : 20;
+        for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 3 + Math.random() * 6;
             game.addEntity('particles', new Particle(this.x, this.y, {

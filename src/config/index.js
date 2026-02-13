@@ -13,6 +13,10 @@ export const CONFIG = {
         cameraLerp: 0.1,
         hitFlashFrames: 10,
     },
+    accessibility: {
+        reduceMotion: false,
+        highContrast: false,
+    },
     player: {
         base: { hp: 220, speed: 3, radius: 15, dr: 0 },
         iFramesDuration: 0.8,

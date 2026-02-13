@@ -238,14 +238,14 @@ export class Player extends Entity {
         this.hp -= finalDamage;
         game?.audio?.playDamage();
         game?.addScreenShake?.(10);
-        game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;
+        if (!CONFIG.accessibility?.reduceMotion) game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;
         this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
         if (this.hp <= 0 && game) game.gameOver?.();
     }
 
     draw(ctx, game) {
         const trailColor = this.archetype?.color || '#4488ff';
-        if (this._trail && this._trail.length > 0) {
+        if (!CONFIG.accessibility?.reduceMotion && this._trail && this._trail.length > 0) {
             const hex = trailColor.startsWith('#') ? trailColor : '#4488ff';
             const rs = parseInt(hex.slice(1, 3), 16);
             const gs = parseInt(hex.slice(3, 5), 16);

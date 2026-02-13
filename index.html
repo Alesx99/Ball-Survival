@@ -445,7 +445,7 @@
         <!-- Popup Impostazioni -->
         <div id="settingsPopup" class="popup-menu">
             <div class="character-popup-header">
-                <h3>⚙️ Impostazioni Audio</h3>
+                <h3>⚙️ Impostazioni</h3>
                 <button id="closeSettingsBtn" class="close-popup-btn">✕</button>
             </div>
             <div class="menu-content" style="padding: 20px;">
@@ -465,6 +465,20 @@
                 </div>
                 <div style="margin-top: 16px;">
                     <button id="testSoundBtn" type="button" style="background: var(--secondary-color); color: #222; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cinzel', serif;">🔊 Test Suono</button>
+                </div>
+                <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 20px 0;">
+                <h4 style="color: var(--secondary-color); margin-bottom: 12px;">♿ Accessibilità</h4>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="reduceMotionCheckbox" aria-label="Ridotta motion">
+                        <span>Ridotta motion – meno particelle, shake e effetti visivi</span>
+                    </label>
+                </div>
+                <div>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="highContrastCheckbox" aria-label="Alta visibilità">
+                        <span>Alta visibilità – bordi più marcati e contrasto aumentato</span>
+                    </label>
                 </div>
             </div>
         </div>

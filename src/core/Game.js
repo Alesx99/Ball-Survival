@@ -60,6 +60,7 @@ export class BallSurvivalGame {
         
         this.loadGameData(); 
         this.loadStageProgress(); // Carica la progressione degli stage
+        this.loadAccessibilitySettings();
         this.resetRunState(); 
         this.resizeCanvas();
         this.populateCharacterSelection();
@@ -167,6 +168,7 @@ export class BallSurvivalGame {
             }
         };
         this._wireSettingsAudio();
+        this._wireSettingsAccessibility();
         // Pulsante inventario
         if (this.dom.buttons.inventory) this.dom.buttons.inventory.onclick = () => this.showInventory();
         if (this.dom.buttons.closeInventory) this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
@@ -460,6 +462,33 @@ export class BallSurvivalGame {
         }
     }
     
+    loadAccessibilitySettings() {
+        try {
+            const raw = localStorage.getItem('ballSurvivalAccessibilitySettings');
+            if (raw) {
+                const s = JSON.parse(raw);
+                if (CONFIG.accessibility) {
+                    CONFIG.accessibility.reduceMotion = !!s.reduceMotion;
+                    CONFIG.accessibility.highContrast = !!s.highContrast;
+                }
+            }
+        } catch (e) { /* ignore */ }
+        this.applyHighContrastClass();
+    }
+
+    saveAccessibilitySettings() {
+        try {
+            localStorage.setItem('ballSurvivalAccessibilitySettings', JSON.stringify({
+                reduceMotion: !!CONFIG.accessibility?.reduceMotion,
+                highContrast: !!CONFIG.accessibility?.highContrast
+            }));
+        } catch (e) { /* ignore */ }
+    }
+
+    applyHighContrastClass() {
+        document.body.classList.toggle('high-contrast', !!CONFIG.accessibility?.highContrast);
+    }
+
     showSettingsPopup() {
         if (this.audio) {
             const eff = document.getElementById('effectsVolumeSlider');
@@ -473,6 +502,10 @@ export class BallSurvivalGame {
             if (effVal) effVal.textContent = Math.round(this.audio.effectsVolume * 100);
             if (musVal) musVal.textContent = Math.round(this.audio.musicVolume * 100);
         }
+        const reduceMotion = document.getElementById('reduceMotionCheckbox');
+        const highContrast = document.getElementById('highContrastCheckbox');
+        if (reduceMotion) reduceMotion.checked = !!CONFIG.accessibility?.reduceMotion;
+        if (highContrast) highContrast.checked = !!CONFIG.accessibility?.highContrast;
         this.showPopup('settings');
     }
     _wireSettingsAudio() {
@@ -498,6 +531,20 @@ export class BallSurvivalGame {
         if (testSoundBtn) testSoundBtn.addEventListener('click', () => {
             this.audio?.unlock();
             this.audio?.playPickup();
+        });
+    }
+
+    _wireSettingsAccessibility() {
+        const reduceMotion = document.getElementById('reduceMotionCheckbox');
+        const highContrast = document.getElementById('highContrastCheckbox');
+        if (reduceMotion) reduceMotion.addEventListener('change', () => {
+            if (CONFIG.accessibility) CONFIG.accessibility.reduceMotion = reduceMotion.checked;
+            this.saveAccessibilitySettings();
+        });
+        if (highContrast) highContrast.addEventListener('change', () => {
+            if (CONFIG.accessibility) CONFIG.accessibility.highContrast = highContrast.checked;
+            this.saveAccessibilitySettings();
+            this.applyHighContrastClass();
         });
     }
     addEntity(type, entity) { if (this.entities[type]) this.entities[type].push(entity); }

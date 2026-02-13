@@ -31,6 +31,12 @@ describe('CONFIG', () => {
         expect(stageIds.length).toBeGreaterThanOrEqual(1);
     });
 
+    it('has accessibility config', () => {
+        expect(CONFIG.accessibility).toBeDefined();
+        expect(typeof CONFIG.accessibility.reduceMotion).toBe('boolean');
+        expect(typeof CONFIG.accessibility.highContrast).toBe('boolean');
+    });
+
     it('has effects config for screen shake, camera, hit flash', () => {
         expect(CONFIG.effects).toBeDefined();
         expect(typeof CONFIG.effects.screenShakeDecay).toBe('number');

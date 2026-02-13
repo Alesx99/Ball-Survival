@@ -104,30 +104,30 @@ Piano dettagliato per le prossime funzionalità, in ordine di priorità.
 
 ---
 
-## Fase 5: Accessibilità
+## Fase 5: Accessibilità ✅
 
 **Obiettivo**: Gioco usabile da più utenti possibili.
 
 ### 5.1 Controlli
-- [ ] Tutti i controlli raggiungibili da tastiera (già WASD + E + ESC)
+- [x] Tutti i controlli raggiungibili da tastiera (già WASD + E + ESC)
 - [ ] Focus visibile su elementi interattivi (outline)
 - [ ] Ordine tab sensato nei menu
 - [ ] Evitare shortcut che catturano il focus in modo inaspettato
 
 ### 5.2 Visivo
 - [ ] Contrasto testo/sfondo conforme a WCAG AA
-- [ ] Opzione "alta visibilità" (bordi più marcati, colori più contrastati)
+- [x] Opzione "alta visibilità" (bordi più marcati, colori più contrastati)
 - [ ] Test con screen reader su elementi UI principali (label, ruoli ARIA)
 
 ### 5.3 Motion / Epilessia
-- [ ] Opzione "ridotta motion" – disattivare/ridurre particelle, flash, animazioni intense
+- [x] Opzione "ridotta motion" – disattivare/ridurre particelle, flash, vignette, trail, screen shake
 - [ ] Evitare pattern lampeggianti potenzialmente pericolosi
 
 ### 5.4 File da creare/modificare
-- [ ] `src/config/accessibility.js` – flag `reduceMotion`, `highContrast`
-- [ ] `style.css` – classi `.reduce-motion`, `.high-contrast`
-- [ ] `RenderSystem`, `Player.draw` – applicare flag dove serve
-- [ ] `index.html` – attributi ARIA su pulsanti e menu
+- [x] `CONFIG.accessibility` – flag `reduceMotion`, `highContrast` (in config/index.js)
+- [x] `style.css` – classe `.high-contrast` su body
+- [x] `RenderSystem`, `Player`, `Enemy`, `Boss` – applicare flag dove serve
+- [x] `index.html` – checkbox accessibilità in Impostazioni, aria-label
 
 **Deliverable**: Gioco accessibile con opzioni visive e di motion configurabili.
 
