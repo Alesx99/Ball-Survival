@@ -1,5 +1,16 @@
 # 📋 CHANGELOG - Ball Survival
 
+## [6.0.1] - 2026-02-11 - Balance tuning (Phase 4)
+
+### Balance
+- **Player base HP**: 200 → 220 (+10% buffer)
+- **Contact damage cooldown**: 0.9s → 1.0s (meno DPS da swarm)
+- **Enemy damage scaling**: `damagePerFactor` 0.65 → 0.58 (curva più morbida)
+- Migliore sopravvivenza mid/late game senza snervare early game
+- Simulazione `scripts/balance-simulation.js` aggiornata e documentata in `docs/BALANCE_NOTES.md`
+
+---
+
 ## [6.0.0] - 2026-02-11 - ES MODULES & VITE MIGRATION
 
 ### Architecture

@@ -8,7 +8,7 @@ import { Utils } from '../utils/index.js';
 export const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     player: {
-        base: { hp: 200, speed: 3, radius: 15, dr: 0 },
+        base: { hp: 220, speed: 3, radius: 15, dr: 0 },
         iFramesDuration: 0.8,
         xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
     },
@@ -139,12 +139,12 @@ export const CONFIG = {
         spawnInterval: 0.8,
         spawnImmunity: 60,
         /** Cooldown (secondi) tra un hit da contatto e il successivo per ogni nemico. Limita DPS da swarm. */
-        contactDamageCooldown: 0.9,
+        contactDamageCooldown: 1.0,
         scaling: {
             timeFactor: 15,
             hpPerFactor: 5,
             speedPerFactor: 0.02,
-            damagePerFactor: 0.65,
+            damagePerFactor: 0.58,
             xpPerFactor: 1.25,
             xpPowerFactor: 1.05,
             levelFactorMultiplier: 0.7,

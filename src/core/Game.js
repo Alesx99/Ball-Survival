@@ -82,7 +82,8 @@ export class BallSurvivalGame {
                 shop: document.getElementById('permanentUpgradeShop'), 
                 inventory: document.getElementById('inventoryMenu'), 
                 characterSelection: document.getElementById('characterSelectionPopup'), 
-                achievements: document.getElementById('achievementsPopup') 
+                achievements: document.getElementById('achievementsPopup'),
+                settings: document.getElementById('settingsPopup')
             },
             buttons: { 
                 start: document.getElementById('startGameBtn'), 
@@ -100,7 +101,9 @@ export class BallSurvivalGame {
                 openCharacterPopup: document.getElementById('openCharacterPopupBtn'), 
                 closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'), 
                 achievements: document.getElementById('achievementsBtn'), 
-                closeAchievements: document.getElementById('closeAchievementsBtn') 
+                closeAchievements: document.getElementById('closeAchievementsBtn'),
+                settings: document.getElementById('settingsBtn'),
+                closeSettings: document.getElementById('closeSettingsBtn')
             },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
             containers: { 
@@ -151,6 +154,9 @@ export class BallSurvivalGame {
         if (this.dom.buttons.returnToMenu) this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
         if (this.dom.buttons.returnToMenuPause) this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
         
+        if (this.dom.buttons.settings) this.dom.buttons.settings.onclick = () => this.showSettingsPopup();
+        if (this.dom.buttons.closeSettings) this.dom.buttons.closeSettings.onclick = () => this.hideAllPopups();
+        this._wireSettingsAudio();
         // Pulsante inventario
         if (this.dom.buttons.inventory) this.dom.buttons.inventory.onclick = () => this.showInventory();
         if (this.dom.buttons.closeInventory) this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
@@ -274,6 +280,7 @@ export class BallSurvivalGame {
         this._updateAccumulator = 0;
         this.lastFrameTime = performance.now();
         this.audio?.unlock();
+        this.audio?.playBackgroundMusic();
         if (!this.gameLoopId) this.gameLoop();
     }
     gameOver() {
@@ -314,6 +321,7 @@ export class BallSurvivalGame {
     this.dom.inGameUI.container.style.display = 'none';
     this.hideAllPopups(true); 
     this.showPopup('gameOver');
+    this.audio?.stopBackgroundMusic();
     this.audio?.playGameOver();
 
     // Pulisci il canvas dopo aver mostrato il popup di game over
@@ -432,6 +440,41 @@ export class BallSurvivalGame {
         }
     }
     
+    showSettingsPopup() {
+        if (this.audio) {
+            const eff = document.getElementById('effectsVolumeSlider');
+            const mus = document.getElementById('musicVolumeSlider');
+            const mute = document.getElementById('muteCheckbox');
+            const effVal = document.getElementById('effectsVolumeValue');
+            const musVal = document.getElementById('musicVolumeValue');
+            if (eff) eff.value = Math.round(this.audio.effectsVolume * 100);
+            if (mus) mus.value = Math.round(this.audio.musicVolume * 100);
+            if (mute) mute.checked = this.audio.muted;
+            if (effVal) effVal.textContent = Math.round(this.audio.effectsVolume * 100);
+            if (musVal) musVal.textContent = Math.round(this.audio.musicVolume * 100);
+        }
+        this.showPopup('settings');
+    }
+    _wireSettingsAudio() {
+        const eff = document.getElementById('effectsVolumeSlider');
+        const mus = document.getElementById('musicVolumeSlider');
+        const mute = document.getElementById('muteCheckbox');
+        const effVal = document.getElementById('effectsVolumeValue');
+        const musVal = document.getElementById('musicVolumeValue');
+        if (eff && effVal) eff.addEventListener('input', () => {
+            const v = eff.value / 100;
+            this.audio?.setEffectsVolume(v);
+            effVal.textContent = Math.round(v * 100);
+        });
+        if (mus && musVal) mus.addEventListener('input', () => {
+            const v = mus.value / 100;
+            this.audio?.setMusicVolume(v);
+            musVal.textContent = Math.round(v * 100);
+        });
+        if (mute) mute.addEventListener('change', () => {
+            this.audio?.setMuted(mute.checked);
+        });
+    }
     addEntity(type, entity) { if (this.entities[type]) this.entities[type].push(entity); }
     handleEscapeKey() { 
         const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex'); 

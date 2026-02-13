@@ -233,6 +233,7 @@ export const UISystem = {
     },
     
     returnToStartScreen() {
+        this.audio?.stopBackgroundMusic();
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'none';
         this.dom.buttons.pause.style.display = 'none';
@@ -253,7 +254,9 @@ export const UISystem = {
     },
 
     showPopup(popupKey) { 
-        if (popupKey !== 'upgrade' && popupKey !== 'shop') {
+        if (popupKey === 'settings') {
+            /* settings overlay: no state change */
+        } else if (popupKey !== 'upgrade' && popupKey !== 'shop') {
             this.state = (popupKey === 'gameOver' || popupKey === 'start') ? popupKey : 'paused';
         } else if (this.state === 'running') {
             this.state = 'paused';
@@ -637,10 +640,15 @@ export const UISystem = {
     },
 
     hideAllPopups(forceNoResume) { 
+        const wasSettings = this.dom.popups.settings && this.dom.popups.settings.style.display === 'flex';
         Object.values(this.dom.popups).forEach(p => {
             if (p) p.style.display = 'none';
         }); 
         if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'none'; 
+        if (wasSettings) {
+            if (this.state === 'startScreen') this.showPopup('start');
+            return;
+        }
         if (this.state === 'paused' && !forceNoResume) { 
             this.state = 'running'; 
             this.lastFrameTime = performance.now(); 

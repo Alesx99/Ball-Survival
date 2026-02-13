@@ -318,6 +318,7 @@
                 <button id="inventoryBtn" style="background: #8e44ad; margin-top: 10px;">📦 Inventario</button>
                 <button id="achievementsBtn" style="background: #f39c12; margin-top: 10px;">🏆 Achievements</button>
                 <button id="cloudSyncBtn" style="background: #4a90e2; margin-top: 10px;">☁️ Cloud Sync</button>
+                <button id="settingsBtn" style="background: #7f8c8d; margin-top: 10px;">⚙️ Impostazioni</button>
             </div>
             <div class="save-load-container">
                 <p>Carica i tuoi progressi:</p>
@@ -441,6 +442,30 @@
             </div>
         </div>
         
+        <!-- Popup Impostazioni -->
+        <div id="settingsPopup" class="popup-menu">
+            <div class="character-popup-header">
+                <h3>⚙️ Impostazioni Audio</h3>
+                <button id="closeSettingsBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div class="menu-content" style="padding: 20px;">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 4px; color: var(--text-color);">🔊 Effetti <span id="effectsVolumeValue">100</span>%</label>
+                    <input type="range" id="effectsVolumeSlider" min="0" max="100" value="100" style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 4px; color: var(--text-color);">🎵 Musica <span id="musicVolumeValue">100</span>%</label>
+                    <input type="range" id="musicVolumeSlider" min="0" max="100" value="100" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="muteCheckbox">
+                        <span>🔇 Silenzia tutto</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
         <!-- Popup Achievements -->
         <div id="achievementsPopup" class="popup-menu">
             <div class="achievements-header">

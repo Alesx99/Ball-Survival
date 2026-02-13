@@ -39,6 +39,7 @@ saves/
 
 # File di cache
 .cache/
+coverage/
 
 # Old/deprecated files (kept for reference during migration)
 *.old
