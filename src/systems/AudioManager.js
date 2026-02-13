@@ -66,7 +66,7 @@ export class AudioManager {
 
     setMusicVolume(v) {
         this.musicVolume = Math.max(0, Math.min(1, v));
-        if (this._bgmGain) this._bgmGain.gain.value = this.muted ? 0 : this.musicVolume * 0.2;
+        if (this._bgmGain) this._bgmGain.gain.value = this.muted ? 0 : this.musicVolume * 0.5;
         this.saveSettings();
     }
 
@@ -74,18 +74,21 @@ export class AudioManager {
         this.muted = !!m;
         if (this._masterGain) this._masterGain.gain.value = this.muted ? 0 : 1;
         if (this._effectsGain) this._effectsGain.gain.value = this.muted ? 0 : this.effectsVolume;
-        if (this._bgmGain) this._bgmGain.gain.value = this.muted ? 0 : this.musicVolume * 0.2;
+        if (this._bgmGain) this._bgmGain.gain.value = this.muted ? 0 : this.musicVolume * 0.5;
         this.saveSettings();
     }
 
     _applyVolumeToBgm() {
-        if (this._bgmGain) this._bgmGain.gain.value = this.muted ? 0 : this.musicVolume * 0.2;
+        if (this._bgmGain) this._bgmGain.gain.value = this.muted ? 0 : this.musicVolume * 0.5;
     }
 
     unlock() {
-        if (!this.ctx) return;
-        if (this.ctx.state === 'suspended') this.ctx.resume?.();
+        if (!this.ctx) return Promise.resolve();
+        if (this.ctx.state === 'suspended') {
+            return this.ctx.resume().then(() => { this.unlocked = true; });
+        }
         this.unlocked = true;
+        return Promise.resolve();
     }
 
     _beep(freq, duration, type = 'square', vol = 0.15) {
@@ -192,16 +195,14 @@ export class AudioManager {
             let v = 0;
             chordFreqs.forEach((freq, idx) => {
                 const phase = (t * freq * 2 * Math.PI) + idx * 0.5;
-                v += Math.sin(phase) * 0.04;
+                v += Math.sin(phase) * 0.08;
             });
             data[i] = v;
         }
         return buffer;
     }
 
-    playBackgroundMusic() {
-        if (!this.ctx) return;
-        this.stopBackgroundMusic();
+    _startBgmNow() {
         try {
             const buffer = this._createBgmBuffer();
             if (!buffer) return;
@@ -215,6 +216,16 @@ export class AudioManager {
             this._bgmSource.start(0);
         } catch (e) {
             console.warn('BGM failed:', e);
+        }
+    }
+
+    playBackgroundMusic() {
+        if (!this.ctx) return;
+        this.stopBackgroundMusic();
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume().then(() => this._startBgmNow()).catch(e => console.warn('BGM resume failed:', e));
+        } else {
+            this._startBgmNow();
         }
     }
 

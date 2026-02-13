@@ -15,6 +15,8 @@ export const RenderSystem = {
         }
         
         this.ctx.save();
+        const scale = this.canvasScale ?? 1;
+        this.ctx.scale(scale, scale);
         this.ctx.translate(-this.camera.x, -this.camera.y);
         this.drawBackground();
         const margin = 80;
@@ -198,8 +200,9 @@ export const RenderSystem = {
         this.canvas.height = height;
         this.canvas.style.width = w + 'px';
         this.canvas.style.height = h + 'px';
-        this.camera.width = width;
-        this.camera.height = height;
+        this.camera.width = w;
+        this.camera.height = h;
+        this.canvasScale = scale;
         if (this.state !== 'running') this.draw();
     },
 
@@ -215,13 +218,14 @@ export const RenderSystem = {
         
         const screenX = target.x - this.camera.x; 
         const screenY = target.y - this.camera.y; 
-        if (screenX > 0 && screenX < this.canvas.width && screenY > 0 && screenY < this.canvas.height) return; 
+        if (screenX > 0 && screenX < this.camera.width && screenY > 0 && screenY < this.camera.height) return; 
         const pScreenX = this.player.x - this.camera.x; 
         const pScreenY = this.player.y - this.camera.y; 
         const angle = Math.atan2(screenY - pScreenY, screenX - pScreenX); 
         const padding = 30; 
-        let arrowX = pScreenX + Math.cos(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
-        let arrowY = pScreenY + Math.sin(angle) * (Math.min(this.canvas.width, this.canvas.height) / 2.5); 
+        const scale = this.canvasScale || 1;
+        let arrowX = (pScreenX + Math.cos(angle) * (Math.min(this.camera.width, this.camera.height) / 2.5)) * scale; 
+        let arrowY = (pScreenY + Math.sin(angle) * (Math.min(this.camera.width, this.camera.height) / 2.5)) * scale; 
         arrowX = Math.max(padding, Math.min(this.canvas.width - padding, arrowX)); 
         arrowY = Math.max(padding, Math.min(this.canvas.height - padding, arrowY)); 
         this.ctx.save(); 

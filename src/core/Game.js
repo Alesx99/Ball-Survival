@@ -510,8 +510,8 @@ export class BallSurvivalGame {
         const rect = this.canvas.getBoundingClientRect(); 
         const clientX = e.clientX; 
         const clientY = e.clientY; 
-        const worldX = (clientX - rect.left) * (this.canvas.width / rect.width) + this.camera.x; 
-        const worldY = (clientY - rect.top) * (this.canvas.height / rect.height) + this.camera.y; 
+        const worldX = (clientX - rect.left) * (this.camera.width / rect.width) + this.camera.x; 
+        const worldY = (clientY - rect.top) * (this.camera.height / rect.height) + this.camera.y; 
         if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { 
             this.showPopup('shop'); 
             return; 
