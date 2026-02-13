@@ -505,10 +505,6 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
 }
 
 @media (max-width: 700px) and (orientation: portrait) {
-  #pauseButtonMobile {
-    display: block !important;
-  }
-  
   #pauseButtonMobile:hover {
     background: linear-gradient(145deg, rgba(218, 165, 32, 0.9), rgba(255, 215, 0, 0.7)) !important;
     border-color: var(--highlight-color) !important;
@@ -517,13 +513,19 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 5px rgba(255, 215, 0, 0.5) !important;
   }
 }
-@media (min-width: 701px), (orientation: landscape) {
+@media (min-width: 701px) {
   #pauseButtonMobile {
     display: none !important;
   }
 }
 
 @media (max-width: 700px) {
+  #pauseButton {
+    display: none !important;
+  }
+  #pauseButtonMobile {
+    display: block !important;
+  }
   .popup-menu {
     font-size: 13px;
     max-width: 98vw;
