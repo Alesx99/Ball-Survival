@@ -155,7 +155,11 @@ export class BallSurvivalGame {
         if (this.dom.buttons.returnToMenuPause) this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
         
         if (this.dom.buttons.settings) this.dom.buttons.settings.onclick = () => this.showSettingsPopup();
-        if (this.dom.buttons.closeSettings) this.dom.buttons.closeSettings.onclick = () => this.hideAllPopups();
+        if (this.dom.buttons.closeSettings) this.dom.buttons.closeSettings.onclick = () => {
+            this.hideAllPopups();
+            if (this.state === 'startScreen') this.showPopup('start');
+            else if (this.state === 'paused') this.showPopup('pause');
+        };
         this._wireSettingsAudio();
         // Pulsante inventario
         if (this.dom.buttons.inventory) this.dom.buttons.inventory.onclick = () => this.showInventory();
