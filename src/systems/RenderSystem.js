@@ -112,7 +112,7 @@ export const RenderSystem = {
         glow.addColorStop(1, 'rgba(0, 245, 255, 0)');
         this.ctx.fillStyle = glow;
         this.ctx.fillRect(0, 0, w, h);
-    }
+    },
 
     drawBackground() {
         if (!this.ctx) return;
