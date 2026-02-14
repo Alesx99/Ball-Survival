@@ -64,7 +64,24 @@ export const ProgressionSystem = {
             }
         }
         
-        const priorityPool = [...availableEvolutions, ...availableMasteries];
+        const availableFusions = [];
+        const fusions = CONFIG.fusions || [];
+        for (const f of fusions) {
+            const primary = this.spells[f.primary];
+            const secondary = this.spells[f.secondary];
+            const pTree = upgradeTree[f.primary];
+            const sTree = upgradeTree[f.secondary];
+            if (!primary || !secondary || !pTree || !sTree) continue;
+            const pMax = pTree.maxLevel ?? 4;
+            const sMax = sTree.maxLevel ?? 4;
+            if (primary.level >= pMax && secondary.level >= sMax && primary.evolution === 'none' && secondary.evolution === 'none') {
+                if (!primary.fusionId && !secondary.fusedInto) {
+                    availableFusions.push({ ...f, type: 'fusion' });
+                }
+            }
+        }
+
+        const priorityPool = [...availableEvolutions, ...availableMasteries, ...availableFusions];
         if (priorityPool.length > 0) {
             while(choices.length < 3 && priorityPool.length > 0) {
                  choices.push(priorityPool.splice(Math.floor(Math.random() * priorityPool.length), 1)[0]);
@@ -105,8 +122,27 @@ export const ProgressionSystem = {
 
     applyUpgrade(upgradeId) {
         const upgrade = CONFIG.upgradeTree[upgradeId];
-        if (!upgrade) return;
+        const fusion = (CONFIG.fusions || []).find(f => f.id === upgradeId);
 
+        if (upgrade?.type === 'fusion' || fusion) {
+            const f = fusion || upgrade;
+            if (!f || !this.spells[f.primary] || !this.spells[f.secondary]) return;
+            this.spells[f.secondary].level = 0;
+            this.spells[f.secondary].fusedInto = f.primary;
+            this.spells[f.primary].fusionId = f.id;
+            this.spells[f.primary].fusionBonus = f.bonus || {};
+            if (f.bonus?.damage) this.spells[f.primary].damage *= (1 + f.bonus.damage);
+            if (f.bonus?.burnDamage) this.spells[f.primary].burnDamage = (this.spells[f.primary].burnDamage || 0) + f.bonus.burnDamage;
+            if (f.bonus?.duration && f.primary === 'shield') this.spells[f.primary].duration *= (1 + f.bonus.duration);
+            if (f.bonus?.auraDps) this.spells[f.primary].auraDps = (this.spells[f.primary].auraDps || 0) + f.bonus.auraDps;
+            if (f.bonus?.auraSlow) this.spells[f.primary].auraSlow = (this.spells[f.primary].auraSlow || 0) + f.bonus.auraSlow;
+            if (f.bonus?.count) this.spells[f.primary].count = (this.spells[f.primary].count || 5) + f.bonus.count;
+            if (f.bonus?.lifestealOnHit) this.spells[f.primary].lifestealOnHit = f.bonus.lifestealOnHit;
+            this.notifications?.push({ text: `Fusione: ${f.name}!`, life: 300, color: '#FFD700' });
+            return;
+        }
+
+        if (!upgrade) return;
         let baseId = upgrade.id.split('_')[0];
 
         if(upgrade.type === 'evolution') {
@@ -148,7 +184,7 @@ export const ProgressionSystem = {
         else if (upgrade.id === 'shotgun') { target.damage += 4; target.count += 2; }
         else if (upgrade.id === 'shockwave') { target.damage += 10; target.radius += 15; target.knockback += 5; }
         else if (upgrade.id === 'heal') { target.amount += 10; target.cooldown = Math.max(4000, target.cooldown - 1000); }
-        else if (upgrade.id === 'shield') { target.duration += 500; target.cooldown = Math.max(10000, target.cooldown - 1000); }
+        else if (upgrade.id === 'shield') { target.duration += 300; target.cooldown = Math.max(12000, target.cooldown - 800); }
         else if (upgrade.id === 'health') { this.player.stats.maxHp += 60; this.player.hp += 60; }
         else if (upgrade.id === 'speed') { this.player.stats.speed += 0.4; }
         else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.03, 1.0); }

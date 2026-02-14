@@ -31,9 +31,9 @@ export const SpawnSystem = {
         const timeInMinutes = this.totalElapsedTime / 60;
         let dynamicSpawnInterval = CONFIG.enemies.spawnInterval;
         
-        // Rallenta lo spawn all'inizio, accelera gradualmente
+        // Rallenta lo spawn all'inizio ma con pressione sufficiente, accelera gradualmente
         if (timeInMinutes < 2) {
-            dynamicSpawnInterval = 2.0; // 2 secondi primi 2 min
+            dynamicSpawnInterval = 1.4; // 1.4 secondi primi 2 min (prima 2.0 - troppo facile)
         } else if (timeInMinutes < 5) {
             dynamicSpawnInterval = 1.5; // 1.5 secondi 2-5 min
         } else if (timeInMinutes < 10) {
@@ -54,7 +54,7 @@ export const SpawnSystem = {
         // Batch size dinamico basato sul tempo
         let batchSize;
         if (timeInMinutes < 2) {
-            batchSize = 1 + Math.floor(Math.random() * 2); // 1-2 nemici primi 2 min
+            batchSize = 2 + Math.floor(Math.random() * 2); // 2-3 nemici primi 2 min (prima 1-2)
         } else if (timeInMinutes < 5) {
             batchSize = 2 + Math.floor(Math.random() * 2); // 2-3 nemici 2-5 min
         } else if (timeInMinutes < 10) {

@@ -53,11 +53,12 @@ export class Aura extends Entity {
 export class Orbital extends Entity {
     constructor(x, y, props) {
         super(x, y);
-        this.angle = props.angle;
-        this.distance = props.distance;
-        this.rotationSpeed = props.rotationSpeed;
-        this.damage = props.damage;
-        this.radius = props.radius;
+        this.angle = props.angle ?? 0;
+        this.distance = props.distance ?? 40;
+        this.rotationSpeed = props.rotationSpeed ?? 0.05;
+        this.damage = props.damage ?? 8;
+        this.radius = props.radius ?? 8;
+        this.weaponId = props.weaponId ?? null;
     }
 
     update(game) {

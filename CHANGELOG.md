@@ -1,5 +1,21 @@
 # 📋 CHANGELOG - Ball Survival
 
+## [6.0.3] - 2026-02-11 - Refactoring R4-R7, Doppia BGM, Statistiche
+
+### Refactoring
+- **R4**: Estratti draw di Core/Weapon da Player → `src/entities/PlayerVisuals.js` (`coreDrawers`, `weaponDrawers`)
+- **R5**: Split LoginManager → `AuthService` (logica auth/persistenza) + LoginManager facade
+- **R7**: Split UISystem → `src/ui/InventoryUI.js` (populate inventario, crafting, arsenale)
+
+### Feature
+- **Doppia BGM**: Musica calma (C minor) vs battaglia (Dm, tempo più veloce) con crossfade automatico
+- **Statistiche run**: Livello raggiunto in Game Over e menu pausa; nemici sconfitti corretti nel pausa
+
+### Audio
+- BGM passa automaticamente a modalità battaglia quando ci sono nemici, torna a calma quando la zona è pulita
+
+---
+
 ## [6.0.2] - 2026-02-11 - Miglioramenti grafica e audio
 
 ### Grafica

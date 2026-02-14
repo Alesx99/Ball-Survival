@@ -85,9 +85,12 @@ export class Enemy extends Entity {
         const finalDamage = amount * (1 - dr);
         this.hp -= finalDamage;
 
-        // Lifesteal
-        if (game.player.powerUpTimers.lifesteal > 0) {
-            game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + finalDamage * 0.15);
+        // Lifesteal (da powerUp e da Core Sangue)
+        const lsPower = game.player.powerUpTimers?.lifesteal > 0 ? 0.15 : 0;
+        const lsCore = game.player.modifiers?.lifestealPercent ?? 0;
+        const lsTotal = Math.max(lsPower, lsCore);
+        if (lsTotal > 0) {
+            game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + finalDamage * lsTotal);
         }
 
         if (this.hp <= 0) {

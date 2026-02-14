@@ -19,7 +19,7 @@ export const CONFIG = {
     },
     player: {
         base: { hp: 220, speed: 3, radius: 15, dr: 0 },
-        iFramesDuration: 0.8,
+        iFramesDuration: 0.35,
         xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
     },
     characterArchetypes: {
@@ -149,7 +149,7 @@ export const CONFIG = {
         spawnInterval: 0.8,
         spawnImmunity: 60,
         /** Cooldown (secondi) tra un hit da contatto e il successivo per ogni nemico. Limita DPS da swarm. */
-        contactDamageCooldown: 1.0,
+        contactDamageCooldown: 0.8,
         scaling: {
             timeFactor: 15,
             hpPerFactor: 5,
@@ -160,7 +160,7 @@ export const CONFIG = {
             levelFactorMultiplier: 0.7,
             drPerFactor: 0.0006
         },
-        base: { hp: 25, speed: 1.2, radius: 12, damage: 8, xp: 4, dr: 0 }
+        base: { hp: 25, speed: 1.2, radius: 12, damage: 10, xp: 4, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" },
@@ -264,7 +264,11 @@ export const CONFIG = {
         'frost': { id: 'frost', name: 'Core Glaciale', desc: 'Aura di ghiaccio che rallenta i nemici del 20% e infligge 4 DPS.', materials: { 'ice_fragment': 3, 'frost_fragment': 1 }, effect: { type: 'frost', slow: 0.2, damage: 4 }, maxLevel: 1, upgradeCost: null, stage: 4, theme: 'glaciale' },
         'crystal': { id: 'crystal', name: 'Core di Cristallo', desc: 'Barriera di cristallo che riflette il 40% dei proiettili.', materials: { 'crystal_fragment': 2, 'energy_fragment': 2 }, effect: { type: 'crystal', reflect: 0.4, amplify: 1.5 }, maxLevel: 1, upgradeCost: null, stage: 4, theme: 'glaciale' },
         'void': { id: 'void', name: 'Core del Vuoto', desc: 'Vortice viola che teletrasporta quando salute < 30%.', materials: { 'void_fragment': 1, 'cosmic_fragment': 1 }, effect: { type: 'void_teleport', threshold: 0.3, cooldown: 10000 }, maxLevel: 1, upgradeCost: null, stage: 5, theme: 'cosmico' },
-        'stellar': { id: 'stellar', name: 'Core Stellare', desc: 'Aura stellare che aumenta tutti i danni del 15% e rigenera 1 HP ogni 3s.', materials: { 'star_fragment': 1, 'nebula_fragment': 1 }, effect: { type: 'stellar', damage: 0.15, regen: 1, interval: 3000 }, maxLevel: 1, upgradeCost: null, stage: 5, theme: 'cosmico' }
+        'stellar': { id: 'stellar', name: 'Core Stellare', desc: 'Aura stellare che aumenta tutti i danni del 15% e rigenera 1 HP ogni 3s.', materials: { 'star_fragment': 1, 'nebula_fragment': 1 }, effect: { type: 'stellar', damage: 0.15, regen: 1, interval: 3000 }, maxLevel: 1, upgradeCost: null, stage: 5, theme: 'cosmico' },
+        'storm': { id: 'storm', name: 'Core di Tempesta', desc: 'Fulmini periodici che colpiscono i nemici nel raggio infliggendo 12 danno.', materials: { 'energy_fragment': 2, 'frost_fragment': 1 }, effect: { type: 'storm', damage: 12, radius: 180, cooldown: 3500 }, maxLevel: 1, upgradeCost: null, stage: 4, theme: 'glaciale' },
+        'blood': { id: 'blood', name: 'Core di Sangue', desc: 'Rubavita al contatto: recupera 8% del danno inflitto ai nemici.', materials: { 'poison_fragment': 2, 'void_fragment': 1 }, effect: { type: 'lifesteal', percent: 0.08 }, maxLevel: 1, upgradeCost: null, stage: 2, theme: 'organico' },
+        'gravity': { id: 'gravity', name: 'Core di Gravità', desc: 'Attira e rallenta i nemici nel raggio del 25%.', materials: { 'cosmic_fragment': 2, 'void_fragment': 1 }, effect: { type: 'gravity', slow: 0.25, pullStrength: 0.03, radius: 120 }, maxLevel: 1, upgradeCost: null, stage: 5, theme: 'cosmico' },
+        'arcane': { id: 'arcane', name: 'Core Arcano', desc: 'Aumenta tutti i danni magici del 18%.', materials: { 'star_fragment': 1, 'energy_fragment': 2 }, effect: { type: 'arcane', damagePercent: 0.18 }, maxLevel: 1, upgradeCost: null, stage: 5, theme: 'cosmico' }
     },
     weapons: {
         'iron_spikes': { id: 'iron_spikes', name: 'Spine di Ferro', desc: '4 spine metalliche che danneggiano i nemici per +10 danno al contatto.', materials: { 'iron_fragment': 3, 'stone_fragment': 2 }, effect: { type: 'spikes', damage: 10, radius: 30, count: 4 }, maxLevel: 3, upgradeCost: { 'iron_fragment': 2, 'stone_fragment': 1 }, stage: 1, theme: 'metallico' },
@@ -276,8 +280,17 @@ export const CONFIG = {
         'ice_shards': { id: 'ice_shards', name: 'Schegge di Ghiaccio', desc: '5 schegge di ghiaccio che rallentano i nemici del 25%.', materials: { 'ice_fragment': 3, 'crystal_fragment': 2 }, effect: { type: 'ice_shards', damage: 8, slow: 0.25, count: 5 }, maxLevel: 3, upgradeCost: { 'ice_fragment': 2, 'crystal_fragment': 1 }, stage: 4, theme: 'glaciale' },
         'frost_field': { id: 'frost_field', name: 'Campo di Brina', desc: 'Campo di brina che rallenta i nemici del 30% e infligge 5 DPS.', materials: { 'frost_fragment': 2, 'energy_fragment': 2 }, effect: { type: 'frost_field', damage: 5, slow: 0.3, radius: 45 }, maxLevel: 3, upgradeCost: { 'frost_fragment': 1, 'energy_fragment': 1 }, stage: 4, theme: 'glaciale' },
         'void_blade': { id: 'void_blade', name: 'Lama del Vuoto', desc: '3 lame del vuoto che tagliano i nemici per +18 danno.', materials: { 'void_fragment': 2, 'cosmic_fragment': 1 }, effect: { type: 'void_blade', damage: 18, slow: 0.25, duration: 4000, count: 3 }, maxLevel: 3, upgradeCost: { 'void_fragment': 1, 'cosmic_fragment': 1 }, stage: 5, theme: 'cosmico' },
-        'stellar_pulse': { id: 'stellar_pulse', name: 'Impulso Stellare', desc: 'Impulso cosmico che respinge i nemici infliggendo +20 danno.', materials: { 'star_fragment': 1, 'nebula_fragment': 1 }, effect: { type: 'stellar_pulse', damage: 20, knockback: 40, cooldown: 4000 }, maxLevel: 3, upgradeCost: { 'star_fragment': 1, 'nebula_fragment': 1 }, stage: 5, theme: 'cosmico' }
+        'stellar_pulse': { id: 'stellar_pulse', name: 'Impulso Stellare', desc: 'Impulso cosmico che respinge i nemici infliggendo +20 danno.', materials: { 'star_fragment': 1, 'nebula_fragment': 1 }, effect: { type: 'stellar_pulse', damage: 20, knockback: 40, cooldown: 4000 }, maxLevel: 3, upgradeCost: { 'star_fragment': 1, 'nebula_fragment': 1 }, stage: 5, theme: 'cosmico' },
+        'arcane_lightning': { id: 'arcane_lightning', name: 'Fulmine Arcano', desc: 'Proiettile arcano che rimbalza tra i nemici infliggendo 14 danno.', materials: { 'energy_fragment': 2, 'cosmic_fragment': 1 }, effect: { type: 'arcane_lightning', damage: 14, bounces: 4, radius: 50 }, maxLevel: 3, upgradeCost: { 'energy_fragment': 1, 'cosmic_fragment': 1 }, stage: 4, theme: 'glaciale' },
+        'orbital_blades': { id: 'orbital_blades', name: 'Lame Orbitali', desc: '4 lame che orbitano intorno infliggendo 11 danno al contatto.', materials: { 'obsidian_fragment': 2, 'metal_fragment': 2 }, effect: { type: 'orbital_blades', damage: 11, count: 4, radius: 35 }, maxLevel: 3, upgradeCost: { 'obsidian_fragment': 1, 'metal_fragment': 1 }, stage: 3, theme: 'infuocato' },
+        'thorn_shield': { id: 'thorn_shield', name: 'Scudo di Spine', desc: 'Danno al contatto +20% riflessione proiettili.', materials: { 'iron_fragment': 3, 'vine_fragment': 2 }, effect: { type: 'thorn_shield', damage: 12, reflectPercent: 0.2, radius: 28 }, maxLevel: 3, upgradeCost: { 'iron_fragment': 2, 'vine_fragment': 1 }, stage: 1, theme: 'metallico' },
+        'corrosive_mist': { id: 'corrosive_mist', name: 'Nebbia Corrosiva', desc: 'Area DoT che avvelena i nemici per 7 DPS.', materials: { 'poison_fragment': 3, 'sand_fragment': 2 }, effect: { type: 'corrosive_mist', damage: 7, radius: 55, duration: 3000 }, maxLevel: 3, upgradeCost: { 'poison_fragment': 1, 'sand_fragment': 1 }, stage: 2, theme: 'organico' }
     },
+    fusions: [
+        { id: 'fireball_lightning', primary: 'fireball', secondary: 'lightning', name: 'Fulmine Infuocato', desc: 'Fireball + Lightning: +40% danno fuoco, +10 burn.', bonus: { damage: 0.4, burnDamage: 10 } },
+        { id: 'frostbolt_shield', primary: 'frostbolt', secondary: 'shield', name: 'Barriera Glaciale', desc: 'Frostbolt + Shield: Aura gelo +50% DPS e +20% slow.', bonus: { auraDps: 5, auraSlow: 0.2 } },
+        { id: 'shotgun_heal', primary: 'shotgun', secondary: 'heal', name: 'Raffica Vitale', desc: 'Shotgun + Heal: +3 proiettili, Heal integrato.', bonus: { count: 3 } }
+    ],
     upgradeTree: {
         'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 10, type: 'passive' },
         'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
@@ -314,7 +327,7 @@ export const CONFIG = {
         'heal_evolve_lifesteal': { id: 'heal_evolve_lifesteal', name: 'EVO: Sacrificio Vitale', desc: 'Conferisce rubavita.', type: 'evolution' },
         'heal_mastery_sanctuary': { id: 'heal_mastery_sanctuary', name: 'Maestria: Santuario', desc: "Anche velocità d'attacco.", type: 'mastery' },
         'heal_mastery_lifesteal': { id: 'heal_mastery_lifesteal', name: 'Maestria: Sacrificio', desc: 'Aumenta rubavita e durata.', type: 'mastery' },
-        'shield': { id: 'shield', name: 'Scudo Magico', desc: 'Barriera protettiva temporanea.', details: "+0.5s Durata, -1s Ricarica", maxLevel: 5 },
+        'shield': { id: 'shield', name: 'Scudo Magico', desc: 'Assorbe 1 colpo nemico quando attivo.', details: "+0.3s Finestra, -0.8s Ricarica", maxLevel: 5 },
         'shield_evolve_reflect': { id: 'shield_evolve_reflect', name: 'EVO: Barriera Riflettente', desc: 'Riduce danni e riflette.', type: 'evolution' },
         'shield_evolve_orbital': { id: 'shield_evolve_orbital', name: 'EVO: Singolarità Protettiva', desc: 'Globo orbitale protettivo.', type: 'evolution' },
         'shield_mastery_reflect': { id: 'shield_mastery_reflect', name: 'Maestria: Riflesso', desc: 'Aumenta danni riflessi.', type: 'mastery' },

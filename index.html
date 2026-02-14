@@ -42,291 +42,104 @@
 
         <!-- Popups -->
         <div id="startScreen" class="popup-menu main-menu">
-            <h2>Ball Survival</h2>
-            <p>Sopravvivi il più a lungo possibile!</p>
-            
-            <!-- SISTEMA LOGIN INTEGRATO -->
-            <div id="loginSection" style="margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                <h3 style="color: var(--secondary-color); margin-bottom: 15px;">👤 Accesso Giocatore</h3>
-                
-                <!-- Menu principale login -->
-                <div id="loginMainMenu">
-                    <p style="color: #e0e0e0; font-size: 14px; margin-bottom: 15px;">Come vuoi giocare?</p>
-                    
-                    <button id="showLoginFormBtn" style="
-                        background: #4CAF50;
-                        color: white;
-                        padding: 12px 20px;
-                        border: none;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        margin: 5px;
-                        cursor: pointer;
-                        transition: background 0.3s;
-                        width: 100%;
-                    " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
-                        🔑 Ho già un account
-                    </button>
-                    
-                    <button id="showRegisterFormBtn" style="
-                        background: #2196F3;
-                        color: white;
-                        padding: 12px 20px;
-                        border: none;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        margin: 5px;
-                        cursor: pointer;
-                        transition: background 0.3s;
-                        width: 100%;
-                    " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
-                        ✨ Crea nuovo account
-                    </button>
-                    
-                    <button id="playAsGuestBtn" style="
-                        background: #FF9800;
-                        color: white;
-                        padding: 12px 20px;
-                        border: none;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        margin: 5px;
-                        cursor: pointer;
-                        transition: background 0.3s;
-                        width: 100%;
-                    " onmouseover="this.style.background='#F57C00'" onmouseout="this.style.background='#FF9800'">
-                        🎮 Gioca come Guest
-                    </button>
-                </div>
-                
-                <!-- Form login -->
-                <div id="loginForm" style="display: none;">
-                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Accedi</h4>
-                    <input type="text" id="username" placeholder="Nome Giocatore" style="
-                        width: 100%;
-                        padding: 8px;
-                        margin: 5px 0;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        box-sizing: border-box;
-                    ">
-                    <input type="password" id="password" placeholder="Password" style="
-                        width: 100%;
-                        padding: 8px;
-                        margin: 5px 0;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        box-sizing: border-box;
-                    ">
-                    <div style="margin: 10px 0; padding: 8px; background: rgba(74, 144, 226, 0.1); border-radius: 4px; border-left: 3px solid #4a90e2;">
-                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4a90e2;">🔧 <strong>Cloud Sync (Opzionale):</strong></p>
-                        <input type="password" id="githubToken" placeholder="Token GitHub (per sincronizzazione cloud)" style="
-                            width: 100%;
-                            padding: 6px;
-                            margin: 2px 0;
-                            border: 1px solid #4a90e2;
-                            border-radius: 3px;
-                            font-size: 12px;
-                            box-sizing: border-box;
-                            background: rgba(255, 255, 255, 0.9);
-                        ">
-                        <p style="margin: 4px 0 0 0; font-size: 10px; color: #888;">
-                            💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Ottieni token</a> | 
-                            <a href="CONFIGURAZIONE_CLOUD_SYNC.md" target="_blank" style="color: #4a90e2;">Istruzioni</a>
-                        </p>
-                    </div>
-                    <div style="margin: 10px 0;">
-                        <button id="loginBtn" style="
-                            background: #4CAF50;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 14px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">Accedi</button>
-                        <button id="backToLoginMenuBtn1" style="
-                            background: #666;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 14px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">Indietro</button>
-                    </div>
-                </div>
-                
-                <!-- Form registrazione -->
-                <div id="registerForm" style="display: none;">
-                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Registrati</h4>
-                    <input type="text" id="regUsername" placeholder="Nome Giocatore" style="
-                        width: 100%;
-                        padding: 8px;
-                        margin: 5px 0;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        box-sizing: border-box;
-                    ">
-                    <input type="password" id="regPassword" placeholder="Password" style="
-                        width: 100%;
-                        padding: 8px;
-                        margin: 5px 0;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        box-sizing: border-box;
-                    ">
-                    <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" style="
-                        width: 100%;
-                        padding: 8px;
-                        margin: 5px 0;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        box-sizing: border-box;
-                    ">
-                    <div style="margin: 10px 0; padding: 8px; background: rgba(74, 144, 226, 0.1); border-radius: 4px; border-left: 3px solid #4a90e2;">
-                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4a90e2;">🔧 <strong>Cloud Sync (Opzionale):</strong></p>
-                        <input type="password" id="regGithubToken" placeholder="Token GitHub (per sincronizzazione cloud)" style="
-                            width: 100%;
-                            padding: 6px;
-                            margin: 2px 0;
-                            border: 1px solid #4a90e2;
-                            border-radius: 3px;
-                            font-size: 12px;
-                            box-sizing: border-box;
-                            background: rgba(255, 255, 255, 0.9);
-                        ">
-                        <p style="margin: 4px 0 0 0; font-size: 10px; color: #888;">
-                            💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Ottieni token</a> | 
-                            <a href="CONFIGURAZIONE_CLOUD_SYNC.md" target="_blank" style="color: #4a90e2;">Istruzioni</a>
-                        </p>
-                    </div>
-                    <div style="margin: 10px 0;">
-                        <button id="registerBtn" style="
-                            background: #2196F3;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 14px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">Registrati</button>
-                        <button id="backToLoginMenuBtn2" style="
-                            background: #666;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 14px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">Indietro</button>
-                    </div>
-                </div>
-                
-                <!-- Info giocatore -->
-                <div id="playerInfo" style="display: none;">
-                    <h4 style="color: var(--secondary-color); margin-bottom: 10px;">Benvenuto!</h4>
-                    <div id="playerName" style="font-size: 16px; margin: 5px 0; color: var(--text-color);"></div>
-                    <div id="playerStats" style="font-size: 12px; margin: 5px 0; color: #ccc;"></div>
-                    <div style="margin: 10px 0;">
-                        <button id="showCloudSyncConfigBtn" style="
-                            background: #4a90e2;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 12px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">☁️ Configura Cloud Sync</button>
-                        <button id="forcePushSyncBtn" style="
-                            background: #4CAF50;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 12px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">🔄 Sync Account</button>
-                        <button id="resetTokenConfigBtn" style="
-                            background: #ff9800;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 12px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">🔧 Reset Token</button>
-                        <button id="logoutBtn" style="
-                            background: #f44336;
-                            color: white;
-                            padding: 8px 16px;
-                            border: none;
-                            border-radius: 4px;
-                            font-size: 14px;
-                            margin: 2px;
-                            cursor: pointer;
-                        ">🚪 Logout</button>
-                    </div>
-                </div>
-                
-                <div id="loginMessage" style="
-                    margin: 10px 0;
-                    padding: 8px;
-                    border-radius: 4px;
-                    display: none;
-                    font-size: 12px;
-                "></div>
-            </div>
-            
-            <div class="controls">
-                <p><strong>Controlli:</strong> Joystick (Mobile), WASD/Frecce (PC), E/Tocca (Negozio), ESC/Pausa</p>
-            </div>
-            
-            <!-- NUOVO SISTEMA DROPDOWN PER STAGE -->
-            <div class="stage-selection-section">
-                <h4 style="text-align: center; color: var(--secondary-color); margin-bottom: 10px; margin-top: 20px;">Scegli lo Stage:</h4>
-                <div class="dropdown-container">
-                    <select id="stageDropdown" class="stage-dropdown">
-                        <!-- Le opzioni verranno popolate da JavaScript -->
-                    </select>
-                </div>
-            </div>
+            <header class="main-menu-header">
+                <h1 class="main-menu-title">Ball Survival</h1>
+                <p class="main-menu-tagline">Sopravvivi il più a lungo possibile</p>
+            </header>
 
-            <!-- NUOVO SISTEMA POPUP PER PERSONAGGI -->
-            <div class="character-selection-section">
-                <h4 style="text-align: center; color: var(--secondary-color); margin-bottom: 10px; margin-top: 20px;">Scegli la tua Sfera:</h4>
-                <div class="character-preview">
-                    <div id="selectedCharacterPreview" class="character-preview-card">
-                        <!-- Anteprima del personaggio selezionato -->
+            <div class="main-menu-body">
+                <!-- Game setup cards -->
+                <div class="menu-cards">
+                    <div class="menu-card stage-card">
+                        <h4 class="menu-card-title">Stage</h4>
+                        <div class="dropdown-container">
+                            <select id="stageDropdown" class="stage-dropdown">
+                                <!-- Opzioni popolate da JS -->
+                            </select>
+                        </div>
                     </div>
-                    <button id="openCharacterPopupBtn" class="character-select-btn">Cambia Personaggio</button>
+                    <div class="menu-card character-card">
+                        <h4 class="menu-card-title">Personaggio</h4>
+                        <div id="selectedCharacterPreview" class="character-preview-card">
+                            <!-- Anteprima personaggio -->
+                        </div>
+                        <button id="openCharacterPopupBtn" class="character-select-btn">Cambia</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="menu-actions">
-                <button id="startGameBtn">Inizia Partita</button>
-                <button id="inventoryBtn" style="background: #8e44ad; margin-top: 10px;">📦 Inventario</button>
-                <button id="achievementsBtn" style="background: #f39c12; margin-top: 10px;">🏆 Achievements</button>
-                <button id="cloudSyncBtn" style="background: #4a90e2; margin-top: 10px;">☁️ Cloud Sync</button>
-                <button id="settingsBtn" style="background: #7f8c8d; margin-top: 10px;">⚙️ Impostazioni</button>
-            </div>
-            <div class="save-load-container">
-                <p>Carica i tuoi progressi:</p>
-                <input type="text" id="loadCodeInput" placeholder="Incolla il codice di salvataggio...">
-                <button id="loadGameBtn">Carica</button>
-                <div id="load-notification"></div>
+                <div class="menu-actions">
+                    <button id="startGameBtn" class="btn-cta">Inizia Partita</button>
+                    <div class="menu-actions-secondary">
+                        <button id="glossaryBtn" class="menu-btn-secondary" title="Glossario">📖</button>
+                        <button id="inventoryBtn" class="menu-btn-secondary" title="Inventario">📦</button>
+                        <button id="achievementsBtn" class="menu-btn-secondary" title="Achievements">🏆</button>
+                        <button id="cloudSyncBtn" class="menu-btn-secondary" title="Cloud Sync">☁️</button>
+                        <button id="settingsBtn" class="menu-btn-secondary" title="Impostazioni">⚙️</button>
+                    </div>
+                </div>
+
+                <!-- Login collassabile -->
+                <details class="login-section" id="loginSection" open>
+                    <summary class="login-toggle">👤 Accesso</summary>
+                    <div class="login-content">
+                        <div id="loginMainMenu" class="login-main">
+                            <p class="login-prompt">Come vuoi giocare?</p>
+                            <button id="showLoginFormBtn" class="btn-login">🔑 Ho già un account</button>
+                            <button id="showRegisterFormBtn" class="btn-register">✨ Crea nuovo account</button>
+                            <button id="playAsGuestBtn" class="btn-guest">🎮 Gioca come Guest</button>
+                        </div>
+                        <div id="loginForm" class="login-form" style="display: none;">
+                            <h4>Accedi</h4>
+                            <input type="text" id="username" placeholder="Nome Giocatore" class="login-input">
+                            <input type="password" id="password" placeholder="Password" class="login-input">
+                            <div class="cloud-sync-hint">
+                                <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
+                                <input type="password" id="githubToken" placeholder="Token GitHub" class="login-input">
+                                <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
+                            </div>
+                            <div class="login-buttons">
+                                <button id="loginBtn" class="btn-login">Accedi</button>
+                                <button id="backToLoginMenuBtn1" class="btn-back">Indietro</button>
+                            </div>
+                        </div>
+                        <div id="registerForm" class="login-form" style="display: none;">
+                            <h4>Registrati</h4>
+                            <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input">
+                            <input type="password" id="regPassword" placeholder="Password" class="login-input">
+                            <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" class="login-input">
+                            <div class="cloud-sync-hint">
+                                <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
+                                <input type="password" id="regGithubToken" placeholder="Token GitHub" class="login-input">
+                                <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
+                            </div>
+                            <div class="login-buttons">
+                                <button id="registerBtn" class="btn-register">Registrati</button>
+                                <button id="backToLoginMenuBtn2" class="btn-back">Indietro</button>
+                            </div>
+                        </div>
+                        <div id="playerInfo" class="player-info" style="display: none;">
+                            <h4>Benvenuto!</h4>
+                            <div id="playerName"></div>
+                            <div id="playerStats"></div>
+                            <div class="player-actions">
+                                <button id="showCloudSyncConfigBtn" class="btn-cloud">☁️ Cloud Sync</button>
+                                <button id="forcePushSyncBtn" class="btn-sync">🔄 Sync</button>
+                                <button id="resetTokenConfigBtn" class="btn-reset">🔧 Reset</button>
+                                <button id="logoutBtn" class="btn-logout">🚪 Logout</button>
+                            </div>
+                        </div>
+                        <div id="loginMessage" class="login-message"></div>
+                    </div>
+                </details>
+
+                <p class="controls-hint">WASD / Joystick · E = Negozio · ESC = Pausa</p>
+
+                <div class="save-load-container">
+                    <p>Carica progressi:</p>
+                    <input type="text" id="loadCodeInput" placeholder="Incolla il codice...">
+                    <button id="loadGameBtn">Carica</button>
+                    <div id="load-notification"></div>
+                </div>
             </div>
         </div>
 
@@ -355,7 +168,7 @@
                 <button id="restartFromPauseBtn">Riavvia</button>
                 <button id="returnToMenuPauseBtn">Torna al Menù</button>
             </div>
-            <button id="generateDebugSave">Genera Codice Parziale</button>
+            <button id="generateDebugSave" class="debug-only">Genera Codice Parziale</button>
             <div id="debugSaveContainer" class="save-load-container mt-4" style="display: none;">
                  <p>Copia il codice per testare questo scenario:</p>
                 <textarea id="debugSaveOutput" readonly></textarea>
@@ -365,6 +178,7 @@
         <div id="gameOver" class="popup-menu">
             <h2>Game Over!</h2>
             <p>Sei sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <p>Livello raggiunto: <span id="levelReached">1</span></p>
             <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
             <p>Cristalli raccolti: <span id="gemsEarned">0</span></p>
             <p>Punteggio Finale: <span id="finalScore">0</span></p>
@@ -482,6 +296,28 @@
                         <span>Alta visibilità – bordi più marcati e contrasto aumentato</span>
                     </label>
                 </div>
+            </div>
+        </div>
+
+        <!-- Popup Glossario -->
+        <div id="glossaryPopup" class="popup-menu glossary-popup">
+            <div class="glossary-header">
+                <h3>📖 Glossario</h3>
+                <button id="closeGlossaryBtn" class="close-popup-btn" aria-label="Chiudi">✕</button>
+            </div>
+            <div class="glossary-toolbar">
+                <input type="text" id="glossarySearch" placeholder="Cerca termine..." class="glossary-search">
+                <select id="glossaryCategory" class="glossary-category">
+                    <option value="">Tutte le categorie</option>
+                    <option value="base">Base</option>
+                    <option value="combattimento">Combattimento</option>
+                    <option value="spell">Spell</option>
+                    <option value="equip">Equipaggiamento</option>
+                    <option value="progressione">Progressione</option>
+                </select>
+            </div>
+            <div id="glossaryContent" class="glossary-content">
+                <!-- Termini popolati da JS -->
             </div>
         </div>
 

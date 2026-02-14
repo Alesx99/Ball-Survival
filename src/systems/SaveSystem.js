@@ -85,10 +85,10 @@ export const SaveSystem = {
                 this.spells = run.spells;
                 this.passives = run.passives;
 
-                this.player.stats.maxHp += (this.passives.health.level * 25);
-                this.player.stats.speed += (this.passives.speed.level * 0.4);
-                this.player.stats.dr = Math.min(this.player.stats.dr + (this.passives.armor.level * 0.02), 1.0);
-                this.player.modifiers.frequency *= Math.pow(0.92, this.passives.attack_speed.level);
+                this.player.stats.maxHp += ((this.passives.health?.level || 0) * 25);
+                this.player.stats.speed += ((this.passives.speed?.level || 0) * 0.4);
+                this.player.stats.dr = Math.min(this.player.stats.dr + ((this.passives.armor?.level || 0) * 0.02), 1.0);
+                this.player.modifiers.frequency *= Math.pow(0.92, this.passives.attack_speed?.level || 0);
 
                 // Carica core e armi dal salvataggio
                 if (run.cores) {

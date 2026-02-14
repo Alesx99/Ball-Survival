@@ -1,5 +1,8 @@
 import { CONFIG } from '../config/index.js';
 import { Utils } from '../utils/index.js';
+import * as InventoryUI from '../ui/InventoryUI.js';
+import { searchTerms, getAllTerms } from '../data/glossary.js';
+import { getUpgradeIcon, getGlossaryIcon, getItemIcon, ICONS } from '../data/icons.js';
 
 export const UISystem = {
     populateUpgradeMenu() { 
@@ -9,22 +12,31 @@ export const UISystem = {
         choices.forEach(upgrade => { 
             if (!upgrade) return; 
             const div = document.createElement('div'); 
-            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : ''); 
+            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '') + (upgrade.type === 'fusion' ? ' evolution' : ''); 
             
             let s;
             if (upgrade.type === 'passive') {
                 s = this.passives[upgrade.id];
             } else {
-                const baseId = upgrade.id.split('_')[0];
+                const baseId = upgrade.primary || upgrade.id.split('_')[0];
                 s = this.spells[baseId];
             }
 
             let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`; 
-            if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery') levelText = ''; 
-            div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`; 
+            if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery' || upgrade.type === 'fusion') levelText = ''; 
+            const icon = getUpgradeIcon(upgrade.id, upgrade);
+            div.innerHTML = `<div class="upgrade-option-icon">${icon}</div><div class="upgrade-option-text"><div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div></div>`; 
             div.onclick = () => { this.applyUpgrade(upgrade.id); this.hideAllPopups(); }; 
             container.appendChild(div); 
-        }); 
+        });
+        // Se non ci sono scelte (run molto lunga, tutto al massimo) aggiungi pulsante "Continua" per evitare blocco
+        if (choices.length === 0) {
+            const btn = document.createElement('div');
+            btn.className = 'upgrade-option';
+            btn.innerHTML = '<div class="upgrade-option-icon">🎉</div><div class="upgrade-option-text"><div class="upgrade-title">Livello massimo raggiunto!</div><div class="upgrade-desc">Continua a giocare</div></div>';
+            btn.onclick = () => this.hideAllPopups();
+            container.appendChild(btn);
+        }
     },
     
     populateCharacterSelection() {
@@ -36,15 +48,19 @@ export const UISystem = {
             const archetype = CONFIG.characterArchetypes[key];
             const unlocked = unlockedArchetypes.has(archetype.id);
             const div = document.createElement('div');
+            const archIcon = ICONS[archetype.id] || '🔵';
             div.className = `character-option ${unlocked ? '' : 'locked'}`;
             div.dataset.id = archetype.id;
             div.innerHTML = `
+                <span class="character-option-icon">${archIcon}</span>
+                <div class="character-option-content">
                 <h5>${archetype.name}</h5>
                 <p>${archetype.desc}</p>
                 <p class="character-bonus"><strong>Bonus:</strong> ${archetype.bonus}</p>
                 <p class="character-malus"><strong>Malus:</strong> ${archetype.malus}</p>
                 ${archetype.cost > 0 ? `<p class="character-cost">Costo: ${archetype.cost} 💎</p>` : ''}
                 <button class="buy-archetype-btn" style="display:${!unlocked && archetype.cost > 0 ? 'block' : 'none'}" ${this.totalGems < archetype.cost ? 'disabled' : ''}>Sblocca</button>
+                </div>
             `;
             div.onclick = () => {
                 if (unlockedArchetypes.has(archetype.id)) {
@@ -118,6 +134,61 @@ export const UISystem = {
     showAchievements() {
         this.populateAchievements();
         this.showPopup('achievements');
+    },
+
+    showGlossary() {
+        this.populateGlossary();
+        this.showPopup('glossary');
+        this._wireGlossaryHandlers();
+    },
+    hideGlossary() {
+        this.hideAllPopups();
+        this.showPopup('start');
+    },
+    populateGlossary() {
+        const container = document.getElementById('glossaryContent');
+        if (!container) return;
+        const searchInput = document.getElementById('glossarySearch');
+        const categorySelect = document.getElementById('glossaryCategory');
+        const query = searchInput?.value?.trim() || '';
+        const category = categorySelect?.value || '';
+        let terms = query ? searchTerms(query) : getAllTerms();
+        if (category) terms = terms.filter((t) => t.category === category);
+        container.innerHTML = '';
+        const catLabels = { base: 'Base', combattimento: 'Combattimento', spell: 'Spell', equip: 'Equipaggiamento', progressione: 'Progressione' };
+        const byCat = {};
+        terms.forEach((t) => {
+            if (!byCat[t.category]) byCat[t.category] = [];
+            byCat[t.category].push(t);
+        });
+        Object.keys(byCat).sort().forEach((cat) => {
+            const h = document.createElement('h4');
+            h.className = 'glossary-category-title';
+            h.textContent = catLabels[cat] || cat;
+            container.appendChild(h);
+            byCat[cat].forEach((t) => {
+                const div = document.createElement('div');
+                div.className = 'glossary-term';
+                const icon = getGlossaryIcon(t.id);
+                div.innerHTML = `<span class="glossary-term-icon">${icon}</span><div class="glossary-term-text"><strong>${t.name}</strong><p>${t.desc}</p></div>`;
+                container.appendChild(div);
+            });
+        });
+        if (terms.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'glossary-empty';
+            p.textContent = 'Nessun termine trovato.';
+            container.appendChild(p);
+        }
+    },
+    _wireGlossaryHandlers() {
+        const searchInput = document.getElementById('glossarySearch');
+        const categorySelect = document.getElementById('glossaryCategory');
+        if (!searchInput || !categorySelect) return;
+        const refresh = () => this.populateGlossary();
+        searchInput.oninput = refresh;
+        searchInput.onchange = refresh;
+        categorySelect.onchange = refresh;
     },
     
     populateAchievements() {
@@ -226,6 +297,8 @@ export const UISystem = {
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'none';
         this.dom.buttons.pause.style.display = 'none';
+        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'none';
+        if (this.dom.xpBarMobile) this.dom.xpBarMobile.style.display = 'none';
         this.state = 'startScreen';
         
         // Pulisci completamente il canvas
@@ -287,153 +360,25 @@ export const UISystem = {
     },
     
     populateInventory() {
-        // Popola la lista dei materiali per core
-        this.populateMaterialsList('coreMaterialsList', CONFIG.materials.coreMaterials);
-        
-        // Popola la lista dei materiali per armi
-        this.populateMaterialsList('weaponMaterialsList', CONFIG.materials.weaponMaterials);
-        
-        // Popola la lista dei core disponibili
-        this.populateCraftingList('coresList', CONFIG.cores, 'core');
-        
-        // Popola la lista delle armi disponibili
-        this.populateCraftingList('weaponsList', CONFIG.weapons, 'weapon');
-        
-        // Popola l'arsenale
-        this.populateArsenal();
+        InventoryUI.populateInventory(this);
     },
-    
+
     populateMaterialsList(containerId, materialsConfig) {
-        const container = this.dom.containers[containerId];
-        if (!container) return;
-        
-        let html = '';
-        let hasMaterials = false;
-        
-        for (const [materialId, material] of Object.entries(materialsConfig)) {
-            const count = this.materials[materialId] || 0;
-            if (count > 0) {
-                hasMaterials = true;
-                html += `
-                    <div class="material-item">
-                        <div class="material-icon" style="background-color: ${material.color}">
-                            ${material.name.charAt(0)}
-                        </div>
-                        <div class="material-info">
-                            <div class="material-name">${material.name}</div>
-                            <div class="material-count">Quantità: ${count}</div>
-                        </div>
-                        <div class="material-rarity rarity-${material.rarity}">
-                            ${material.rarity}
-                        </div>
-                    </div>
-                `;
-            }
-        }
-        
-        if (!hasMaterials) {
-            html = '<div class="empty-inventory">Nessun materiale disponibile</div>';
-        }
-        
-        container.innerHTML = html;
+        InventoryUI.populateMaterialsList(this, containerId, materialsConfig);
     },
-    
+
     populateCraftingList(containerId, itemsConfig, type) {
-        const container = this.dom.containers[containerId];
-        if (!container) return;
-        
-        let html = '';
-        let hasItems = false;
-        
-        for (const [itemId, item] of Object.entries(itemsConfig)) {
-            const canCraft = type === 'core' ? this.canCraftCore(itemId) : this.canCraftWeapon(itemId);
-            const materialsText = this.getMaterialsRequiredText(itemId, type);
-            
-            // Informazioni sul livello e stato
-            let statusText = '';
-            let buttonText = 'Crea';
-            
-            if (type === 'core') {
-                const coreData = this.cores[itemId];
-                if (coreData) {
-                    statusText = `<div class="item-status">Posseduto (Livello ${coreData.level})</div>`;
-                    buttonText = 'Già posseduto';
-                }
-            } else {
-                const weaponData = this.weapons[itemId];
-                if (weaponData) {
-                    statusText = `<div class="item-status">Livello ${weaponData.level}/${item.maxLevel}</div>`;
-                    if (weaponData.level >= item.maxLevel) {
-                        buttonText = 'Livello massimo';
-                    } else {
-                        buttonText = 'Potenziamento';
-                    }
-                }
-            }
-            
-            html += `
-                <div class="crafting-item">
-                    <h5>${item.name}</h5>
-                    <p>${item.desc}</p>
-                    ${statusText}
-                    <div class="materials-required">${materialsText}</div>
-                    <button class="craft-btn" ${canCraft ? '' : 'disabled'} 
-                            data-item-id="${itemId}" data-item-type="${type}">
-                        ${buttonText}
-                    </button>
-                </div>
-            `;
-            hasItems = true;
-        }
-        
-        if (!hasItems) {
-            html = '<div class="empty-inventory">Nessun oggetto disponibile</div>';
-        }
-        
-        container.innerHTML = html;
-        
-        // Aggiungi event listeners ai pulsanti
-        container.querySelectorAll('.craft-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const itemId = e.target.dataset.itemId;
-                const itemType = e.target.dataset.itemType;
-                
-                if (itemType === 'core') {
-                    this.craftCore(itemId);
-                } else if (itemType === 'weapon') {
-                    this.craftWeapon(itemId);
-                }
-                
-                // Aggiorna l'inventario dopo il crafting
-                this.populateInventory();
-            });
-        });
+        InventoryUI.populateCraftingList(this, containerId, itemsConfig, type);
     },
-    
+
     getMaterialsRequiredText(itemId, type) {
-        const item = type === 'core' ? CONFIG.cores[itemId] : CONFIG.weapons[itemId];
-        if (!item) return '';
-        
-        let materialsToCheck = item.materials;
-        
-        // Se è un'arma e esiste già, usa i costi di potenziamento
-        if (type === 'weapon' && this.weapons[itemId]) {
-            materialsToCheck = item.upgradeCost;
-        }
-        
-        if (!materialsToCheck) return '';
-        
-        const materials = [];
-        for (const [materialId, amount] of Object.entries(materialsToCheck)) {
-            const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
-            const current = this.materials[materialId] || 0;
-            const color = current >= amount ? '#2ecc71' : '#e74c3c';
-            materials.push(`<span style="color: ${color}">${material.name}: ${current}/${amount}</span>`);
-        }
-        
-        return materials.join(', ');
+        return InventoryUI.getMaterialsRequiredText(this, itemId, type);
     },
-    
+
+    populateArsenal() {
+        InventoryUI.populateArsenal(this);
+    },
+
     setupInventoryTabs() {
         const tabButtons = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -453,180 +398,6 @@ export const UISystem = {
         });
     },
     
-    populateArsenal() {
-        // Popola core attivo
-        this.populateActiveCore();
-        
-        // Popola armi attive
-        this.populateActiveWeapons();
-        
-        // Popola core disponibili
-        this.populateAvailableCores();
-        
-        // Popola armi disponibili
-        this.populateAvailableWeapons();
-    },
-    
-    populateActiveCore() {
-        const container = document.getElementById('activeCoreDisplay');
-        if (!container) return;
-        
-        if (this.arsenal.activeCore) {
-            const core = CONFIG.cores[this.arsenal.activeCore];
-            const coreData = this.cores[this.arsenal.activeCore];
-            
-            container.innerHTML = `
-                <div class="active-item">
-                    <h6>${core.name}</h6>
-                    <p>${core.desc}</p>
-                    <div class="item-level">Livello ${coreData.level}</div>
-                    <button class="unequip-btn" data-item-id="${this.arsenal.activeCore}" data-item-type="core">
-                        Rimuovi
-                    </button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = '<div class="no-item">Nessun core equipaggiato</div>';
-        }
-        
-        // Aggiungi event listeners
-        container.querySelectorAll('.unequip-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const itemId = e.target.dataset.itemId;
-                const itemType = e.target.dataset.itemType;
-                
-                if (itemType === 'core') {
-                    this.unequipCore(itemId);
-                }
-                
-                this.populateArsenal();
-            });
-        });
-    },
-    
-    populateActiveWeapons() {
-        const container = document.getElementById('activeWeaponsDisplay');
-        if (!container) return;
-        
-        if (this.arsenal.activeWeapons.length > 0) {
-            let html = '';
-            for (const weaponId of this.arsenal.activeWeapons) {
-                const weapon = CONFIG.weapons[weaponId];
-                const weaponData = this.weapons[weaponId];
-                
-                html += `
-                    <div class="active-item">
-                        <h6>${weapon.name}</h6>
-                        <p>${weapon.desc}</p>
-                        <div class="item-level">Livello ${weaponData.level}/${weapon.maxLevel}</div>
-                        <button class="unequip-btn" data-item-id="${weaponId}" data-item-type="weapon">
-                            Rimuovi
-                        </button>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        } else {
-            container.innerHTML = '<div class="no-item">Nessuna arma equipaggiata</div>';
-        }
-        
-        // Aggiungi event listeners
-        container.querySelectorAll('.unequip-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const itemId = e.target.dataset.itemId;
-                const itemType = e.target.dataset.itemType;
-                
-                if (itemType === 'weapon') {
-                    this.unequipWeapon(itemId);
-                }
-                
-                this.populateArsenal();
-            });
-        });
-    },
-    
-    populateAvailableCores() {
-        const container = document.getElementById('availableCoresDisplay');
-        if (!container) return;
-        
-        let html = '';
-        for (const [coreId, coreData] of Object.entries(this.cores)) {
-            const core = CONFIG.cores[coreId];
-            
-            html += `
-                <div class="available-item ${coreData.equipped ? 'equipped' : ''}">
-                    <h6>${core.name}</h6>
-                    <p>${core.desc}</p>
-                    <div class="item-level">Livello ${coreData.level}</div>
-                    <button class="equip-btn" data-item-id="${coreId}" data-item-type="core" ${coreData.equipped ? 'disabled' : ''}>
-                        ${coreData.equipped ? 'Equipaggiato' : 'Equipaggia'}
-                    </button>
-                </div>
-            `;
-        }
-        
-        if (!html) {
-            html = '<div class="no-item">Nessun core posseduto</div>';
-        }
-        
-        container.innerHTML = html;
-        
-        // Aggiungi event listeners
-        container.querySelectorAll('.equip-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const itemId = e.target.dataset.itemId;
-                const itemType = e.target.dataset.itemType;
-                
-                if (itemType === 'core') {
-                    this.equipCore(itemId);
-                }
-                
-                this.populateArsenal();
-            });
-        });
-    },
-    
-    populateAvailableWeapons() {
-        const container = document.getElementById('availableWeaponsDisplay');
-        if (!container) return;
-        
-        let html = '';
-        for (const [weaponId, weaponData] of Object.entries(this.weapons)) {
-            const weapon = CONFIG.weapons[weaponId];
-            
-            html += `
-                <div class="available-item ${weaponData.equipped ? 'equipped' : ''}">
-                    <h6>${weapon.name}</h6>
-                    <p>${weapon.desc}</p>
-                    <div class="item-level">Livello ${weaponData.level}/${weapon.maxLevel}</div>
-                    <button class="equip-btn" data-item-id="${weaponId}" data-item-type="weapon" ${weaponData.equipped ? 'disabled' : ''}>
-                        ${weaponData.equipped ? 'Equipaggiata' : 'Equipaggia'}
-                    </button>
-                </div>
-            `;
-        }
-        
-        if (!html) {
-            html = '<div class="no-item">Nessuna arma posseduta</div>';
-        }
-        
-        container.innerHTML = html;
-        
-        // Aggiungi event listeners
-        container.querySelectorAll('.equip-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const itemId = e.target.dataset.itemId;
-                const itemType = e.target.dataset.itemType;
-                
-                if (itemType === 'weapon') {
-                    this.equipWeapon(itemId);
-                }
-                
-                this.populateArsenal();
-            });
-        });
-    },
-
     hideAllPopups(forceNoResume) { 
         const wasSettings = this.dom.popups.settings && this.dom.popups.settings.style.display === 'flex';
         Object.values(this.dom.popups).forEach(p => {
@@ -667,8 +438,9 @@ export const UISystem = {
         
         runStatsContainer.innerHTML = `
             <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
+            <div class="run-stat-item">Livello <span>${this.player?.level ?? 1}</span></div>
             <div class="run-stat-item">Punteggio <span>${this.score}</span></div>
-            <div class="run-stat-item">Nemici <span>${this.entities.enemies.length + this.entities.bosses.length}</span></div>
+            <div class="run-stat-item">Nemici sconfitti <span>${this.enemiesKilled ?? 0}</span></div>
             <div class="run-stat-item">Cristalli <span>${this.gemsThisRun} 💎</span></div>
         `;
 
@@ -771,7 +543,9 @@ export const UISystem = {
             }
             
             let costColor = this.totalGems < cost ? '#e74c3c' : '#fff';
+            const permIcon = getUpgradeIcon(key) || (key === 'defense' ? '🛡️' : '✨');
             let optionHTML = `<div class="permanent-upgrade-option">
+                <div class="upgrade-option-icon">${permIcon}</div>
                 <div>
                     <div class="upgrade-title">${upg.name}</div>
                     <div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div>
@@ -837,7 +611,8 @@ export const UISystem = {
             }
             let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`;
             if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery') levelText = '';
-            div.innerHTML = `<div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>`;
+            const icon = getUpgradeIcon(upgrade.id, upgrade);
+            div.innerHTML = `<div class="upgrade-option-icon">${icon}</div><div class="upgrade-option-text"><div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div></div>`;
             div.onclick = () => { this.applyBossUpgrade(upgrade.id); this.hideAllPopups(); };
             container.appendChild(div);
         });

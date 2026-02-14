@@ -9,26 +9,37 @@ export const WeaponSystem = {
 
         switch (core.effect.type) {
             case 'magnet':
-                // Il core magnetico è già implementato nel MaterialOrb
                 break;
             case 'reflect':
-                this.player.modifiers.reflectChance = (this.player.modifiers.reflectChance || 0) + core.effect.chance;
+                this.player.modifiers.reflectChance = (this.player.modifiers.reflectChance || 0) + (core.effect.chance ?? 0);
                 break;
             case 'bounce':
-                this.player.modifiers.bounceDamage = (this.player.modifiers.bounceDamage || 0) + core.effect.damage;
+                this.player.modifiers.bounceDamage = (this.player.modifiers.bounceDamage || 0) + (core.effect.damage ?? 0);
                 break;
             case 'speed':
-                this.player.stats.speed += core.effect.bonus;
+                this.player.stats.speed += (core.effect.bonus ?? core.effect.speed ?? 0);
                 break;
             case 'resistance':
-                this.player.stats.dr += core.effect.dr;
+                this.player.stats.dr += (core.effect.dr ?? 0);
                 break;
             case 'amplify':
-                this.player.modifiers.contactMultiplier = (this.player.modifiers.contactMultiplier || 1) * core.effect.multiplier;
+                this.player.modifiers.contactMultiplier = (this.player.modifiers.contactMultiplier || 1) * (core.effect.multiplier ?? 1);
                 break;
             case 'void_teleport':
-                // Il teletrasporto viene gestito nel metodo update del player
                 this.player.voidTeleportConfig = core.effect;
+                break;
+            case 'crystal':
+                this.player.modifiers.reflectChance = (this.player.modifiers.reflectChance || 0) + (core.effect.reflect ?? 0);
+                this.player.modifiers.contactMultiplier = (this.player.modifiers.contactMultiplier || 1) * (core.effect.amplify ?? 1);
+                break;
+            case 'stellar':
+                this.player.modifiers.power = (this.player.modifiers.power || 1) * (1 + (core.effect.damage ?? 0));
+                break;
+            case 'lifesteal':
+                this.player.modifiers.lifestealPercent = (this.player.modifiers.lifestealPercent || 0) + (core.effect.percent ?? 0);
+                break;
+            case 'arcane':
+                this.player.modifiers.power = (this.player.modifiers.power || 1) * (1 + (core.effect.damagePercent ?? 0));
                 break;
         }
     },
@@ -80,6 +91,8 @@ export const WeaponSystem = {
         this.arsenal.activeWeapons.splice(index, 1);
         this.weapons[weaponId].equipped = false;
 
+        (this.entities.orbitals || []).forEach(o => { if (o.weaponId === weaponId) o.toRemove = true; });
+
         this.notifications.push({
             text: `Arma rimossa: ${CONFIG.weapons[weaponId].name}`,
             life: 300,
@@ -97,7 +110,81 @@ export const WeaponSystem = {
         console.log(`Effetto arma applicato: ${weapon.name}`);
     },
 
+    updateCoreEffects() {
+        const coreId = this.arsenal?.activeCore;
+        if (!coreId) return;
+        const core = CONFIG.cores[coreId];
+        if (!core) return;
+        const eff = core.effect;
+
+        switch (eff.type) {
+            case 'poison':
+                this.getEnemiesAndBosses().forEach(e => {
+                    if (Utils.getDistance(this.player, e) < this.player.stats.radius + 50) {
+                        e.takeDamage((eff.damage ?? 3) / 60, this);
+                        e.poisonTimer = (eff.duration ?? 5000) / 16.67;
+                        e.poisonDps = eff.damage ?? 3;
+                    }
+                });
+                break;
+            case 'fire':
+                this.getEnemiesAndBosses().forEach(e => {
+                    if (Utils.getDistance(this.player, e) < this.player.stats.radius + 45) {
+                        e.takeDamage((eff.damage ?? 5) / 60, this);
+                    }
+                });
+                break;
+            case 'frost':
+                this.getEnemiesAndBosses().forEach(e => {
+                    if (Utils.getDistance(this.player, e) < this.player.stats.radius + 50) {
+                        e.takeDamage((eff.damage ?? 4) / 60, this);
+                        e.slowAmount = eff.slow ?? 0.2;
+                        e.slowTimer = 60;
+                    }
+                });
+                break;
+            case 'volcanic':
+                if (!this.player.lastVolcanicTime) this.player.lastVolcanicTime = 0;
+                if (Date.now() - this.player.lastVolcanicTime > (eff.cooldown ?? 4000)) {
+                    this.createExplosion(this.player.x, this.player.y, eff.knockback ?? 25, eff.damage ?? 8);
+                    this.player.lastVolcanicTime = Date.now();
+                }
+                break;
+            case 'storm':
+                if (!this.player.lastStormTime) this.player.lastStormTime = 0;
+                if (Date.now() - this.player.lastStormTime > (eff.cooldown ?? 3500)) {
+                    const enemies = this.getEnemiesAndBosses().filter(e => Utils.getDistance(this.player, e) < (eff.radius ?? 180));
+                    const target = enemies[Math.floor(Math.random() * enemies.length)] || enemies[0];
+                    if (target) target.takeDamage(this.getDamage?.(eff.damage ?? 12) ?? eff.damage, this);
+                    this.player.lastStormTime = Date.now();
+                }
+                break;
+            case 'gravity':
+                this.getEnemiesAndBosses().forEach(e => {
+                    const d = Utils.getDistance(this.player, e);
+                    if (d < (eff.radius ?? 120) && d > 5) {
+                        e.slowAmount = eff.slow ?? 0.25;
+                        e.slowTimer = 30;
+                        const dx = (this.player.x - e.x) / d * (eff.pullStrength ?? 0.03);
+                        const dy = (this.player.y - e.y) / d * (eff.pullStrength ?? 0.03);
+                        e.x += dx * 60;
+                        e.y += dy * 60;
+                    }
+                });
+                break;
+            case 'stellar':
+                if (!this.player.lastStellarRegen) this.player.lastStellarRegen = 0;
+                if (Date.now() - this.player.lastStellarRegen > (eff.interval ?? 3000)) {
+                    this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + (eff.regen ?? 1));
+                    this.player.lastStellarRegen = Date.now();
+                }
+                break;
+        }
+    },
+
     updateWeaponEffects() {
+        this.updateCoreEffects();
+
         if (!this.arsenal.activeWeapons || this.arsenal.activeWeapons.length === 0) return;
 
         for (const weaponId of this.arsenal.activeWeapons) {
@@ -113,118 +200,222 @@ export const WeaponSystem = {
             let radius = weapon.effect.radius || 25;
 
             // Progressione basata sul livello
+            const baseDmg = weapon.effect.damage ?? 8;
             switch (weaponId) {
+                case 'iron_spikes':
                 case 'spike_ring':
-                    // Progressione spine: 3 -> 7 -> 10
-                    count = level === 1 ? 3 : level === 2 ? 7 : 10;
-                    damage = 8 + (level - 1) * 2; // 8 -> 10 -> 12
+                    count = level === 1 ? 4 : level === 2 ? 6 : 8;
+                    damage = baseDmg + (level - 1) * 3;
+                    radius = weapon.effect.radius ?? 30;
                     break;
-
+                case 'frost_field':
                 case 'energy_field':
-                    // Progressione DPS: 4 -> 6 -> 8
-                    damage = 4 + (level - 1) * 2;
-                    slow = 0.15 + (level - 1) * 0.05; // 15% -> 20% -> 25%
+                    damage = baseDmg + (level - 1) * 2;
+                    slow = (weapon.effect.slow ?? 0.2) + (level - 1) * 0.05;
+                    radius = (weapon.effect.radius ?? 40) + (level - 1) * 5;
                     break;
-
-                case 'orbital_shield':
-                    // Progressione scudi: 1 -> 2 -> 3
-                    count = level;
-                    damage = 8 + (level - 1) * 3; // 8 -> 11 -> 14
+                case 'orbital_blades':
+                    count = 4 + (level - 1);
+                    damage = baseDmg + (level - 1) * 4;
+                    radius = weapon.effect.radius ?? 35;
                     break;
-
+                case 'thorn_shield':
+                    damage = baseDmg + (level - 1) * 4;
+                    radius = weapon.effect.radius ?? 28;
+                    break;
+                case 'corrosive_mist':
+                    damage = baseDmg + (level - 1) * 3;
+                    radius = (weapon.effect.radius ?? 55) + (level - 1) * 8;
+                    break;
+                case 'arcane_lightning':
+                    damage = baseDmg + (level - 1) * 5;
+                    break;
                 case 'void_blade':
-                    // Progressione lame: 3 -> 5 -> 7
                     count = 3 + (level - 1) * 2;
-                    damage = 12 + (level - 1) * 3; // 12 -> 15 -> 18
-                    slow = 0.2 + (level - 1) * 0.05; // 20% -> 25% -> 30%
+                    damage = 12 + (level - 1) * 3;
+                    slow = 0.2 + (level - 1) * 0.05;
+                    radius = 35;
                     break;
-
+                case 'stellar_pulse':
                 case 'pulse_wave':
-                    // Progressione danno: 15 -> 20 -> 25
-                    damage = 15 + (level - 1) * 5;
+                    damage = baseDmg + (level - 1) * 5;
                     break;
-
+                case 'steel_barrier':
                 case 'crystal_barrier':
-                    // Progressione blocco: 60% -> 70% -> 80%
-                    const blockChance = 0.6 + (level - 1) * 0.1;
-                    const reflectDamage = 10 + (level - 1) * 3; // 10 -> 13 -> 16
+                    radius = 30;
+                    break;
+                case 'ice_shards':
+                    count = 5 + (level - 1) * 2;
+                    damage = baseDmg + (level - 1) * 3;
+                    slow = (weapon.effect.slow ?? 0.25) + (level - 1) * 0.03;
+                    radius = 35;
+                    break;
+                case 'fire_ring':
+                case 'obsidian_blade':
+                case 'poison_vines':
+                default:
+                    if (!radius) radius = weapon.effect.radius ?? 35;
+                    if (weapon.effect.count) count = weapon.effect.count + (level - 1);
+                    damage = baseDmg + (level - 1) * (weapon.effect.damage ? 0 : 2);
                     break;
             }
 
             switch (weapon.effect.type) {
                 case 'spikes':
-                    // Danno da contatto con spine
                     this.getEnemiesAndBosses().forEach(enemy => {
-                        const dist = Utils.getDistance(this.player, enemy);
-                        if (dist < this.player.stats.radius + radius) {
-                            enemy.takeDamage(damage, this);
+                        if (Utils.getDistance(this.player, enemy) < this.player.stats.radius + radius) {
+                            enemy.takeDamage(this.getDamage?.(damage) ?? damage, this);
                         }
                     });
                     break;
 
                 case 'field':
-                    // Campo energetico che rallenta e danneggia
+                case 'frost_field':
                     this.getEnemiesAndBosses().forEach(enemy => {
-                        const dist = Utils.getDistance(this.player, enemy);
-                        if (dist < radius) {
-                            enemy.takeDamage(damage / 60, this); // DPS
-                            enemy.slowAmount = slow;
-                            enemy.slowTimer = 60; // 1 secondo
+                        if (Utils.getDistance(this.player, enemy) < radius) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                            enemy.slowAmount = slow || 0.2;
+                            enemy.slowTimer = 60;
+                        }
+                    });
+                    break;
+
+                case 'fire_ring':
+                    this.getEnemiesAndBosses().forEach(enemy => {
+                        if (Utils.getDistance(this.player, enemy) < radius) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                        }
+                    });
+                    break;
+
+                case 'poison_vines':
+                    this.getEnemiesAndBosses().forEach(enemy => {
+                        if (Utils.getDistance(this.player, enemy) < radius) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                            enemy.poisonDps = damage;
+                            enemy.poisonTimer = (weapon.effect.duration ?? 4000) / 16.67;
+                        }
+                    });
+                    break;
+
+                case 'ice_shards':
+                    this.getEnemiesAndBosses().forEach(enemy => {
+                        if (Utils.getDistance(this.player, enemy) < this.player.stats.radius + radius) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                            enemy.slowAmount = slow || 0.25;
+                            enemy.slowTimer = 60;
                         }
                     });
                     break;
 
                 case 'orbital':
-                    // Scudi orbitali
-                    if (!this.player.orbitals) this.player.orbitals = [];
-                    if (this.player.orbitals.length < count) {
-                        const angle = (this.player.orbitals.length / count) * Math.PI * 2;
-                        this.addEntity('orbitals', new Orbital(this.player.x, this.player.y, {
-                            angle: angle,
-                            distance: 40,
-                            rotationSpeed: 0.05,
-                            damage: damage,
-                            radius: 8
-                        }));
+                case 'orbital_blades':
+                    const orbitals = this.entities.orbitals || [];
+                    const mine = orbitals.filter(o => o.weaponId === weaponId);
+                    if (mine.length < count) {
+                        const idx = mine.length;
+                        const orb = new Orbital(this.player.x, this.player.y, {
+                            angle: (idx / count) * Math.PI * 2 + Date.now() / 500,
+                            distance: Math.max(30, (radius || 35) - 5),
+                            rotationSpeed: 0.08,
+                            damage: (this.getDamage?.(damage) ?? damage),
+                            radius: 10,
+                            weaponId
+                        });
+                        this.addEntity('orbitals', orb);
                     }
                     break;
 
                 case 'pulse':
-                    // Onda pulsante (una volta ogni cooldown)
+                case 'stellar_pulse':
                     if (!this.player.lastPulseTime) this.player.lastPulseTime = 0;
-                    if (Date.now() - this.player.lastPulseTime > weapon.effect.cooldown) {
-                        this.createExplosion(this.player.x, this.player.y, weapon.effect.knockback, damage);
+                    const cd = weapon.effect.cooldown ?? 4000;
+                    if (Date.now() - this.player.lastPulseTime > cd) {
+                        this.createExplosion(this.player.x, this.player.y, weapon.effect.knockback ?? 30, this.getDamage?.(damage) ?? damage);
                         this.player.lastPulseTime = Date.now();
                     }
                     break;
 
                 case 'void_blade':
-                    // Lame del vuoto che rallentano
                     this.getEnemiesAndBosses().forEach(enemy => {
-                        const dist = Utils.getDistance(this.player, enemy);
-                        if (dist < this.player.stats.radius + 35) {
-                            enemy.takeDamage(damage / 60, this); // DPS
-                            enemy.slowAmount = slow;
-                            enemy.slowTimer = weapon.effect.duration / 16.67; // Converti ms in frame
+                        if (Utils.getDistance(this.player, enemy) < this.player.stats.radius + 35) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                            enemy.slowAmount = slow || 0.25;
+                            enemy.slowTimer = (weapon.effect.duration ?? 4000) / 16.67;
                         }
                     });
                     break;
 
+                case 'barrier':
                 case 'crystal_barrier':
-                    // Barriera di cristallo che blocca proiettili
-                    this.entities.enemyProjectiles.forEach(proj => {
-                        const dist = Utils.getDistance(this.player, proj);
-                        if (dist < this.player.stats.radius + 25) {
-                            if (Math.random() < weapon.effect.blockChance) {
+                    const blockChance = weapon.effect.blockChance ?? weapon.effect.reflectPercent ?? 0.5;
+                    const reflDmg = weapon.effect.reflectDamage ?? damage;
+                    (this.entities.enemyProjectiles || []).forEach(proj => {
+                        if (Utils.getDistance(this.player, proj) < this.player.stats.radius + 30) {
+                            if (Math.random() < blockChance) {
                                 proj.toRemove = true;
-                                // Riflette danno al nemico più vicino
-                                const nearestEnemy = Utils.findNearest(this.player, this.getEnemiesAndBosses());
-                                if (nearestEnemy) {
-                                    nearestEnemy.takeDamage(weapon.effect.reflectDamage, this);
-                                }
+                                const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
+                                if (nearest) nearest.takeDamage(this.getDamage?.(reflDmg) ?? reflDmg, this);
                             }
                         }
                     });
+                    break;
+
+                case 'thorn_shield':
+                    this.getEnemiesAndBosses().forEach(enemy => {
+                        if (Utils.getDistance(this.player, enemy) < this.player.stats.radius + radius) {
+                            enemy.takeDamage(this.getDamage?.(damage) ?? damage, this);
+                        }
+                    });
+                    (this.entities.enemyProjectiles || []).forEach(proj => {
+                        if (Utils.getDistance(this.player, proj) < this.player.stats.radius + 25) {
+                            if (Math.random() < (weapon.effect.reflectPercent ?? 0.2)) {
+                                proj.toRemove = true;
+                                const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
+                                if (nearest) nearest.takeDamage(this.getDamage?.(damage) ?? damage, this);
+                            }
+                        }
+                    });
+                    break;
+
+                case 'corrosive_mist':
+                    this.getEnemiesAndBosses().forEach(enemy => {
+                        if (Utils.getDistance(this.player, enemy) < radius) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                            enemy.poisonDps = damage;
+                            enemy.poisonTimer = (weapon.effect.duration ?? 3000) / 16.67;
+                        }
+                    });
+                    break;
+
+                case 'arcane_lightning':
+                    if (!this.player.lastArcaneLightning) this.player.lastArcaneLightning = 0;
+                    if (Date.now() - this.player.lastArcaneLightning > 2000) {
+                        const bounces = weapon.effect.bounces ?? 4;
+                        let chain = Utils.findNearest(this.player, this.getEnemiesAndBosses());
+                        const hit = new Set();
+                        for (let b = 0; b < bounces && chain; b++) {
+                            if (hit.has(chain)) break;
+                            hit.add(chain);
+                            chain.takeDamage(this.getDamage?.(damage) ?? damage, this);
+                            const next = this.getEnemiesAndBosses()
+                                .filter(e => !hit.has(e) && Utils.getDistance(chain, e) < 100)
+                                .sort((a, b) => Utils.getDistance(chain, a) - Utils.getDistance(chain, b))[0];
+                            chain = next;
+                        }
+                        this.player.lastArcaneLightning = Date.now();
+                    }
+                    break;
+
+                case 'obsidian_blade':
+                    this.getEnemiesAndBosses().forEach(enemy => {
+                        if (Utils.getDistance(this.player, enemy) < this.player.stats.radius + 40) {
+                            enemy.takeDamage((this.getDamage?.(damage) ?? damage) / 60, this);
+                        }
+                    });
+                    break;
+
+                case 'shadow_cloak':
                     break;
             }
         }

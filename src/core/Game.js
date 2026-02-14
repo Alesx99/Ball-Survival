@@ -84,6 +84,7 @@ export class BallSurvivalGame {
                 inventory: document.getElementById('inventoryMenu'), 
                 characterSelection: document.getElementById('characterSelectionPopup'), 
                 achievements: document.getElementById('achievementsPopup'),
+                glossary: document.getElementById('glossaryPopup'),
                 settings: document.getElementById('settingsPopup')
             },
             buttons: { 
@@ -103,6 +104,8 @@ export class BallSurvivalGame {
                 closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'), 
                 achievements: document.getElementById('achievementsBtn'), 
                 closeAchievements: document.getElementById('closeAchievementsBtn'),
+                glossary: document.getElementById('glossaryBtn'),
+                closeGlossary: document.getElementById('closeGlossaryBtn'),
                 settings: document.getElementById('settingsBtn'),
                 closeSettings: document.getElementById('closeSettingsBtn')
             },
@@ -125,6 +128,8 @@ export class BallSurvivalGame {
             },
             joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), active: false, radius: 60, touchId: null },
             menuOverlay: document.getElementById('menuOverlay'),
+            pauseButtonMobile: document.getElementById('pauseButtonMobile'),
+            xpBarMobile: document.getElementById('xpBarMobile'),
             totalGemsShop: document.getElementById('totalGemsShop'),
             playerStatsColumn: document.getElementById('playerStatsColumn'),
             weaponsStatsColumn: document.getElementById('weaponsStatsColumn'),
@@ -180,6 +185,13 @@ export class BallSurvivalGame {
         // Pulsante achievements
         if (this.dom.buttons.achievements) {
             this.dom.buttons.achievements.onclick = () => this.showAchievements();
+        }
+        // Pulsante glossario
+        if (this.dom.buttons.glossary) {
+            this.dom.buttons.glossary.onclick = () => this.showGlossary();
+        }
+        if (this.dom.buttons.closeGlossary) {
+            this.dom.buttons.closeGlossary.onclick = () => this.hideGlossary();
         }
         
         // Pulsante chiudi achievements
@@ -291,6 +303,8 @@ export class BallSurvivalGame {
         this.hideAllPopups(true); 
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
+        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'flex';
+        if (this.dom.xpBarMobile && window.innerWidth <= 700) this.dom.xpBarMobile.style.display = 'flex';
         this.state = 'running';
         this._updateAccumulator = 0;
         this.lastFrameTime = performance.now();
@@ -328,11 +342,15 @@ export class BallSurvivalGame {
     
     this.saveGameData();
     document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
+    const levelEl = document.getElementById('levelReached');
+    if (levelEl) levelEl.textContent = this.player?.level ?? 1;
     document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
     document.getElementById('gemsEarned').textContent = this.gemsThisRun;
     document.getElementById('finalScore').textContent = this.score;
     this.dom.inputs.saveCode.value = this.generateSaveCode();
     this.dom.buttons.pause.style.display = 'none';
+    if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'none';
+    if (this.dom.xpBarMobile) this.dom.xpBarMobile.style.display = 'none';
     this.dom.inGameUI.container.style.display = 'none';
     this.hideAllPopups(true); 
     this.showPopup('gameOver');
@@ -415,11 +433,14 @@ export class BallSurvivalGame {
             this.notifications[i].life--;
             if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
         }
-        this.spawnEnemies(); 
-        this.spawnBoss(); 
-        this.spawnChests(); 
+        this.spawnEnemies();
+        this.spawnBoss();
+        this.spawnChests();
         this.spawnMapXpOrbs();
         this.castSpells();
+
+        const inBattle = this.getEnemiesAndBosses().length > 0;
+        this.audio?.setBgmMode(inBattle ? 'battle' : 'calm');
         this.checkForLevelUp(); // Spostato qui per coerenza
         
         // Monitoraggio versione 5.3 - ogni 30 secondi
@@ -558,6 +579,11 @@ export class BallSurvivalGame {
         if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
             this.hideCharacterPopup();
             return;
+        }
+        // Su start screen: chiudi glossario/achievements e torna al menu
+        if (this.state === 'startScreen') {
+            if (this.dom.popups.glossary?.style.display === 'flex') { this.hideGlossary(); return; }
+            if (this.dom.popups.achievements?.style.display === 'flex') { this.hideAllPopups(); this.showPopup('start'); return; }
         }
         
         if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { 
