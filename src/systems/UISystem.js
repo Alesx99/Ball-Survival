@@ -12,7 +12,7 @@ export const UISystem = {
         choices.forEach(upgrade => { 
             if (!upgrade) return; 
             const div = document.createElement('div'); 
-            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '') + (upgrade.type === 'fusion' ? ' evolution' : ''); 
+            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '') + (upgrade.type === 'fusion' ? ' fusion' : '') + (upgrade.type === 'passive' ? ' passive' : ''); 
             
             let s;
             if (upgrade.type === 'passive') {
@@ -601,7 +601,7 @@ export const UISystem = {
         choices.forEach(upgrade => {
             if (!upgrade) return;
             const div = document.createElement('div');
-            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '');
+            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '') + (upgrade.type === 'passive' ? ' passive' : '');
             let s;
             if (upgrade.type === 'passive') {
                 s = this.passives[upgrade.id];

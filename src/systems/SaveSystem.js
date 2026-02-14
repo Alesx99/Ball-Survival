@@ -147,32 +147,36 @@ export const SaveSystem = {
             activeWeapons: []
         };
         
-        try { 
-            const savedData = localStorage.getItem('ballSurvivalSaveData_v4.8'); 
+        let data = null;
+        const LEGACY_KEY = 'ballSurvivalSaveData_v4.8';
+
+        try {
+            const player = this.playerAuth?.auth?.currentPlayer;
+            // Giocatore loggato (non guest): carica dal suo account
+            if (player && !player.isGuest && player.username) {
+                const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+                const acc = players[player.username];
+                if (acc?.saveData) {
+                    data = acc.saveData;
+                }
+                // Nuovo account senza saveData: parte da zero (non usare legacy)
+            } else {
+                // Guest o nessun login: usa storage legacy
+                const savedData = localStorage.getItem(LEGACY_KEY);
+                if (savedData) data = JSON.parse(savedData);
+            }
             
-            if (savedData) { 
-                const data = JSON.parse(savedData); 
-                this.totalGems = data.totalGems || 0; 
-                
+            if (data) { 
+                this.totalGems = data.totalGems ?? 0; 
                 if (data.upgrades) { 
                     Object.keys(this.permanentUpgrades).forEach(key => { 
-                        if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level || 0; 
+                        if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level ?? 0; 
                     }); 
                 }
-                
-                // Carica materiali, core e armi
-                if (data.materials) {
-                    this.materials = data.materials;
-                }
-                if (data.cores) {
-                    this.cores = data.cores;
-                }
-                if (data.weapons) {
-                    this.weapons = data.weapons;
-                }
-                if (data.arsenal) {
-                    this.arsenal = data.arsenal;
-                }
+                if (data.materials) this.materials = data.materials;
+                if (data.cores) this.cores = data.cores;
+                if (data.weapons) this.weapons = data.weapons;
+                if (data.arsenal) this.arsenal = data.arsenal;
             } else { 
                 this.totalGems = 0; 
             } 
@@ -183,16 +187,27 @@ export const SaveSystem = {
     },
 
     saveGameData() { 
+        const LEGACY_KEY = 'ballSurvivalSaveData_v4.8';
+        const saveData = { 
+            totalGems: this.totalGems, 
+            upgrades: this.permanentUpgrades,
+            materials: this.materials,
+            cores: this.cores,
+            weapons: this.weapons,
+            arsenal: this.arsenal,
+            saveDataUpdatedAt: Date.now()
+        }; 
         try { 
-            const saveData = { 
-                totalGems: this.totalGems, 
-                upgrades: this.permanentUpgrades,
-                materials: this.materials,
-                cores: this.cores,
-                weapons: this.weapons,
-                arsenal: this.arsenal
-            }; 
-            localStorage.setItem('ballSurvivalSaveData_v4.8', JSON.stringify(saveData)); 
+            localStorage.setItem(LEGACY_KEY, JSON.stringify(saveData)); 
+            // Salva anche nel player loggato (per sync cloud)
+            const player = this.playerAuth?.auth?.currentPlayer;
+            if (player && !player.isGuest && player.username) {
+                const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+                if (players[player.username]) {
+                    players[player.username].saveData = saveData;
+                    localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+                }
+            }
         } catch (e) { 
             console.error("Impossibile salvare:", e); 
         } 

@@ -17,12 +17,14 @@ export class LoginManager {
     get isLoggedIn() { return this.auth.isLoggedIn; }
     get isGuest() { return this.auth.isGuest; }
 
-    setDependencies({ analyticsManager }) {
+    setDependencies({ analyticsManager, game }) {
         this.analyticsManager = analyticsManager;
+        this.game = game;
     }
 
     initLogin() {
         this.auth.loadPlayerData();
+        this._migrateLocalAccounts();
         this.updateLoginUI();
 
         // Carica token salvato se presente (cloud sync opzionale)
@@ -33,7 +35,10 @@ export class LoginManager {
                 this.analyticsManager.config.githubToken = savedToken;
                 this.analyticsManager.config.enableCloudSync = true;
             }
-            setTimeout(() => this.loadUserAccounts(), 1000);
+            setTimeout(async () => {
+                await this.loadUserAccounts();
+                this.game?.loadGameData?.();
+            }, 1000);
         }
     }
 
@@ -164,6 +169,7 @@ export class LoginManager {
             if (playerData) {
                 this.auth.setCurrentPlayer(playerData);
                 this.auth.savePlayerData();
+                this.game?.loadGameData?.();
                 this.updateLoginUI();
 
                 if (tokenToUse) {
@@ -225,6 +231,7 @@ export class LoginManager {
             if (playerData) {
                 this.auth.setCurrentPlayer(playerData);
                 this.auth.savePlayerData();
+                this.game?.loadGameData?.();
                 this.updateLoginUI();
 
                 if (tokenToUse) {
@@ -344,7 +351,8 @@ export class LoginManager {
                 console.log('⚠️ Cloud sync non configurato');
                 return false;
             }
-
+            // Salva lo stato attuale nel player prima di sincronizzare
+            this.game?.saveGameData?.();
             const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
             if (Object.keys(players).length === 0) {
                 console.log('📝 Nessun account da sincronizzare');
@@ -356,6 +364,10 @@ export class LoginManager {
                 sanitizedPlayers[username] = { ...players[username] };
                 if (sanitizedPlayers[username].password) {
                     delete sanitizedPlayers[username].password;
+                }
+                // Migrazione: forza struttura saveData per account esistenti (compatibilità Gist)
+                if (sanitizedPlayers[username].saveData === undefined) {
+                    sanitizedPlayers[username].saveData = null;
                 }
             }
 
@@ -393,12 +405,16 @@ export class LoginManager {
             let accountsLoaded = 0;
 
             for (const [username, account] of Object.entries(accountsData.accounts || {})) {
+                const normalizedCloud = this._normalizeAccount(account);
                 if (!localPlayers[username]) {
-                    localPlayers[username] = account;
+                    localPlayers[username] = normalizedCloud;
                     accountsLoaded++;
                 } else {
-                    const mergedAccount = this._mergeAccountState(localPlayers[username], account);
-                    localPlayers[username] = mergedAccount;
+                    const mergedAccount = this._mergeAccountState(
+                        this._normalizeAccount(localPlayers[username]),
+                        normalizedCloud
+                    );
+                    localPlayers[username] = this._normalizeAccount(mergedAccount);
                     accountsLoaded++;
                     console.log(`🔀 Merge per ${username}`);
                 }
@@ -527,6 +543,36 @@ export class LoginManager {
         return `${minutes}m ${seconds}s`;
     }
 
+    /** Migrazione: normalizza tutti gli account in localStorage (struttura saveData). */
+    _migrateLocalAccounts() {
+        try {
+            const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+            let changed = false;
+            for (const username in players) {
+                if (players[username].saveData === undefined) {
+                    players[username].saveData = null;
+                    changed = true;
+                }
+            }
+            if (changed) {
+                localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+                console.log('📦 Migrazione account completata (saveData)');
+            }
+        } catch (e) {
+            console.warn('Migrazione account:', e);
+        }
+    }
+
+    /** Normalizza un account: aggiunge saveData se mancante (compatibilità con account esistenti). */
+    _normalizeAccount(account) {
+        if (!account) return account;
+        const normalized = { ...account };
+        if (normalized.saveData === undefined) {
+            normalized.saveData = null;
+        }
+        return normalized;
+    }
+
     _mergeAccountState(local, cloud) {
         const merged = {};
         merged.stats = {};
@@ -586,6 +632,17 @@ export class LoginManager {
 
         if (local.password && !local.passwordHash) {
             merged.password = local.password;
+        }
+
+        // Merge saveData: preferisci il più recente (saveDataUpdatedAt)
+        const localSave = local.saveData;
+        const cloudSave = cloud.saveData;
+        if (localSave && cloudSave) {
+            const localTs = localSave.saveDataUpdatedAt ?? 0;
+            const cloudTs = cloudSave.saveDataUpdatedAt ?? 0;
+            merged.saveData = cloudTs >= localTs ? cloudSave : localSave;
+        } else {
+            merged.saveData = cloudSave || localSave || null;
         }
 
         return merged;

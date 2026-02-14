@@ -6,13 +6,14 @@ export const RenderSystem = {
     draw() {
         if (!this.ctx || !this.canvas) return;
         
-        this.ctx.fillStyle = 'black';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Se siamo nel menu principale, non disegnare elementi di gioco
+        // Se siamo nel menu principale: sfondo neon animato
         if (this.state === 'startScreen') {
+            this.drawStartScreenBackground();
             return;
         }
+        
+        this.ctx.fillStyle = '#0a0a12';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.ctx.save();
         const scale = this.canvasScale ?? 1;
@@ -54,7 +55,7 @@ export const RenderSystem = {
         const flash = CONFIG.accessibility?.reduceMotion ? 0 : (this.hitFlashTimer || 0);
         const maxFlash = CONFIG.effects?.hitFlashFrames ?? 10;
         if (flash > 0) {
-            this.ctx.fillStyle = `rgba(255, 50, 50, ${0.35 * (flash / maxFlash)})`;
+            this.ctx.fillStyle = `rgba(255, 51, 102, ${0.3 * (flash / maxFlash)})`;
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
         const cx = this.canvas.width / 2;
@@ -70,6 +71,48 @@ export const RenderSystem = {
         this.drawOffscreenIndicators();
         this.drawNotifications();
     },
+
+    drawStartScreenBackground() {
+        if (!this.ctx || !this.canvas) return;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const t = Date.now() * 0.0008;
+        const gridSize = 80;
+
+        // Gradient base
+        const g = this.ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.6);
+        g.addColorStop(0, '#0a0a14');
+        g.addColorStop(0.5, '#0d0d18');
+        g.addColorStop(1, '#050508');
+        this.ctx.fillStyle = g;
+        this.ctx.fillRect(0, 0, w, h);
+
+        // Griglia neon sottile (offset animato)
+        const offsetX = (Math.sin(t) * 20) % gridSize;
+        const offsetY = (Math.cos(t * 0.7) * 20) % gridSize;
+        const alpha = 0.06 + Math.sin(t * 2) * 0.02;
+        this.ctx.strokeStyle = `rgba(0, 245, 255, ${alpha})`;
+        this.ctx.lineWidth = 1;
+        for (let x = -offsetX; x < w + gridSize; x += gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, h);
+            this.ctx.stroke();
+        }
+        for (let y = -offsetY; y < h + gridSize; y += gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(w, y);
+            this.ctx.stroke();
+        }
+
+        // Glow centrale
+        const glow = this.ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w * 0.5);
+        glow.addColorStop(0, 'rgba(0, 245, 255, 0.04)');
+        glow.addColorStop(1, 'rgba(0, 245, 255, 0)');
+        this.ctx.fillStyle = glow;
+        this.ctx.fillRect(0, 0, w, h);
+    }
 
     drawBackground() {
         if (!this.ctx) return;
@@ -88,9 +131,22 @@ export const RenderSystem = {
         this.ctx.fillStyle = stageInfo.background.color;
         this.ctx.fillRect(0, 0, CONFIG.world.width, CONFIG.world.height);
         
+        // Overlay gradient per profondità (glow centrale)
+        const accent = stageInfo.background.accentColor || '#00f5ff';
+        const cx = this.camera.x + this.camera.width / 2;
+        const cy = this.camera.y + this.camera.height / 2;
+        const r = accent.startsWith('#') ? parseInt(accent.slice(1, 3), 16) : 0;
+        const g = accent.startsWith('#') ? parseInt(accent.slice(3, 5), 16) : 245;
+        const b = accent.startsWith('#') ? parseInt(accent.slice(5, 7), 16) : 255;
+        const grad = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, this.camera.width * 0.7);
+        grad.addColorStop(0, `rgba(${r},${g},${b},0.05)`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        this.ctx.fillStyle = grad;
+        this.ctx.fillRect(this.camera.x - 100, this.camera.y - 100, this.camera.width + 200, this.camera.height + 200);
+        
         // Griglia o pattern specifico dello stage (solo area visibile)
         this.ctx.strokeStyle = stageInfo.background.gridColor;
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = 1;
         
         switch (stageInfo.background.pattern) {
             case 'grid':
@@ -135,8 +191,12 @@ export const RenderSystem = {
                 }
                 break;
             case 'cosmic':
-                // Stelle deterministiche (no Math.random in draw - causa jank su mobile)
-                this.ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                // Stelle deterministiche neon (no Math.random in draw - causa jank su mobile)
+                const starColor = stageInfo.background.accentColor || '#ff00ff';
+                const sr = starColor.startsWith('#') ? parseInt(starColor.slice(1, 3), 16) : 255;
+                const sg = starColor.startsWith('#') ? parseInt(starColor.slice(3, 5), 16) : 0;
+                const sb = starColor.startsWith('#') ? parseInt(starColor.slice(5, 7), 16) : 255;
+                this.ctx.fillStyle = `rgba(${sr},${sg},${sb},0.85)`;
                 for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
                     for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
                         const h = (x * 31 + y * 7) % 100;

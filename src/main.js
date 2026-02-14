@@ -17,9 +17,11 @@ function initApp() {
     // 1. Create the game instance
     const game = new BallSurvivalGame('gameCanvas');
 
-    // 2. Wire auth into game and setup login (pass analyticsManager for cloud sync)
+    // 2. Wire auth into game and setup login (pass analyticsManager and game for cloud sync + saveData)
     game.playerAuth = playerAuth;
-    setupLoginHandlers(playerAuth, { analyticsManager: game.analyticsManager });
+    setupLoginHandlers(playerAuth, { analyticsManager: game.analyticsManager, game });
+    // Ricarica saveData dal player loggato (dopo initLogin)
+    game.loadGameData();
 
     // 3. Wire token setup screen buttons
     const configureBtn = document.getElementById('configureStartupTokenBtn');

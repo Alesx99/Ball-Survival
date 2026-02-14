@@ -71,8 +71,9 @@ export function populateCraftingList(game, containerId, itemsConfig, type) {
         }
 
         const icon = getItemIcon(itemId, type);
+        const itemClass = type === 'core' ? 'crafting-item crafting-item-core' : 'crafting-item crafting-item-weapon';
         html += `
-            <div class="crafting-item">
+            <div class="${itemClass}">
                 <span class="crafting-item-icon">${icon}</span>
                 <div class="crafting-item-content">
                 <h5>${item.name}</h5>
@@ -111,7 +112,7 @@ export function getMaterialsRequiredText(game, itemId, type) {
     for (const [materialId, amount] of Object.entries(materialsToCheck)) {
         const material = CONFIG.materials.coreMaterials[materialId] || CONFIG.materials.weaponMaterials[materialId];
         const current = game.materials?.[materialId] || 0;
-        const color = current >= amount ? '#2ecc71' : '#e74c3c';
+        const color = current >= amount ? 'var(--highlight-color)' : 'var(--accent-color)';
         materials.push(`<span style="color: ${color}">${material?.name ?? materialId}: ${current}/${amount}</span>`);
     }
     return materials.join(', ');
