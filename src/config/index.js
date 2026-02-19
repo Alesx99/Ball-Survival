@@ -143,6 +143,127 @@ export const CONFIG = {
                 ctx.beginPath(); ctx.arc(0, 0, radius * 0.7, Math.PI / 2, -Math.PI / 2); ctx.stroke();
                 ctx.restore();
             }
+        },
+        'prism': {
+            id: 'prism',
+            name: "Prisma Arcano",
+            desc: "Un cristallo di pura energia magica. Potenzia tutte le spell ma è estremamente fragile.",
+            startingWeapon: 'magicMissile',
+            bonus: "+25% Danno magico. Tutte le spell: +1 livello massimo. +20% Area d'effetto.",
+            malus: "-25% Salute massima, -10% Velocità di movimento.",
+            color: '#e040fb',
+            cost: 1000,
+            unlockRequirement: { type: 'all_stages', count: 5 },
+            weaponBonuses: { magicMissile: { damage: 1.25, area: 1.2 } },
+            draw: (ctx, player) => {
+                const pulse = Math.sin(Date.now() / 180) * 2;
+                const r = player.stats.radius + pulse;
+                const t = Date.now() / 600;
+                // Prisma rotante multi-colore
+                const colors = ['#e040fb', '#7c4dff', '#00e5ff', '#76ff03', '#ffea00', '#ff6e40'];
+                for (let i = 0; i < 6; i++) {
+                    const a = t + (i * Math.PI * 2 / 6);
+                    ctx.strokeStyle = colors[i];
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(player.x + Math.cos(a) * r * 0.3, player.y + Math.sin(a) * r * 0.3);
+                    ctx.lineTo(player.x + Math.cos(a) * r, player.y + Math.sin(a) * r);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = 'rgba(224, 64, 251, 0.3)';
+                ctx.beginPath(); ctx.arc(player.x, player.y, r * 0.5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(player.x, player.y, 3, 0, Math.PI * 2); ctx.fill();
+            }
+        },
+        'unstable': {
+            id: 'unstable',
+            name: "Nucleo Instabile",
+            desc: "Un nucleo di energia caotica. Esplosioni casuali devastanti ma imprevedibile.",
+            startingWeapon: 'fireball',
+            bonus: "+40% Danno globale. Esplosione casuale ogni 30s che infligge 50 danni in area.",
+            malus: "-30% Salute massima. Subisce 5 danni ogni 45 secondi.",
+            color: '#ff1744',
+            cost: 600,
+            unlockRequirement: { type: 'boss_kills_single_run', count: 3 },
+            weaponBonuses: { fireball: { damage: 1.4, burnDamage: 1.3 } },
+            draw: (ctx, player) => {
+                const pulse = Math.sin(Date.now() / 100) * 3;
+                const r = player.stats.radius + pulse;
+                // Nucleo che crackla
+                const colorPhase = (Date.now() / 200) % 3;
+                const c = colorPhase < 1 ? '#ff1744' : colorPhase < 2 ? '#ffea00' : '#ffffff';
+                ctx.fillStyle = c;
+                ctx.beginPath(); ctx.arc(player.x, player.y, r, 0, Math.PI * 2); ctx.fill();
+                // Scariche elettriche
+                ctx.strokeStyle = '#ffea00';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < 4; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const len = r * (0.8 + Math.random() * 0.6);
+                    ctx.beginPath();
+                    ctx.moveTo(player.x, player.y);
+                    ctx.lineTo(player.x + Math.cos(a) * len, player.y + Math.sin(a) * len);
+                    ctx.stroke();
+                }
+            }
+        },
+        'druid': {
+            id: 'druid',
+            name: "Druido Vivente",
+            desc: "Una sfera di energia naturale. Rigenera costantemente e potenzia i danni nel tempo.",
+            startingWeapon: 'heal',
+            bonus: "+2 HP/sec rigenerazione. Tutti i DoT (veleno, fuoco): +50% durata.",
+            malus: "-20% Velocità d'attacco.",
+            color: '#00e676',
+            cost: 500,
+            unlockRequirement: { type: 'materials_collected', count: 1000 },
+            weaponBonuses: { heal: { healAmount: 1.4, cooldown: 0.85 } },
+            draw: (ctx, player) => {
+                const pulse = Math.sin(Date.now() / 300) * 2;
+                const r = player.stats.radius + pulse;
+                // Sfera verde con viti
+                ctx.fillStyle = 'rgba(0, 230, 118, 0.3)';
+                ctx.beginPath(); ctx.arc(player.x, player.y, r, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#00e676';
+                ctx.lineWidth = 2;
+                const t = Date.now() / 1000;
+                for (let i = 0; i < 3; i++) {
+                    const a = t + i * Math.PI * 2 / 3;
+                    const vr = r * 1.3;
+                    ctx.beginPath();
+                    ctx.arc(player.x + Math.cos(a) * r * 0.5, player.y + Math.sin(a) * r * 0.5, vr * 0.3, a, a + Math.PI);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#76ff03'; ctx.beginPath(); ctx.arc(player.x, player.y, 4, 0, Math.PI * 2); ctx.fill();
+            }
+        },
+        'phantom': {
+            id: 'phantom',
+            name: "Fantasma",
+            desc: "Una sfera spettrale. Velocissima e sfuggente ma incredibilmente fragile.",
+            startingWeapon: 'shotgun',
+            bonus: "+50% Velocità di movimento. Immune ai danni da contatto per 0.5s ogni 5s. Attraversa i nemici.",
+            malus: "-40% Salute massima. Non può usare Shield.",
+            color: '#b0bec5',
+            cost: 1200,
+            unlockRequirement: { type: 'total_deaths', count: 100 },
+            weaponBonuses: { shotgun: { count: 1, damage: 1.2, critChance: 0.15 } },
+            draw: (ctx, player) => {
+                const r = player.stats.radius;
+                const alpha = 0.4 + Math.sin(Date.now() / 400) * 0.2;
+                ctx.globalAlpha = alpha;
+                const g = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, r * 1.5);
+                g.addColorStop(0, 'rgba(176, 190, 197, 0.8)');
+                g.addColorStop(0.5, 'rgba(176, 190, 197, 0.3)');
+                g.addColorStop(1, 'rgba(176, 190, 197, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(player.x, player.y, r * 1.5, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1;
+                // Occhi spettrali
+                ctx.fillStyle = '#e0f7fa';
+                ctx.beginPath(); ctx.arc(player.x - 4, player.y - 2, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(player.x + 4, player.y - 2, 2, 0, Math.PI * 2); ctx.fill();
+            }
         }
     },
     enemies: {
@@ -165,7 +286,10 @@ export const CONFIG = {
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" },
         '2': { time: 600, dr: 0.45, speed: 0.25, championChance: 0.08, message: "ALLARME: Campioni nemici individuati!" },
-        '3': { time: 900, dr: 0.70, speed: 0.40, eliteChanceMultiplier: 3, message: "ALLARME ROSSO: Convergenza Planare!" }
+        '3': { time: 900, dr: 0.70, speed: 0.40, eliteChanceMultiplier: 3, message: "ALLARME ROSSO: Convergenza Planare!" },
+        '4': { time: 1200, dr: 0.80, speed: 0.55, championChance: 0.15, enemyRegen: 1, message: "CALAMITÀ: I nemici si rigenerano!" },
+        '5': { time: 1500, dr: 0.85, speed: 0.65, eliteChanceMultiplier: 5, twinBoss: true, message: "APOCALISSE: Boss gemelli avvistati!" },
+        '6': { time: 1800, dr: 0.90, speed: 0.75, spawnMultiplier: 2, deathExplosion: true, message: "FINE DEI TEMPI: Non c'è più speranza..." }
     },
     stages: {
         '1': {
@@ -217,6 +341,39 @@ export const CONFIG = {
             difficulty: { dr: 0.75, speed: 0.50, eliteChance: 0.35 },
             message: "L'Abisso Cosmico ti risucchia!",
             effects: { xpBonus: 2.0, dropBonus: 1.8 }
+        },
+        '6': {
+            name: "Abisso Infernale",
+            unlocked: false,
+            unlockRequirement: { type: 'boss_kill_total', count: 10 },
+            background: { color: '#1a0500', gridColor: 'rgba(255, 50, 0, 0.15)', pattern: 'infernal', accentColor: '#ff3300' },
+            enemies: { baseColor: '#8b0000', eliteColor: '#4a0000', shape: 'pentagon' },
+            difficulty: { dr: 0.85, speed: 0.60, eliteChance: 0.40 },
+            message: "Discendi nell'Abisso Infernale!",
+            effects: { xpBonus: 2.5, dropBonus: 2.0 },
+            hazards: { tickDamage: 2, safeZoneRadius: 150, safeZoneCount: 3 }
+        },
+        '7': {
+            name: "Santuario Celeste",
+            unlocked: false,
+            unlockRequirement: { type: 'arsenal_size', cores: 14, weapons: 5 },
+            background: { color: '#f5f0e0', gridColor: 'rgba(255, 215, 0, 0.15)', pattern: 'celestial', accentColor: '#ffd700' },
+            enemies: { baseColor: '#fafad2', eliteColor: '#daa520', shape: 'hexagon' },
+            difficulty: { dr: 0.90, speed: 0.65, eliteChance: 0.45 },
+            message: "Il Santuario Celeste ti accoglie!",
+            effects: { xpBonus: 3.0, dropBonus: 2.5 },
+            hazards: { knockbackMultiplier: 2.0 }
+        },
+        '8': {
+            name: "Il Vuoto",
+            unlocked: false,
+            unlockRequirement: { type: 'survival', time: 1200, stage: '5' },
+            background: { color: '#000000', gridColor: 'rgba(255, 255, 255, 0.03)', pattern: 'void', accentColor: '#ffffff' },
+            enemies: { baseColor: '#333333', eliteColor: '#666666', shape: 'glitch' },
+            difficulty: { dr: 0.80, speed: 0.70, eliteChance: 0.50 },
+            message: "Il Vuoto ti inghiotte...",
+            effects: { xpBonus: 3.5, dropBonus: 3.0 },
+            hazards: { glitchEnemies: true, noMinimap: true }
         }
     },
     boss: {
@@ -239,7 +396,11 @@ export const CONFIG = {
             'ice_fragment': { id: 'ice_fragment', name: 'Frammento di Ghiaccio Eterno', rarity: 'common', color: '#87ceeb', dropChance: 0.13, enemyTypes: ['ice_spirit'], stage: 4, description: "Ghiaccio che non si scioglie mai" },
             'frost_fragment': { id: 'frost_fragment', name: 'Frammento di Brina', rarity: 'uncommon', color: '#00ffff', dropChance: 0.065, enemyTypes: ['ice_spirit_elite'], stage: 4, description: "Brina che congela il tempo stesso" },
             'void_fragment': { id: 'void_fragment', name: 'Frammento del Vuoto', rarity: 'rare', color: '#8A2BE2', dropChance: 0.04, enemyTypes: ['cosmic_demon'], stage: 5, description: "Essenza pura del vuoto interstellare" },
-            'star_fragment': { id: 'star_fragment', name: 'Frammento di Stella', rarity: 'epic', color: '#ffd700', dropChance: 0.02, enemyTypes: ['cosmic_demon_elite'], stage: 5, description: "Polvere di stelle cadute" }
+            'star_fragment': { id: 'star_fragment', name: 'Frammento di Stella', rarity: 'epic', color: '#ffd700', dropChance: 0.02, enemyTypes: ['cosmic_demon_elite'], stage: 5, description: "Polvere di stelle cadute" },
+            'demon_fragment': { id: 'demon_fragment', name: 'Frammento Demoniaco', rarity: 'common', color: '#8b0000', dropChance: 0.10, enemyTypes: ['demon'], stage: 6, description: "Essenza demoniaca strappata dalle fiamme" },
+            'hellfire_fragment': { id: 'hellfire_fragment', name: 'Frammento di Fuoco Infernale', rarity: 'rare', color: '#ff2200', dropChance: 0.03, enemyTypes: ['demon_elite'], stage: 6, description: "Fuoco infernale in forma cristallina" },
+            'celestial_fragment': { id: 'celestial_fragment', name: 'Frammento Celeste', rarity: 'rare', color: '#ffd700', dropChance: 0.03, enemyTypes: ['angel'], stage: 7, description: "Luce divina solidificata" },
+            'divine_fragment': { id: 'divine_fragment', name: 'Frammento Divino', rarity: 'legendary', color: '#fff8e1', dropChance: 0.01, enemyTypes: ['angel_elite'], stage: 7, description: "Essenza della creazione stessa" }
         },
         weaponMaterials: {
             'stone_fragment': { id: 'stone_fragment', name: 'Frammento di Pietra', rarity: 'common', color: '#696969', dropChance: 0.16, enemyTypes: ['slime'], stage: 1, description: "Pietra solida della pianura" },
@@ -251,7 +412,9 @@ export const CONFIG = {
             'crystal_fragment': { id: 'crystal_fragment', name: 'Frammento di Cristallo', rarity: 'common', color: '#87CEEB', dropChance: 0.13, enemyTypes: ['ice_spirit'], stage: 4, description: "Cristalli di ghiaccio purissimo" },
             'energy_fragment': { id: 'energy_fragment', name: 'Frammento di Energia', rarity: 'uncommon', color: '#00FFFF', dropChance: 0.065, enemyTypes: ['ice_spirit_elite'], stage: 4, description: "Energia pura congelata nel tempo" },
             'cosmic_fragment': { id: 'cosmic_fragment', name: 'Frammento Cosmico', rarity: 'rare', color: '#FF1493', dropChance: 0.03, enemyTypes: ['cosmic_demon'], stage: 5, description: "Essenza cosmica dell'universo" },
-            'nebula_fragment': { id: 'nebula_fragment', name: 'Frammento di Nebulosa', rarity: 'epic', color: '#9370db', dropChance: 0.015, enemyTypes: ['cosmic_demon_elite'], stage: 5, description: "Polvere di nebulose lontane" }
+            'nebula_fragment': { id: 'nebula_fragment', name: 'Frammento di Nebulosa', rarity: 'epic', color: '#9370db', dropChance: 0.015, enemyTypes: ['cosmic_demon_elite'], stage: 5, description: "Polvere di nebulose lontane" },
+            'chaos_fragment': { id: 'chaos_fragment', name: 'Frammento del Caos', rarity: 'epic', color: '#ff00ff', dropChance: 0.03, enemyTypes: ['void_entity'], stage: 8, description: "Caos puro dall'aldilà della realtà" },
+            'reality_fragment': { id: 'reality_fragment', name: 'Frammento di Realtà', rarity: 'legendary', color: '#ffffff', dropChance: 0.015, enemyTypes: ['void_entity_elite'], stage: 8, description: "Un pezzo della realtà stessa" }
         }
     },
     cores: {
@@ -289,7 +452,13 @@ export const CONFIG = {
     fusions: [
         { id: 'fireball_lightning', primary: 'fireball', secondary: 'lightning', name: 'Fulmine Infuocato', desc: 'Fireball + Lightning: +40% danno fuoco, +10 burn.', bonus: { damage: 0.4, burnDamage: 10 } },
         { id: 'frostbolt_shield', primary: 'frostbolt', secondary: 'shield', name: 'Barriera Glaciale', desc: 'Frostbolt + Shield: Aura gelo +50% DPS e +20% slow.', bonus: { auraDps: 5, auraSlow: 0.2 } },
-        { id: 'shotgun_heal', primary: 'shotgun', secondary: 'heal', name: 'Raffica Vitale', desc: 'Shotgun + Heal: +3 proiettili, Heal integrato.', bonus: { count: 3 } }
+        { id: 'shotgun_heal', primary: 'shotgun', secondary: 'heal', name: 'Raffica Vitale', desc: 'Shotgun + Heal: +3 proiettili, Heal integrato.', bonus: { count: 3 } },
+        { id: 'shockwave_fireball', primary: 'shockwave', secondary: 'fireball', name: 'Nova Infuocata', desc: "Onda d'urto che incendia. +50% knockback, burn 8 DPS.", bonus: { knockback: 0.5, burnDamage: 8 } },
+        { id: 'lightning_frostbolt', primary: 'lightning', secondary: 'frostbolt', name: 'Tempesta Artica', desc: 'Fulmine che congela. +60% slow, chain +2.', bonus: { slow: 0.6, chains: 2 } },
+        { id: 'shotgun_shockwave', primary: 'shotgun', secondary: 'shockwave', name: 'Raffica Sismica', desc: 'Proiettili che respingono in area. +30% area.', bonus: { area: 0.3 } },
+        { id: 'heal_frostbolt', primary: 'heal', secondary: 'frostbolt', name: 'Rigenerazione Glaciale', desc: 'Cura che rallenta nemici. Heal +40%, area slow.', bonus: { healAmount: 0.4, auraSlow: 0.15 } },
+        { id: 'shield_fireball', primary: 'shield', secondary: 'fireball', name: 'Scudo Infuocato', desc: 'Scudo che riflette con fuoco. Reflect +100% danno.', bonus: { reflectDamage: 1.0 } },
+        { id: 'lightning_shotgun', primary: 'lightning', secondary: 'shotgun', name: 'Tempesta di Schegge', desc: 'Rosa di fulmini. +4 proiettili chain.', bonus: { chains: 4 } }
     ],
     upgradeTree: {
         'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 10, type: 'passive' },
@@ -359,5 +528,17 @@ export const CONFIG = {
         luck: `<svg class="icon" viewBox="0 0 24 24"><path d="M16.29 5.71a1 1 0 00-1.41 0L12 8.59l-2.88-2.88a1 1 0 00-1.41 1.41L10.59 10l-2.88 2.88a1 1 0 101.41 1.41L12 11.41l2.88 2.88a1 1 0 001.41-1.41L13.41 10l2.88-2.88a1 1 0 000-1.41zM12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>`,
         xpGain: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 1L9 4h6l-3-3zm0 22l3-3H9l3 3zm7-11h-3v-2h3v2zm-4 2h-2v2h2v-2zm-2-4V8h-2v2h2zm-4 0V8H7v2h2zm-2 4h-2v2h2v-2zm-4 0h2v2H5v-2zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2zM5 5h2v2H5V5zm8 12h2v2h-2v-2zm-4 0h2v2H9v-2zm-4 0h2v2H5v-2z"/></svg>`,
         defense: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/></svg>`
+    },
+    tutorial: {
+        steps: [
+            { type: 'movement', message: 'Usa WASD o il Joystick per muoverti' },
+            { type: 'combat', message: 'Avvicinati ai nemici per attaccare automaticamente' },
+            { type: 'levelup', message: 'Raccogli XP per salire di livello e scegliere potenziamenti' }
+        ]
+    },
+    bossRush: {
+        bossSequence: ['orc_boss', 'slime_boss', 'golem_boss', 'shadow_boss'],
+        spawnInterval: 5, // Seconds between boss spawns after death
+        victoryCount: 10
     }
 };

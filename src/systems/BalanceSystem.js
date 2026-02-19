@@ -88,10 +88,10 @@ export const BalanceSystem = {
     },
 
     applyTemporaryNerf(archetype) {
-        const nerfDuration = 300; // 5 minuti
-        const nerfAmount = 0.15; // 15% di riduzione
+        const nerfDuration = 300;
+        const nerfAmount = 0.15;
 
-        switch(archetype) {
+        switch (archetype) {
             case 'steel':
                 this.player.stats.dr *= (1 - nerfAmount);
                 this.player.stats.speed *= (1 - nerfAmount * 0.5);
@@ -105,29 +105,34 @@ export const BalanceSystem = {
             case 'magma':
                 this.player.modifiers.frequency *= (1 + nerfAmount);
                 break;
+            case 'prism':
+                this.player.modifiers.area *= (1 - nerfAmount);
+                this.player.modifiers.power *= (1 - nerfAmount * 0.5);
+                break;
+            case 'unstable':
+                this.player.modifiers.power *= (1 - nerfAmount);
+                break;
+            case 'druid':
+                this.player.stats.speed *= (1 - nerfAmount * 0.5);
+                this.player.stats.maxHp = Math.floor(this.player.stats.maxHp * (1 - nerfAmount));
+                break;
+            case 'phantom':
+                this.player.stats.speed *= (1 - nerfAmount);
+                break;
             default:
                 this.player.modifiers.power *= (1 - nerfAmount);
                 break;
         }
 
-        // Notifica al giocatore
-        this.notifications.push({
-            text: `Auto-nerf applicato a ${archetype}`,
-            life: 180,
-            color: '#ff6b6b'
-        });
-
-        // Rimuovi il nerf dopo il tempo stabilito
-        setTimeout(() => {
-            this.removeTemporaryNerf(archetype);
-        }, nerfDuration * 1000);
+        this.notifications.push({ text: `Auto-nerf applicato a ${archetype}`, life: 180, color: '#ff6b6b' });
+        setTimeout(() => { this.removeTemporaryNerf(archetype); }, nerfDuration * 1000);
     },
 
     applyTemporaryBuff(archetype) {
-        const buffDuration = 300; // 5 minuti
-        const buffAmount = 0.15; // 15% di aumento
+        const buffDuration = 300;
+        const buffAmount = 0.15;
 
-        switch(archetype) {
+        switch (archetype) {
             case 'steel':
                 this.player.stats.dr *= (1 + buffAmount);
                 this.player.stats.speed *= (1 + buffAmount * 0.5);
@@ -141,28 +146,34 @@ export const BalanceSystem = {
             case 'magma':
                 this.player.modifiers.frequency *= (1 - buffAmount);
                 break;
+            case 'prism':
+                this.player.modifiers.area *= (1 + buffAmount);
+                this.player.modifiers.power *= (1 + buffAmount * 0.5);
+                break;
+            case 'unstable':
+                this.player.modifiers.power *= (1 + buffAmount);
+                break;
+            case 'druid':
+                this.player.stats.speed *= (1 + buffAmount * 0.5);
+                this.player.stats.maxHp = Math.floor(this.player.stats.maxHp * (1 + buffAmount));
+                this.player.hp = Math.min(this.player.hp, this.player.stats.maxHp);
+                break;
+            case 'phantom':
+                this.player.stats.speed *= (1 + buffAmount);
+                break;
             default:
                 this.player.modifiers.power *= (1 + buffAmount);
                 break;
         }
 
-        // Notifica al giocatore
-        this.notifications.push({
-            text: `Auto-buff applicato a ${archetype}`,
-            life: 180,
-            color: '#4ecdc4'
-        });
-
-        // Rimuovi il buff dopo il tempo stabilito
-        setTimeout(() => {
-            this.removeTemporaryBuff(archetype);
-        }, buffDuration * 1000);
+        this.notifications.push({ text: `Auto-buff applicato a ${archetype}`, life: 180, color: '#4ecdc4' });
+        setTimeout(() => { this.removeTemporaryBuff(archetype); }, buffDuration * 1000);
     },
 
     removeTemporaryNerf(archetype) {
         const nerfAmount = 0.15;
 
-        switch(archetype) {
+        switch (archetype) {
             case 'steel':
                 this.player.stats.dr /= (1 - nerfAmount);
                 this.player.stats.speed /= (1 - nerfAmount * 0.5);
@@ -176,22 +187,32 @@ export const BalanceSystem = {
             case 'magma':
                 this.player.modifiers.frequency /= (1 + nerfAmount);
                 break;
+            case 'prism':
+                this.player.modifiers.area /= (1 - nerfAmount);
+                this.player.modifiers.power /= (1 - nerfAmount * 0.5);
+                break;
+            case 'unstable':
+                this.player.modifiers.power /= (1 - nerfAmount);
+                break;
+            case 'druid':
+                this.player.stats.speed /= (1 - nerfAmount * 0.5);
+                this.player.stats.maxHp = Math.floor(this.player.stats.maxHp / (1 - nerfAmount));
+                break;
+            case 'phantom':
+                this.player.stats.speed /= (1 - nerfAmount);
+                break;
             default:
                 this.player.modifiers.power /= (1 - nerfAmount);
                 break;
         }
 
-        this.notifications.push({
-            text: `Auto-nerf rimosso da ${archetype}`,
-            life: 120,
-            color: '#ffa500'
-        });
+        this.notifications.push({ text: `Auto-nerf rimosso da ${archetype}`, life: 120, color: '#ffa500' });
     },
 
     removeTemporaryBuff(archetype) {
         const buffAmount = 0.15;
 
-        switch(archetype) {
+        switch (archetype) {
             case 'steel':
                 this.player.stats.dr /= (1 + buffAmount);
                 this.player.stats.speed /= (1 + buffAmount * 0.5);
@@ -205,15 +226,25 @@ export const BalanceSystem = {
             case 'magma':
                 this.player.modifiers.frequency /= (1 - buffAmount);
                 break;
+            case 'prism':
+                this.player.modifiers.area /= (1 + buffAmount);
+                this.player.modifiers.power /= (1 + buffAmount * 0.5);
+                break;
+            case 'unstable':
+                this.player.modifiers.power /= (1 + buffAmount);
+                break;
+            case 'druid':
+                this.player.stats.speed /= (1 + buffAmount * 0.5);
+                this.player.stats.maxHp = Math.floor(this.player.stats.maxHp / (1 + buffAmount));
+                break;
+            case 'phantom':
+                this.player.stats.speed /= (1 + buffAmount);
+                break;
             default:
                 this.player.modifiers.power /= (1 + buffAmount);
                 break;
         }
 
-        this.notifications.push({
-            text: `Auto-buff rimosso da ${archetype}`,
-            life: 120,
-            color: '#ffa500'
-        });
+        this.notifications.push({ text: `Auto-buff rimosso da ${archetype}`, life: 120, color: '#ffa500' });
     }
 };

@@ -32,7 +32,10 @@ export const CraftingSystem = {
             ['goblin', 'goblin_elite'],
             ['golem', 'golem_elite'],
             ['ice_spirit', 'ice_spirit_elite'],
-            ['cosmic_demon', 'cosmic_demon_elite']
+            ['cosmic_demon', 'cosmic_demon_elite'],
+            ['demon', 'demon_elite'],
+            ['angel', 'angel_elite'],
+            ['void_entity', 'void_entity_elite']
         ];
         const typeIndex = Math.min(stage - 1, enemyTypes.length - 1);
         const enemyType = enemy.stats?.isElite ? enemyTypes[typeIndex][1] : enemyTypes[typeIndex][0];

@@ -1,5 +1,11 @@
 import { CONFIG } from '../config/index.js';
 import { Utils } from '../utils/index.js';
+import { cloudSyncManager } from '../utils/cloudSync.js';
+import { SeededRNG } from '../utils/SeededRNG.js';
+import { DailyChallengeSystem } from '../systems/DailyChallengeSystem.js';
+import { BestiarySystem } from '../systems/BestiarySystem.js';
+import { RunHistorySystem } from '../systems/RunHistorySystem.js';
+import { TutorialSystem } from '../systems/TutorialSystem.js';
 import {
     Player, Enemy, Boss,
     Projectile, Aura, Orbital, StaticField, Sanctuary,
@@ -21,6 +27,8 @@ import { BalanceSystem } from '../systems/BalanceSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { UISystem } from '../systems/UISystem.js';
 import { AudioManager } from '../systems/AudioManager.js';
+import { CheatCodeSystem } from '../systems/CheatCodeSystem.js';
+import { SkinSystem } from '../systems/SkinSystem.js';
 
 export class BallSurvivalGame {
     constructor(canvasId) {
@@ -32,11 +40,11 @@ export class BallSurvivalGame {
         this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
         this._joystickPending = { dx: 0, dy: 0 };
         this._joystickRAF = null;
-        this.state = 'startScreen'; 
+        this.state = 'startScreen';
         this.selectedArchetype = 'standard';
         this.selectedStage = 1; // Stage selezionato dal giocatore
-        this.lastFrameTime = 0; 
-        this.totalElapsedTime = 0; 
+        this.lastFrameTime = 0;
+        this.totalElapsedTime = 0;
         this.menuCooldown = 0;
         this.materials = {}; // Inizializza l'inventario materiali
         this.cores = {}; // Inizializza i core
@@ -45,23 +53,50 @@ export class BallSurvivalGame {
             activeCore: null, // Solo 1 core attivo
             activeWeapons: [] // Max 2 armi attive
         };
-        
+
         // Sistemi versione 5.3
         this.retentionMonitor = new RetentionMonitor();
         this.quickFeedback = new QuickFeedback();
         this.progressionOptimizer = new ProgressionOptimizer();
         this.achievementSystem = new AchievementSystem();
-        
+
         this.analyticsManager = new AnalyticsManager();
         this.audio = new AudioManager();
         this.audio.init();
+        this.skinSystem = new SkinSystem(this);
+        this.cheatCodeSystem = new CheatCodeSystem(this);
+        this.dailyChallengeSystem = new DailyChallengeSystem(this);
+        this.bestiarySystem = new BestiarySystem(this);
+        this.runHistorySystem = new RunHistorySystem(this);
+        this.tutorialSystem = new TutorialSystem(this);
+        this.cloudSyncManager = cloudSyncManager;
+        this.cheatCodeSystem.initShakeDetection();
+
+        // Setup Auto-Sync Provider
+        this.cloudSyncManager.startAutoSync(() => ({
+            analytics: this.analyticsManager?.getAnalyticsData?.(),
+            accounts: JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}'),
+            saveData: {
+                globalStats: JSON.parse(localStorage.getItem('ballSurvival_globalStats') || '{}'),
+                unlockedCheats: this.cheatCodeSystem?.unlockedCheats || {},
+                discoveredEggs: this.cheatCodeSystem?.discoveredEggs || {},
+                unlockedSkins: this.skinSystem?.unlockedSkins || {},
+                equippedSkin: this.skinSystem?.equippedSkin || 'default',
+                achievements: JSON.parse(localStorage.getItem('ballSurvival_achievements') || '{}'),
+                bossKills: localStorage.getItem('ballSurvivalTotalBossKills') || '0',
+                difficultyTier: localStorage.getItem('ballSurvivalActiveDifficultyTier'),
+                stageProgress: JSON.parse(localStorage.getItem('ballSurvivalStageProgress') || '{}'),
+                bestiary: this.bestiarySystem?.getAllEntries() || {},
+                runHistory: this.runHistorySystem?.getHistory() || []
+            }
+        }));
         this._entityClasses = { Projectile, Aura, Orbital, StaticField, Sanctuary, XpOrb, GemOrb, MaterialOrb, Chest, DroppedItem, Particle, FireTrail, Effect, Boss, Enemy };
         this.unlockedArchetypes = new Set(['standard']);
-        
-        this.loadGameData(); 
+
+        this.loadGameData();
         this.loadStageProgress(); // Carica la progressione degli stage
         this.loadAccessibilitySettings();
-        this.resetRunState(); 
+        this.resetRunState();
         this.resizeCanvas();
         this.populateCharacterSelection();
         this.populateStageSelection();
@@ -69,50 +104,69 @@ export class BallSurvivalGame {
         this.showPopup('start');
         this.draw();
         if (!this.gameLoopId) this.gameLoop();
-        
+
         this.sessionStartTime = 0;
         this.lastPeriodicCloudSyncTime = 0; // Timestamp ultimo sync periodico
+        this.selectedMode = 'standard';
     }
 
     initDOM() {
         this.dom = {
             gameContainer: document.getElementById('gameContainer'),
-            popups: { 
-                start: document.getElementById('startScreen'), 
-                pause: document.getElementById('pauseMenu'), 
-                gameOver: document.getElementById('gameOver'), 
-                upgrade: document.getElementById('upgradeMenu'), 
-                shop: document.getElementById('permanentUpgradeShop'), 
-                inventory: document.getElementById('inventoryMenu'), 
-                characterSelection: document.getElementById('characterSelectionPopup'), 
+            popups: {
+                start: document.getElementById('startScreen'),
+                pause: document.getElementById('pauseMenu'),
+                gameOver: document.getElementById('gameOver'),
+                upgrade: document.getElementById('upgradeMenu'),
+                shop: document.getElementById('permanentUpgradeShop'),
+                inventory: document.getElementById('inventoryMenu'),
+                characterSelection: document.getElementById('characterSelectionPopup'),
                 achievements: document.getElementById('achievementsPopup'),
                 glossary: document.getElementById('glossaryPopup'),
-                settings: document.getElementById('settingsPopup')
+                settings: document.getElementById('settingsPopup'),
+                dailyChallenge: document.getElementById('dailyChallengePopup')
             },
-            buttons: { 
-                start: document.getElementById('startGameBtn'), 
-                restart: document.getElementById('restartGameBtn'), 
-                restartFromPause: document.getElementById('restartFromPauseBtn'), 
-                pause: document.getElementById('pauseButton'), 
-                load: document.getElementById('loadGameBtn'), 
-                copy: document.getElementById('copyCodeBtn'), 
-                generateDebugSave: document.getElementById('generateDebugSave'), 
-                copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'), 
-                returnToMenu: document.getElementById('returnToMenuBtn'), 
-                returnToMenuPause: document.getElementById('returnToMenuPauseBtn'), 
-                inventory: document.getElementById('inventoryBtn'), 
-                closeInventory: document.getElementById('closeInventoryBtn'), 
-                openCharacterPopup: document.getElementById('openCharacterPopupBtn'), 
-                closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'), 
-                achievements: document.getElementById('achievementsBtn'), 
+            buttons: {
+                // Mode selection
+                modeStandard: document.getElementById('modeStandardBtn'),
+                modeEndless: document.getElementById('modeEndlessBtn'),
+                modeDaily: document.getElementById('modeDailyBtn'),
+                modeBossRush: document.getElementById('modeBossRushBtn'),
+                modeTutorial: document.getElementById('modeTutorialBtn'),
+                startDaily: document.getElementById('startDailyBtn'),
+                closeDaily: document.getElementById('closeDailyChallengeBtn'),
+
+                start: document.getElementById('startGameBtn'),
+                restart: document.getElementById('restartGameBtn'),
+                restartFromPause: document.getElementById('restartFromPauseBtn'),
+                pause: document.getElementById('pauseButton'),
+                load: document.getElementById('loadGameBtn'),
+                copy: document.getElementById('copyCodeBtn'),
+                generateDebugSave: document.getElementById('generateDebugSave'),
+                copyDebugCodeBtn: document.getElementById('copyDebugCodeBtn'),
+                returnToMenu: document.getElementById('returnToMenuBtn'),
+                returnToMenuPause: document.getElementById('returnToMenuPauseBtn'),
+                inventory: document.getElementById('inventoryBtn'),
+                closeInventory: document.getElementById('closeInventoryBtn'),
+                openCharacterPopup: document.getElementById('openCharacterPopupBtn'),
+                closeCharacterPopup: document.getElementById('closeCharacterPopupBtn'),
+                achievements: document.getElementById('achievementsBtn'),
+                bestiary: document.getElementById('bestiaryBtn'),
+                runHistory: document.getElementById('runHistoryBtn'),
                 closeAchievements: document.getElementById('closeAchievementsBtn'),
+                closeBestiary: document.getElementById('closeBestiaryBtn'),
+                closeRunHistory: document.getElementById('closeRunHistoryBtn'),
+                craftingPreview: document.getElementById('craftingPreviewBtn'),
+                closeCrafting: document.getElementById('closeCraftingBtn'),
                 glossary: document.getElementById('glossaryBtn'),
                 closeGlossary: document.getElementById('closeGlossaryBtn'),
                 settings: document.getElementById('settingsBtn'),
-                closeSettings: document.getElementById('closeSettingsBtn')
+                closeSettings: document.getElementById('closeSettingsBtn'),
+                cheats: document.getElementById('cheatsBtn'),
+                skins: document.getElementById('skinsBtn')
             },
             inputs: { saveCode: document.getElementById('saveCodeOutput'), loadCode: document.getElementById('loadCodeInput'), debugSaveOutput: document.getElementById('debugSaveOutput') },
-            containers: { 
+            containers: {
                 debugSaveContainer: document.getElementById('debugSaveContainer'),
                 characterSelectionContainer: document.getElementById('characterSelectionContainer'),
                 stageSelectionContainer: document.getElementById('stageSelectionContainer'),
@@ -153,7 +207,54 @@ export class BallSurvivalGame {
         });
         if (this.dom.buttons.start) {
             this.dom.buttons.start.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
-            this.dom.buttons.start.onclick = () => this.startGame();
+            this.dom.buttons.start.onclick = () => this.startGame(this.selectedMode);
+        }
+
+        // Mode Selection Handlers
+        const updateModeUI = (mode) => {
+            this.selectedMode = mode;
+            ['modeStandard', 'modeEndless', 'modeDaily', 'modeBossRush', 'modeTutorial'].forEach(key => {
+                if (this.dom.buttons[key]) this.dom.buttons[key].classList.remove('active');
+            });
+
+            const desc = document.getElementById('modeDescription');
+            if (mode === 'standard') {
+                this.dom.buttons.modeStandard?.classList.add('active');
+                if (desc) desc.innerText = "Sopravvivi 30 minuti.";
+            } else if (mode === 'endless') {
+                this.dom.buttons.modeEndless?.classList.add('active');
+                if (desc) desc.innerText = "Sopravvivi il più a lungo possibile. Difficoltà infinita.";
+            } else if (mode === 'daily') {
+                this.dom.buttons.modeDaily?.classList.add('active');
+                if (desc) desc.innerText = "Sfida giornaliera con seed e build fissa.";
+                this.showDailyChallengePopup();
+            } else if (mode === 'bossRush') {
+                this.dom.buttons.modeBossRush?.classList.add('active');
+                if (desc) desc.innerText = "Combatti contro ondate di boss senza sosta!";
+            } else if (mode === 'tutorial') {
+                this.dom.buttons.modeTutorial?.classList.add('active');
+                if (desc) desc.innerText = "Impara come giocare a Ball Survival.";
+            }
+        };
+
+        if (this.dom.buttons.modeStandard) this.dom.buttons.modeStandard.onclick = () => updateModeUI('standard');
+        if (this.dom.buttons.modeEndless) this.dom.buttons.modeEndless.onclick = () => updateModeUI('endless');
+        if (this.dom.buttons.modeDaily) this.dom.buttons.modeDaily.onclick = () => updateModeUI('daily');
+        if (this.dom.buttons.modeBossRush) this.dom.buttons.modeBossRush.onclick = () => updateModeUI('bossRush');
+        if (this.dom.buttons.modeTutorial) this.dom.buttons.modeTutorial.onclick = () => updateModeUI('tutorial');
+
+        // Daily Challenge Popup Handlers
+        if (this.dom.buttons.startDaily) {
+            this.dom.buttons.startDaily.onclick = () => {
+                this.hideAllPopups();
+                this.startGame('daily');
+            };
+        }
+        if (this.dom.buttons.closeDaily) {
+            this.dom.buttons.closeDaily.onclick = () => {
+                this.dom.popups.dailyChallenge.style.display = 'none';
+                updateModeUI('standard');
+            };
         }
         if (this.dom.buttons.restart) {
             this.dom.buttons.restart.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
@@ -170,8 +271,39 @@ export class BallSurvivalGame {
         if (this.dom.buttons.copyDebugCodeBtn) this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
         if (this.dom.buttons.returnToMenu) this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
         if (this.dom.buttons.returnToMenuPause) this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
-        
+
         if (this.dom.buttons.settings) this.dom.buttons.settings.onclick = () => this.showSettingsPopup();
+
+        // Sprint 5: Cheat code + Skin buttons
+        if (this.dom.buttons.cheats) this.dom.buttons.cheats.onclick = () => this.cheatCodeSystem?.showCheatPopup();
+        if (this.dom.buttons.skins) this.dom.buttons.skins.onclick = () => this.skinSystem?.showSkinPopup();
+
+        // Sprint 8: Bestiary/History
+        if (this.dom.buttons.bestiary) this.dom.buttons.bestiary.onclick = () => this.uiSystem?.showBestiary();
+        if (this.dom.buttons.closeBestiary) this.dom.buttons.closeBestiary.onclick = () => this.uiSystem?.hideBestiary();
+        if (this.dom.buttons.runHistory) this.dom.buttons.runHistory.onclick = () => this.uiSystem?.showRunHistory();
+        if (this.dom.buttons.closeRunHistory) this.dom.buttons.closeRunHistory.onclick = () => this.uiSystem?.hideRunHistory();
+        if (this.dom.buttons.craftingPreview) this.dom.buttons.craftingPreview.onclick = () => this.uiSystem?.showCrafting();
+        if (this.dom.buttons.closeCrafting) this.dom.buttons.closeCrafting.onclick = () => this.uiSystem?.hideCrafting();
+
+        // Logo tap easter egg
+        const logo = document.querySelector('.main-menu-logo');
+        if (logo) logo.addEventListener('click', () => this.cheatCodeSystem?.onLogoTap());
+
+        // Settings long press easter egg (5s)
+        if (this.dom.buttons.settings) {
+            let pressTimer = null;
+            this.dom.buttons.settings.addEventListener('pointerdown', () => {
+                pressTimer = setTimeout(() => this.cheatCodeSystem?.onSettingsLongPress(), 5000);
+            });
+            this.dom.buttons.settings.addEventListener('pointerup', () => clearTimeout(pressTimer));
+            this.dom.buttons.settings.addEventListener('pointerleave', () => clearTimeout(pressTimer));
+        }
+
+        // Keyboard 'S' in start screen for shake easter egg
+        document.addEventListener('keydown', (e) => {
+            if (this.state === 'startScreen') this.cheatCodeSystem?.onKeyInStartScreen(e.key);
+        });
         if (this.dom.buttons.closeSettings) this.dom.buttons.closeSettings.onclick = () => {
             if (this.state === 'startScreen') {
                 this.returnToStartScreen();
@@ -188,11 +320,11 @@ export class BallSurvivalGame {
         // Pulsante inventario
         if (this.dom.buttons.inventory) this.dom.buttons.inventory.onclick = () => this.showInventory();
         if (this.dom.buttons.closeInventory) this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
-        
+
         // Pulsanti popup personaggi
         if (this.dom.buttons.openCharacterPopup) this.dom.buttons.openCharacterPopup.onclick = () => this.showCharacterPopup();
         if (this.dom.buttons.closeCharacterPopup) this.dom.buttons.closeCharacterPopup.onclick = () => this.hideCharacterPopup();
-        
+
         // Pulsante achievements
         if (this.dom.buttons.achievements) {
             this.dom.buttons.achievements.onclick = () => this.showAchievements();
@@ -204,7 +336,7 @@ export class BallSurvivalGame {
         if (this.dom.buttons.closeGlossary) {
             this.dom.buttons.closeGlossary.onclick = () => this.hideGlossary();
         }
-        
+
         // Pulsante chiudi achievements
         if (this.dom.buttons.closeAchievements) {
             this.dom.buttons.closeAchievements.onclick = () => {
@@ -212,7 +344,7 @@ export class BallSurvivalGame {
                 this.showPopup('start');
             };
         }
-        
+
         // Pulsante chiudi negozio
         const closeShopBtn = document.getElementById('closeShopBtn');
         if (closeShopBtn) {
@@ -221,14 +353,14 @@ export class BallSurvivalGame {
                 if (this.state === 'startScreen') this.showPopup('start');
             };
         }
-        
+
         // Dropdown stage
         if (this.dom.containers.stageDropdown) {
             this.dom.containers.stageDropdown.onchange = (e) => {
                 this.selectStage(parseInt(e.target.value));
             };
         }
-        
+
         // Tasto pausa mobile
         const pauseBtnMobile = document.getElementById('pauseButtonMobile');
         if (pauseBtnMobile) {
@@ -238,18 +370,30 @@ export class BallSurvivalGame {
         if (this.dom.menuOverlay) {
             this.dom.menuOverlay.onclick = () => {
                 if (this.state === 'gameOver' || this.state === 'startScreen') {
-                    return; 
+                    return;
                 }
-                
+
                 // Se il popup dei personaggi è aperto, torna al menù principale
                 if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
                     this.hideCharacterPopup();
                     return;
                 }
-                
+
                 this.hideAllPopups();
             };
         }
+
+        // Cloud status indicator
+        this._cloudStatusInterval = setInterval(() => {
+            const btn = document.getElementById('cloudSyncBtn');
+            if (btn && this.cloudSyncManager) {
+                const icon = this.cloudSyncManager.getStatusIcon();
+                // Update only if changed to avoid DOM thrashing
+                if (!btn.innerHTML.includes(icon)) {
+                    btn.innerHTML = `☁️ <span style="font-size:0.8em">${icon}</span>`;
+                }
+            }
+        }, 1000);
 
         Object.values(this.dom.popups).forEach(p => {
             if (p) p.addEventListener('click', e => e.stopPropagation());
@@ -268,7 +412,17 @@ export class BallSurvivalGame {
             this.canvas.addEventListener('pointercancel', this.handlePointerEnd.bind(this));
         }
     }
-    startGame(isLoadedRun = false) {
+    startGame(mode = 'standard', isLoadedRun = false) {
+        this.gameMode = mode;
+        this.rng = new SeededRNG(mode === 'daily' ? this.dailyChallengeSystem.currentSeed : Date.now());
+
+        if (mode === 'daily') {
+            this.dailyChallengeSystem.applyConfiguration();
+        } else {
+            // Reset to standard RNG for other modes if not continuing a run
+            if (!isLoadedRun) this.rng = new SeededRNG(Date.now());
+        }
+
         if (!isLoadedRun) {
             this.resetRunState();
             this.currentStage = this.selectedStage; // Inizia con lo stage selezionato
@@ -278,22 +432,36 @@ export class BallSurvivalGame {
             if (archetype && archetype.startingWeapon && this.spells[archetype.startingWeapon]) {
                 this.spells[archetype.startingWeapon].level = 1;
             } else {
-                 this.spells.magicMissile.level = 1;
+                this.spells.magicMissile.level = 1;
             }
         }
-        
+
         // TRACKING ANALYTICS: Inizializza sessione con dati giocatore
         this.sessionStartTime = Date.now();
-        this.lastPeriodicCloudSyncTime = this.sessionStartTime; // Inizializza il timer del sync periodico
+        this.lastPeriodicCloudSyncTime = this.sessionStartTime;
+
+        if (mode === 'tutorial') {
+            this.tutorialSystem?.start();
+            return;
+        }
+
         if (this.analyticsManager && this.player.archetype) {
             console.log(`Iniziata sessione con archetipo: ${this.player.archetype.id}`);
-            
+
+            // Traccia archetipo giocato per achievement
+            if (this.stats) {
+                if (!this.stats.archetypesPlayed.includes(this.player.archetype.id)) {
+                    this.stats.archetypesPlayed.push(this.player.archetype.id);
+                    try { localStorage.setItem('ballSurvival_archetypesPlayed', JSON.stringify(this.stats.archetypesPlayed)); } catch (e) { }
+                }
+            }
+
             // Sync dati giocatore all'avvio se loggato
             if (this.playerAuth && this.playerAuth.currentPlayer) {
                 this.analyticsManager.syncPlayerData(this.playerAuth.currentPlayer);
             }
         }
-        
+
         // Applica gli effetti dei core e delle armi salvati
         if (this.cores && Object.keys(this.cores).length > 0) {
             for (const [coreId, coreData] of Object.entries(this.cores)) {
@@ -302,7 +470,7 @@ export class BallSurvivalGame {
                 }
             }
         }
-        
+
         if (this.weapons && Object.keys(this.weapons).length > 0) {
             for (const [weaponId, weaponData] of Object.entries(this.weapons)) {
                 if (weaponData.equipped) {
@@ -310,8 +478,8 @@ export class BallSurvivalGame {
                 }
             }
         }
-        
-        this.hideAllPopups(true); 
+
+        this.hideAllPopups(true);
         this.dom.inGameUI.container.style.display = 'flex';
         this.dom.buttons.pause.style.display = 'flex';
         if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'flex';
@@ -319,65 +487,90 @@ export class BallSurvivalGame {
         this.state = 'running';
         this._updateAccumulator = 0;
         this.lastFrameTime = performance.now();
-        this.audio?.unlock().then(() => this.audio?.playBackgroundMusic());
+        this.audio?.unlock().then(() => { this.audio?.playBackgroundMusic(); this.audio?.setStageTone?.(this.currentStage); });
+        // Easter eggs checks
+        this.cheatCodeSystem?.checkNightMode();
         if (!this.gameLoopId) this.gameLoop();
     }
     gameOver() {
-    if (this.state === 'gameOver') return;
+        if (this.state === 'gameOver') return;
 
-    this.state = 'gameOver'; 
-    this.totalGems += this.gemsThisRun; 
-    
-    // TRACKING ANALYTICS: Registra completamento sessione con dati giocatore
-    if (this.analyticsManager && this.player.archetype) {
-        const sessionTime = (Date.now() - this.sessionStartTime) / 1000; // in secondi
-        const satisfaction = this.calculateSatisfaction(this.player.level, this.entities.enemies.length + this.entities.bosses.length);
-        
-        const gameStats = {
-            archetype: this.player.archetype.id,
-            duration: sessionTime * 1000,
-            level: this.player.level,
-            satisfaction: satisfaction,
-            enemiesKilled: this.enemiesKilled,
-            gemsEarned: this.gemsThisRun,
-            finalScore: this.score
-        };
-        
-        this.analyticsManager.updatePlayerGameStats(gameStats);
-        if (this.playerAuth && this.playerAuth.currentPlayer) {
-            this.playerAuth.updatePlayerStats(gameStats);
-            this.analyticsManager.syncPlayerData(this.playerAuth.currentPlayer);
+        this.state = 'gameOver';
+        this.totalGems += this.gemsThisRun;
+
+        // Persist global stats
+        this.cheatCodeSystem?.persistGlobalStats();
+        // Trigger Cloud Sync
+        this.cloudSyncManager?.notifyDataChanged();
+
+        // TRACKING ANALYTICS: Registra completamento sessione con dati giocatore
+        if (this.analyticsManager && this.player.archetype) {
+            const sessionTime = (Date.now() - this.sessionStartTime) / 1000; // in secondi
+            const satisfaction = this.calculateSatisfaction(this.player.level, this.entities.enemies.length + this.entities.bosses.length);
+
+            const gameStats = {
+                archetype: this.player.archetype.id,
+                duration: sessionTime * 1000,
+                level: this.player.level,
+                satisfaction: satisfaction,
+                enemiesKilled: this.enemiesKilled,
+                gemsEarned: this.gemsThisRun,
+                finalScore: this.score
+            };
+
+            this.analyticsManager.updatePlayerGameStats(gameStats);
+            if (this.playerAuth && this.playerAuth.currentPlayer) {
+                this.playerAuth.updatePlayerStats(gameStats);
+                this.analyticsManager.syncPlayerData(this.playerAuth.currentPlayer);
+            }
         }
-    }
-    
-    this.saveGameData();
-    document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
-    const levelEl = document.getElementById('levelReached');
-    if (levelEl) levelEl.textContent = this.player?.level ?? 1;
-    document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
-    document.getElementById('gemsEarned').textContent = this.gemsThisRun;
-    document.getElementById('finalScore').textContent = this.score;
-    this.dom.inputs.saveCode.value = this.generateSaveCode();
-    this.dom.buttons.pause.style.display = 'none';
-    if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'none';
-    if (this.dom.xpBarMobile) this.dom.xpBarMobile.style.display = 'none';
-    this.dom.inGameUI.container.style.display = 'none';
-    this.hideAllPopups(true); 
-    this.showPopup('gameOver');
-    this.audio?.stopBackgroundMusic();
-    this.audio?.playGameOver();
 
-    // Pulisci il canvas dopo aver mostrato il popup di game over
-    setTimeout(() => {
-        this.clearCanvas();
-    }, 100);
-}
+        this.saveGameData();
+
+        // Bestiary: aggiorna max kills per run per ogni tipo
+        const runKills = this.runKillsByType || {};
+        for (const [enemyType, count] of Object.entries(runKills)) {
+            this.bestiarySystem?.updateRunStats(enemyType, count);
+        }
+        // Cronologia run
+        this.runHistorySystem?.saveRun({
+            time: this.totalElapsedTime,
+            level: this.player?.level ?? 1,
+            score: this.score,
+            archetype: this.selectedArchetype || 'standard',
+            weapons: this.arsenal?.activeWeapons || [],
+            result: 'Defeat',
+            mode: this.gameMode || 'standard'
+        });
+
+        document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
+        const levelEl = document.getElementById('levelReached');
+        if (levelEl) levelEl.textContent = this.player?.level ?? 1;
+        document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
+        document.getElementById('gemsEarned').textContent = this.gemsThisRun;
+        document.getElementById('finalScore').textContent = this.score;
+        this.dom.inputs.saveCode.value = this.generateSaveCode();
+        this.dom.buttons.pause.style.display = 'none';
+        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'none';
+        if (this.dom.xpBarMobile) this.dom.xpBarMobile.style.display = 'none';
+        this.dom.inGameUI.container.style.display = 'none';
+        this.hideAllPopups(true);
+        this.showPopup('gameOver');
+        this.audio?.stopBackgroundMusic();
+        this.audio?.playGameOver();
+
+        // Pulisci il canvas dopo aver mostrato il popup di game over
+        setTimeout(() => {
+            this.clearCanvas();
+        }, 100);
+    }
     resetRunState() {
         this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
+        this.runKillsByType = {};
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
         this.nextChestSpawnTime = CONFIG.chest.spawnTime; this.nextMapXpSpawnTime = 5;
-        this.lastEnemySpawnTime = 0; 
+        this.lastEnemySpawnTime = 0;
         this.difficultyTier = 0;
         this.currentStage = 1;
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
@@ -386,9 +579,23 @@ export class BallSurvivalGame {
         this.screenShakeIntensity = 0;
         this.hitFlashTimer = 0;
 
+        // Stats tracking per achievement
+        this.stats = {
+            bossKills: 0,
+            totalDamageDealt: 0,
+            totalSpellCasts: 0,
+            noDamageTimer: 0,
+            bestComboKills: 0,
+            pacifistTimer: 0,
+            kills: 0,
+            archetypesPlayed: JSON.parse(localStorage.getItem('ballSurvival_archetypesPlayed') || '[]'),
+            _comboKillCount: 0,
+            _lastKillTime: 0
+        };
+
         // NON reinizializzare materiali e arsenale - vengono mantenuti tra le run
         // this.materials, this.cores, this.weapons, this.arsenal rimangono invariati
-        
+
         this.resetSpells();
     }
     gameLoop() {
@@ -402,7 +609,8 @@ export class BallSurvivalGame {
             this._updateAccumulator = (this._updateAccumulator ?? 0) + deltaTime;
             let steps = 0;
             while (this._updateAccumulator >= FIXED_DT && steps < MAX_STEPS) {
-                this.totalElapsedTime += FIXED_DT;
+                const dtMultiplier = this.gameMode === 'bossRush' ? 2 : 1;
+                this.totalElapsedTime += FIXED_DT * dtMultiplier;
                 if (this.menuCooldown > 0) this.menuCooldown--;
                 this.update(FIXED_DT);
                 this._updateAccumulator -= FIXED_DT;
@@ -426,7 +634,15 @@ export class BallSurvivalGame {
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
-        this.player.update(this, this.joystick); 
+        this.player.update(this, this.joystick);
+
+        if (this.gameMode === 'tutorial') {
+            this.tutorialSystem?.update();
+        }
+
+        if (this.gameMode === 'bossRush') {
+            this.checkBossRushVictory();
+        }
         this.updateCamera();
         this.checkStage();
         for (const type in this.entities) {
@@ -436,7 +652,7 @@ export class BallSurvivalGame {
                 if (entity.toRemove) this.entities[type].splice(i, 1);
             }
         }
-        
+
         // Aggiorna gli effetti delle armi
         this.updateWeaponEffects();
         for (let i = this.notifications.length - 1; i >= 0; i--) {
@@ -452,35 +668,47 @@ export class BallSurvivalGame {
         const inBattle = this.getEnemiesAndBosses().length > 0;
         this.audio?.setBgmMode(inBattle ? 'battle' : 'calm');
         this.checkForLevelUp(); // Spostato qui per coerenza
-        
+
+        // Stats tracking per achievement (ogni frame)
+        if (this.stats) {
+            this.stats.noDamageTimer += deltaTime;
+            if (this.stats.kills === 0) {
+                this.stats.pacifistTimer += deltaTime;
+            }
+        }
+
         // Monitoraggio versione 5.3 - ogni 30 secondi
         if (Math.floor(this.gameTime / 30) % 30 === 0) {
             this.trackRetentionMetrics();
         }
-        
+
         // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi
         if (Math.floor(this.gameTime / 60) % 60 === 0) {
             this.checkAutoBalance();
         }
-        
+
         // Achievement tracking - ogni 10 secondi
         if (Math.floor(this.gameTime / 10) % 10 === 0) {
             if (this.achievementSystem) {
                 // Controlla achievement basati sul tempo
                 this.achievementSystem.checkTimeBasedAchievements(this.gameTime, this);
-                
+
                 // Controlla achievement basati sulle statistiche del giocatore
                 this.achievementSystem.checkPlayerStatsAchievements(this.player, this);
-                
+
                 // Controlla achievement per stage sbloccati
                 const unlockedStages = Object.values(CONFIG.stages).filter(stage => stage.unlocked).length;
                 this.achievementSystem.updateProgress('stages_unlocked', unlockedStages, this);
-                
+
                 // Controlla achievement per archetipi sbloccati
                 this.achievementSystem.updateProgress('archetypes_unlocked', this.getUnlockedArchetypes().size, this);
+
+                // Controlla achievement combat e esplorazione
+                this.achievementSystem.checkCombatAchievements(this);
+                this.achievementSystem.checkExplorationAchievements(this);
             }
         }
-        
+
         // --- SYNC CLOUD OGNI 20 MINUTI DALL'AVVIO SESSIONE ---
         if (this.analyticsManager && this.analyticsManager.config.enableCloudSync) {
             const now = Date.now();
@@ -492,7 +720,7 @@ export class BallSurvivalGame {
             }
         }
     }
-    
+
     loadAccessibilitySettings() {
         try {
             const raw = localStorage.getItem('ballSurvivalAccessibilitySettings');
@@ -582,9 +810,9 @@ export class BallSurvivalGame {
 
     getEnemiesAndBosses() { return [...(this.entities?.enemies || []), ...(this.entities?.bosses || [])]; }
 
-    handleEscapeKey() { 
-        const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex'); 
-        
+    handleEscapeKey() {
+        const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex');
+
         // Se il popup dei personaggi è aperto, torna al menù principale
         if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
             this.hideCharacterPopup();
@@ -595,112 +823,216 @@ export class BallSurvivalGame {
             if (this.dom.popups.glossary?.style.display === 'flex') { this.hideGlossary(); return; }
             if (this.dom.popups.achievements?.style.display === 'flex') { this.hideAllPopups(); this.showPopup('start'); return; }
         }
-        
-        if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') { 
-            this.hideAllPopups(); 
-        } else { 
-            this.togglePause(); 
-        } 
-    }
-    handleInteractionKey() { 
-        if (this.menuCooldown > 0 || this.state !== 'running') { 
-            return; 
+
+        if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') {
+            this.hideAllPopups();
+        } else {
+            this.togglePause();
         }
-        
+    }
+    handleInteractionKey() {
+        if (this.menuCooldown > 0 || this.state !== 'running') {
+            return;
+        }
+
         const distance = Utils.getDistance(this.player, CONFIG.merchant);
-        
-        if (distance < CONFIG.merchant.interactionRadius) { 
-            this.showPopup('shop'); 
+
+        if (distance < CONFIG.merchant.interactionRadius) {
+            this.showPopup('shop');
         }
     }
-    handlePointerDown(e) { 
+    handlePointerDown(e) {
         this.audio?.unlock();
-        if (this.state === 'gameOver' || this.state === 'startScreen') return; 
+        if (this.state === 'gameOver' || this.state === 'startScreen') return;
         if (!this.canvas) return;
-        
-        const rect = this.canvas.getBoundingClientRect(); 
-        const clientX = e.clientX; 
-        const clientY = e.clientY; 
-        const worldX = (clientX - rect.left) * (this.camera.width / rect.width) + this.camera.x; 
-        const worldY = (clientY - rect.top) * (this.camera.height / rect.height) + this.camera.y; 
-        if (this.state === 'running' && Utils.getDistance({x: worldX, y: worldY}, CONFIG.merchant) < CONFIG.merchant.interactionRadius) { 
-            this.showPopup('shop'); 
-            return; 
-        } 
-        if (e.pointerType === 'touch' && !this.joystick.active) { 
-            e.preventDefault(); 
-            this.joystick.touchId = e.pointerId; 
-            this.joystick.active = true; 
-            this.joystick.startX = clientX; 
-            this.joystick.startY = clientY; 
+
+        const rect = this.canvas.getBoundingClientRect();
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+        const worldX = (clientX - rect.left) * (this.camera.width / rect.width) + this.camera.x;
+        const worldY = (clientY - rect.top) * (this.camera.height / rect.height) + this.camera.y;
+        if (this.state === 'running' && Utils.getDistance({ x: worldX, y: worldY }, CONFIG.merchant) < CONFIG.merchant.interactionRadius) {
+            this.showPopup('shop');
+            return;
+        }
+        if (e.pointerType === 'touch' && !this.joystick.active) {
+            e.preventDefault();
+            this.joystick.touchId = e.pointerId;
+            this.joystick.active = true;
+            this.joystick.startX = clientX;
+            this.joystick.startY = clientY;
             if (this.dom.joystick && this.dom.joystick.container) {
-                this.dom.joystick.container.style.display = 'block'; 
-                this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`; 
-                this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`; 
+                this.dom.joystick.container.style.display = 'block';
+                this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`;
+                this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`;
             }
-        } 
+        }
     }
-    handlePointerMove(e) { 
-        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return; 
-        e.preventDefault(); 
-        let deltaX = e.clientX - this.joystick.startX; 
-        let deltaY = e.clientY - this.joystick.startY; 
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
-        const maxDistance = this.dom.joystick.radius; 
-        if (distance > maxDistance) { 
-            deltaX = (deltaX / distance) * maxDistance; 
-            deltaY = (deltaY / distance) * maxDistance; 
-        } 
+    handlePointerMove(e) {
+        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return;
+        e.preventDefault();
+        let deltaX = e.clientX - this.joystick.startX;
+        let deltaY = e.clientY - this.joystick.startY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const maxDistance = this.dom.joystick.radius;
+        if (distance > maxDistance) {
+            deltaX = (deltaX / distance) * maxDistance;
+            deltaY = (deltaY / distance) * maxDistance;
+        }
         const dxNorm = deltaX / maxDistance;
         const dyNorm = deltaY / maxDistance;
         this.joystick.dx = dxNorm;
         this.joystick.dy = dyNorm;
+
+        // Balletto easter egg: track joystick spin (5 full rotations in 3s)
+        if (distance > maxDistance * 0.5) {
+            const angle = Math.atan2(dyNorm, dxNorm);
+            if (this._ballettoLastAngle !== undefined) {
+                let delta = angle - this._ballettoLastAngle;
+                if (delta > Math.PI) delta -= 2 * Math.PI;
+                if (delta < -Math.PI) delta += 2 * Math.PI;
+                this._ballettoTotalSpin = (this._ballettoTotalSpin || 0) + Math.abs(delta);
+            }
+            this._ballettoLastAngle = angle;
+            if (!this._ballettoStartTime) this._ballettoStartTime = Date.now();
+            if (Date.now() - this._ballettoStartTime > 3000) {
+                this._ballettoTotalSpin = 0;
+                this._ballettoStartTime = Date.now();
+            }
+            if (this._ballettoTotalSpin >= Math.PI * 10) { // 5 full spins
+                this._ballettoTotalSpin = 0;
+                this._ballettoStartTime = 0;
+                this.cheatCodeSystem?.discoverEgg('balletto');
+                // Confetti explosion
+                if (this.state === 'running' && this.player && this._entityClasses?.Particle) {
+                    for (let i = 0; i < 40; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        const s = 2 + Math.random() * 6;
+                        const colors = ['#ffd700', '#ff6347', '#00ff88', '#ff69b4', '#87ceeb', '#ff4500'];
+                        this.addEntity('particles', new this._entityClasses.Particle(this.player.x, this.player.y, {
+                            vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+                            life: 30 + Math.floor(Math.random() * 40),
+                            color: colors[Math.floor(Math.random() * colors.length)]
+                        }));
+                    }
+                    this.notifications?.push?.({ text: '💃 BALLETTO! 🎉', life: 200, color: '#ff69b4' });
+                }
+            }
+        } else {
+            this._ballettoLastAngle = undefined;
+        }
         this._joystickPending.dx = deltaX;
         this._joystickPending.dy = deltaY;
         if (!this._joystickRAF) {
             this._joystickRAF = requestAnimationFrame(() => {
                 this._joystickRAF = null;
                 if (this.dom.joystick && this.dom.joystick.stick) {
-                    this.dom.joystick.stick.style.transform = 
+                    this.dom.joystick.stick.style.transform =
                         `translate(${this._joystickPending.dx}px, ${this._joystickPending.dy}px)`;
                 }
             });
         }
     }
-    handlePointerEnd(e) { 
-        if (this.joystick.active && e.pointerId === this.joystick.touchId) { 
-            this.joystick.active = false; 
-            this.joystick.touchId = null; 
+    handlePointerEnd(e) {
+        if (this.joystick.active && e.pointerId === this.joystick.touchId) {
+            this.joystick.active = false;
+            this.joystick.touchId = null;
             if (this.dom.joystick && this.dom.joystick.stick) {
-                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)'; 
+                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
             }
             if (this.dom.joystick && this.dom.joystick.container) {
-                this.dom.joystick.container.style.display = 'none'; 
+                this.dom.joystick.container.style.display = 'none';
             }
-            this.joystick.dx = 0; 
-            this.joystick.dy = 0; 
-        } 
+            this.joystick.dx = 0;
+            this.joystick.dy = 0;
+        }
     }
     buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
 
     // Funzione di test per il negozio
+    showDailyChallengePopup() {
+        const info = this.dailyChallengeSystem.getDailyInfo();
+
+        const dateEl = document.getElementById('dailyDate');
+        if (dateEl) dateEl.innerText = info.date;
+
+        const arcEl = document.getElementById('dailyArchetype');
+        if (arcEl) arcEl.innerText = info.archetypeName;
+
+        const weapEl = document.getElementById('dailyWeapon');
+        const weaponName = CONFIG?.weapons?.[info.weapon]?.name || info.weapon;
+        if (weapEl) weapEl.innerText = weaponName;
+
+        const modName = document.getElementById('dailyModifierName');
+        const modDesc = document.getElementById('dailyModifierDesc');
+
+        if (modName && modDesc) {
+            if (info.modifier) {
+                modName.innerText = info.modifier.name;
+                modDesc.innerText = info.modifier.desc;
+                modName.style.color = '#ff4444';
+            } else {
+                modName.innerText = "Nessun Modificatore";
+                modDesc.innerText = "Goditi una run standard!";
+                modName.style.color = '#888';
+            }
+        }
+
+        if (this.dom.popups.dailyChallenge) {
+            this.dom.popups.dailyChallenge.style.display = 'flex';
+        }
+    }
+
     testShop() {
         console.log('=== TEST NEGOZIO ===');
         console.log('DOM elements:');
         console.log('- totalGemsShop:', this.dom.totalGemsShop);
         console.log('- permanentUpgradeOptions:', this.dom.containers.permanentUpgradeOptions);
         console.log('- shop popup:', this.dom.popups.shop);
-        
+
         console.log('Dati:');
         console.log('- totalGems:', this.totalGems);
         console.log('- permanentUpgrades:', this.permanentUpgrades);
-        
+
         // Test diretto del populateShop
         console.log('Testando populateShop...');
         this.populateShop();
-        
+
         console.log('=== FINE TEST ===');
+    }
+
+    spawnDummyEnemy() {
+        const stats = { ...CONFIG.enemies?.base, hp: 10, damage: 0, speed: 0.5, xp: 5, radius: 20 };
+        const x = this.player.x + 200;
+        const y = this.player.y;
+        this.addEntity('enemies', new Enemy(x, y, stats));
+    }
+
+    handleBossRushLogic() {
+        if (this.gameMode !== 'bossRush') return;
+        if (this.entities.bosses.length === 0 && !this._bossRushWaiting) {
+            this._bossRushWaiting = true;
+            setTimeout(() => {
+                this.spawnBossRushBoss();
+                this._bossRushWaiting = false;
+            }, (CONFIG.bossRush?.spawnInterval || 5) * 1000);
+        }
+    }
+
+    spawnBossRushBoss() {
+        const bossType = CONFIG.bossRush?.bossSequence[this.bossesKilled % CONFIG.bossRush.bossSequence.length];
+        const x = this.player.x + (Math.random() - 0.5) * 100;
+        const y = this.player.y - 400;
+        const stats = { ...CONFIG.boss?.base, hp: 1000 + this.bossesKilled * 500 };
+        this.addEntity('bosses', new Boss(x, y, stats));
+        this.notifications.push({ text: `BOSS RUSH: ${bossType} APPARSO!`, life: 200 });
+    }
+
+    checkBossRushVictory() {
+        if (this.gameMode === 'bossRush' && this.bossesKilled >= (CONFIG.bossRush?.victoryCount || 10)) {
+            this.triggerVictory();
+        }
     }
 }
 

@@ -5,15 +5,15 @@ import { searchTerms, getAllTerms } from '../data/glossary.js';
 import { getUpgradeIcon, getGlossaryIcon, getItemIcon, ICONS } from '../data/icons.js';
 
 export const UISystem = {
-    populateUpgradeMenu() { 
-        const container = this.dom.containers.upgradeOptions; 
-        container.innerHTML = ''; 
-        const choices = this.getUpgradeChoices(); 
-        choices.forEach(upgrade => { 
-            if (!upgrade) return; 
-            const div = document.createElement('div'); 
-            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '') + (upgrade.type === 'fusion' ? ' fusion' : '') + (upgrade.type === 'passive' ? ' passive' : ''); 
-            
+    populateUpgradeMenu() {
+        const container = this.dom.containers.upgradeOptions;
+        container.innerHTML = '';
+        const choices = this.getUpgradeChoices();
+        choices.forEach(upgrade => {
+            if (!upgrade) return;
+            const div = document.createElement('div');
+            div.className = 'upgrade-option' + (upgrade.type === 'evolution' ? ' evolution' : '') + (upgrade.type === 'mastery' ? ' mastery' : '') + (upgrade.type === 'fusion' ? ' fusion' : '') + (upgrade.type === 'passive' ? ' passive' : '');
+
             let s;
             if (upgrade.type === 'passive') {
                 s = this.passives[upgrade.id];
@@ -22,12 +22,12 @@ export const UISystem = {
                 s = this.spells[baseId];
             }
 
-            let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`; 
-            if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery' || upgrade.type === 'fusion') levelText = ''; 
+            let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`;
+            if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery' || upgrade.type === 'fusion') levelText = '';
             const icon = getUpgradeIcon(upgrade.id, upgrade);
-            div.innerHTML = `<div class="upgrade-option-icon">${icon}</div><div class="upgrade-option-text"><div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div></div>`; 
-            div.onclick = () => { this.applyUpgrade(upgrade.id); this.hideAllPopups(); }; 
-            container.appendChild(div); 
+            div.innerHTML = `<div class="upgrade-option-icon">${icon}</div><div class="upgrade-option-text"><div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div></div>`;
+            div.onclick = () => { this.applyUpgrade(upgrade.id); this.hideAllPopups(); };
+            container.appendChild(div);
         });
         // Se non ci sono scelte (run molto lunga, tutto al massimo) aggiungi pulsante "Continua" per evitare blocco
         if (choices.length === 0) {
@@ -38,7 +38,7 @@ export const UISystem = {
             container.appendChild(btn);
         }
     },
-    
+
     populateCharacterSelection() {
         const container = this.dom.containers.characterSelectionContainer;
         container.innerHTML = '';
@@ -106,11 +106,11 @@ export const UISystem = {
         }
         this.updateCharacterPreview();
     },
-    
+
     updateCharacterPreview() {
         const preview = this.dom.containers.selectedCharacterPreview;
         const archetype = CONFIG.characterArchetypes[this.selectedArchetype];
-        
+
         if (preview && archetype) {
             preview.innerHTML = `
                 <h5>${archetype.name}</h5>
@@ -120,17 +120,17 @@ export const UISystem = {
             `;
         }
     },
-    
+
     showCharacterPopup() {
         this.showPopup('characterSelection');
         this.populateCharacterSelection();
     },
-    
+
     hideCharacterPopup() {
         this.hideAllPopups();
         this.showPopup('start'); // Torna al menù principale
     },
-    
+
     showAchievements() {
         this.populateAchievements();
         this.showPopup('achievements');
@@ -190,85 +190,125 @@ export const UISystem = {
         searchInput.onchange = refresh;
         categorySelect.onchange = refresh;
     },
-    
+
     populateAchievements() {
         if (!this.achievementSystem || !this.dom.containers.achievementsList) return;
-        
+
         const container = this.dom.containers.achievementsList;
         container.innerHTML = '';
-        
+
+        const allAchievements = Object.values(this.achievementSystem.achievements);
         const progress = this.achievementSystem.getProgress();
-        
-        const progressPara = document.createElement('p');
-        progressPara.style.cssText = 'margin-bottom: 12px; color: var(--text-muted-color);';
-        progressPara.textContent = `Progresso: ${progress.unlocked}/${progress.total} (${progress.percentage}%)`;
-        container.appendChild(progressPara);
-        
+        const totalTiers = allAchievements.reduce((sum, a) => sum + a.thresholds.length, 0);
+        const completedTiers = allAchievements.reduce((sum, a) => sum + (a.tier || 0), 0);
+
+        // Header con barra di progresso globale
+        const header = document.createElement('div');
+        header.style.cssText = 'margin-bottom:16px;text-align:center;';
+        const globalPercent = totalTiers > 0 ? Math.round((completedTiers / totalTiers) * 100) : 0;
+        header.innerHTML = `
+            <div style="font-size:14px;color:var(--text-muted-color);margin-bottom:8px;">
+                🏆 ${progress.unlocked}/${progress.total} sbloccati · ${completedTiers}/${totalTiers} tier completati
+            </div>
+            <div style="background:rgba(255,255,255,0.1);border-radius:8px;height:8px;overflow:hidden;">
+                <div style="height:100%;width:${globalPercent}%;background:linear-gradient(90deg,#cd7f32,#c0c0c0,#ffd700);border-radius:8px;transition:width 0.3s;"></div>
+            </div>
+        `;
+        container.appendChild(header);
+
         // Lista achievements
-        Object.values(this.achievementSystem.achievements).forEach(achievement => {
+        allAchievements.forEach(achievement => {
+            const isSecret = achievement.secret && !achievement.unlocked;
             const div = document.createElement('div');
-            div.className = `achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
-            
-            const progress = achievement.bestValue ?? achievement.currentValue ?? 0;
-            const target = Array.isArray(achievement.thresholds) && achievement.thresholds.length > 0
-                ? Math.max(...achievement.thresholds)
-                : 1;
-            const progressPercent = target > 0 ? Math.min(100, (progress / target) * 100) : 0;
-            const rewardGems = achievement.reward?.gems ?? (achievement.tier + 1) * 5;
-            
+            div.style.cssText = `display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:6px;border-radius:8px;background:${achievement.unlocked ? 'rgba(76,175,80,0.12)' : 'rgba(255,255,255,0.04)'};border:1px solid ${achievement.unlocked ? 'rgba(76,175,80,0.3)' : 'rgba(255,255,255,0.08)'};${isSecret ? 'opacity:0.5;' : ''}`;
+
+            // Calcola progresso verso il prossimo tier
+            const currentTier = achievement.tier || 0;
+            const bestVal = achievement.bestValue ?? achievement.currentValue ?? 0;
+            const nextThreshold = achievement.thresholds[currentTier] ?? achievement.thresholds[achievement.thresholds.length - 1];
+            const prevThreshold = currentTier > 0 ? achievement.thresholds[currentTier - 1] : 0;
+            const range = nextThreshold - prevThreshold;
+            const progressInRange = bestVal - prevThreshold;
+            const tierPercent = range > 0 ? Math.min(100, Math.max(0, (progressInRange / range) * 100)) : (achievement.unlocked ? 100 : 0);
+
+            // Tier badges
+            const tierBadges = ['🥉', '🥈', '🥇'];
+            let badgesHtml = '';
+            for (let t = 0; t < achievement.thresholds.length; t++) {
+                if (currentTier > t) {
+                    badgesHtml += `<span style="font-size:14px;">${tierBadges[t] || '⭐'}</span>`;
+                } else {
+                    badgesHtml += `<span style="font-size:14px;opacity:0.2;">${tierBadges[t] || '⭐'}</span>`;
+                }
+            }
+
+            // Gems per il prossimo tier
+            const gemRewards = achievement.gemReward || [5, 15, 50];
+            const nextGem = gemRewards[currentTier] || gemRewards[gemRewards.length - 1] || 5;
+
+            // Color della barra
+            const barColor = currentTier >= 2 ? '#ffd700' : currentTier >= 1 ? '#c0c0c0' : '#cd7f32';
+
+            const name = isSecret ? '???' : achievement.name;
+            const desc = isSecret ? 'Achievement segreto' : achievement.description;
+            const icon = isSecret ? '❓' : achievement.icon;
+
             div.innerHTML = `
-                <div class="achievement-icon">${achievement.icon}</div>
-                <div class="achievement-info">
-                    <h4 class="achievement-name">${achievement.name}</h4>
-                    <p class="achievement-description">${achievement.description}</p>
-                    <div class="achievement-progress">
-                        <div class="achievement-progress-fill" style="width: ${progressPercent}%"></div>
+                <div style="font-size:28px;min-width:36px;text-align:center;">${icon}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                        <span style="font-weight:600;font-size:13px;color:${achievement.unlocked ? '#4caf50' : '#e0e0e0'};">${name}</span>
+                        <span style="font-size:12px;">${badgesHtml}</span>
                     </div>
-                    <span style="font-size:12px;">${progress}/${target}</span>
-                    <div class="achievement-reward">
-                        <span>💰 ${rewardGems} gemme</span>
+                    <div style="font-size:11px;color:var(--text-muted-color);margin-bottom:4px;">${desc}</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:4px;height:6px;overflow:hidden;">
+                            <div style="height:100%;width:${tierPercent}%;background:${barColor};border-radius:4px;transition:width 0.3s;"></div>
+                        </div>
+                        <span style="font-size:10px;color:var(--text-muted-color);white-space:nowrap;">${isSecret ? '?' : Math.floor(bestVal)}/${isSecret ? '?' : nextThreshold}</span>
                     </div>
                 </div>
-                <div class="achievement-status">
-                    ${achievement.unlocked ? '✅' : '🔒'}
+                <div style="text-align:center;min-width:40px;">
+                    <div style="font-size:10px;color:#ffd700;">${!isSecret ? `+${nextGem}💎` : ''}</div>
+                    <div style="font-size:18px;">${achievement.unlocked ? '✅' : '🔒'}</div>
                 </div>
             `;
-            
+
             container.appendChild(div);
         });
     },
-    
+
     populateStageSelection() {
         const dropdown = this.dom.containers.stageDropdown;
         if (!dropdown || !CONFIG.stages) return;
         dropdown.innerHTML = '';
-        
+
         Object.keys(CONFIG.stages).forEach(stageId => {
             const stage = CONFIG.stages[stageId];
             const option = document.createElement('option');
             option.value = stageId;
             option.textContent = stage.name;
             option.disabled = !stage.unlocked;
-            
+
             if (!stage.unlocked) {
                 option.textContent += ` (${this.getUnlockRequirementText(stage.unlockRequirement)})`;
             }
-            
+
             dropdown.appendChild(option);
         });
-        
+
         // Imposta il valore selezionato
         dropdown.value = this.selectedStage;
     },
-    
+
     selectStage(stageId) {
         this.selectedStage = parseInt(stageId);
         this.dom.containers.stageDropdown.value = this.selectedStage;
     },
-    
+
     getUnlockRequirementText(requirement) {
         if (!requirement) return 'Sempre disponibile';
-        
+
         switch (requirement.type) {
             case 'craft_core':
                 const core = CONFIG.cores[requirement.coreId];
@@ -283,29 +323,35 @@ export const UISystem = {
             case 'arsenal_size':
                 return `Possiedi almeno ${requirement.cores} core e ${requirement.weapons} armi`;
             case 'survival':
-                return `Sopravvivi ${Math.floor(requirement.time / 60)} min in Stage ${requirement.stage}`;
+                if (requirement.stage) {
+                    const stageName = CONFIG.stages[requirement.stage]?.name || `Stage ${requirement.stage}`;
+                    return `Sopravvivi ${Math.floor(requirement.time / 60)} min in ${stageName}`;
+                }
+                return `Sopravvivi ${Math.floor(requirement.time / 60)} minuti`;
             case 'boss_kill':
                 return `Uccidi ${requirement.count} boss in Stage ${requirement.stage}`;
+            case 'boss_kill_total':
+                return `Uccidi ${requirement.count} boss in totale`;
             case 'total_time':
                 return `Gioca ${Math.floor(requirement.time / 60)} min totali`;
             default:
                 return 'Sconosciuto';
         }
     },
-    
+
     returnToStartScreen() {
         this.audio?.stopBackgroundMusic();
-        this.hideAllPopups(true); 
+        this.hideAllPopups(true);
         this.dom.inGameUI.container.style.display = 'none';
         this.dom.buttons.pause.style.display = 'none';
         if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'none';
         if (this.dom.xpBarMobile) this.dom.xpBarMobile.style.display = 'none';
         this.state = 'startScreen';
-        
+
         // Pulisci completamente il canvas
         this.clearCanvas();
-        
-        this.populateCharacterSelection(); 
+
+        this.populateCharacterSelection();
         this.populateStageSelection(); // Ricarica anche la selezione stage
         this.updateCharacterPreview(); // Aggiorna l'anteprima del personaggio
         this.showPopup('start');
@@ -317,7 +363,7 @@ export const UISystem = {
         if (!this.gameLoopId) this.gameLoop();
     },
 
-    showPopup(popupKey) { 
+    showPopup(popupKey) {
         if (popupKey === 'settings') {
             /* settings overlay: no state change */
         } else if (popupKey !== 'upgrade' && popupKey !== 'shop') {
@@ -327,33 +373,33 @@ export const UISystem = {
         } else if (this.state === 'running') {
             this.state = 'paused';
         }
-        
-        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'block'; 
+
+        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'block';
         Object.values(this.dom.popups).forEach(p => {
             if (p) p.style.display = 'none';
-        }); 
-        if (this.dom.popups[popupKey]) this.dom.popups[popupKey].style.display = 'flex'; 
-        
+        });
+        if (this.dom.popups[popupKey]) this.dom.popups[popupKey].style.display = 'flex';
+
         if (popupKey === 'shop') {
-            this.populateShop(); 
+            this.populateShop();
         }
-        if (popupKey === 'pause') { 
-            this.populateStatsMenu(); 
-        } 
+        if (popupKey === 'pause') {
+            this.populateStatsMenu();
+        }
     },
-    
+
     showInventory() {
         console.log('showInventory chiamato');
         console.log('Popup inventory:', this.dom.popups.inventory);
         console.log('Materiali:', this.materials);
-        
+
         this.showPopup('inventory');
         this.populateInventory();
         this.setupInventoryTabs();
-        
+
         console.log('Inventario popolato');
     },
-    
+
     closeInventory() {
         if (this.state === 'running' || this.state === 'paused') {
             this.returnToStartScreen();
@@ -362,7 +408,7 @@ export const UISystem = {
             this.showPopup('start');
         }
     },
-    
+
     populateInventory() {
         InventoryUI.populateInventory(this);
     },
@@ -386,28 +432,28 @@ export const UISystem = {
     setupInventoryTabs() {
         const tabButtons = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
-        
+
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetTab = button.getAttribute('data-tab');
-                
+
                 // Rimuovi la classe active da tutti i tab
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('active'));
-                
+
                 // Aggiungi la classe active al tab selezionato
                 button.classList.add('active');
                 document.getElementById(targetTab + 'Tab').classList.add('active');
             });
         });
     },
-    
-    hideAllPopups(forceNoResume) { 
+
+    hideAllPopups(forceNoResume) {
         const wasSettings = this.dom.popups.settings && this.dom.popups.settings.style.display === 'flex';
         Object.values(this.dom.popups).forEach(p => {
             if (p) p.style.display = 'none';
-        }); 
-        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'none'; 
+        });
+        if (this.dom.menuOverlay) this.dom.menuOverlay.style.display = 'none';
         if (wasSettings) {
             if (this.state === 'startScreen') this.showPopup('start');
             else if (this.state === 'paused') this.showPopup('pause');
@@ -428,22 +474,22 @@ export const UISystem = {
         }
     },
 
-    togglePause() { 
-        if (this.state !== 'running' && this.state !== 'paused') return; 
-        if (this.state === 'running') { 
-            this.showPopup('pause'); 
-        } else { 
-            this.hideAllPopups(); 
+    togglePause() {
+        if (this.state !== 'running' && this.state !== 'paused') return;
+        if (this.state === 'running') {
+            this.showPopup('pause');
+        } else {
+            this.hideAllPopups();
             if (this.dom.containers.debugSaveContainer) {
-                this.dom.containers.debugSaveContainer.style.display = 'none'; 
+                this.dom.containers.debugSaveContainer.style.display = 'none';
             }
-        } 
+        }
     },
 
-    populateStatsMenu() { 
+    populateStatsMenu() {
         const runStatsContainer = this.dom.containers.runStatsContainer;
         if (!runStatsContainer) return;
-        
+
         runStatsContainer.innerHTML = `
             <div class="run-stat-item">Tempo <span>${Math.floor(this.totalElapsedTime)}s</span></div>
             <div class="run-stat-item">Livello <span>${this.player?.level ?? 1}</span></div>
@@ -452,55 +498,55 @@ export const UISystem = {
             <div class="run-stat-item">Cristalli <span>${this.gemsThisRun} 💎</span></div>
         `;
 
-        const p = this.player; 
-        let playerHTML = `<div class="stats-section"><div class="stats-section-title">${p.archetype.name}</div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp)} / ${p.stats.maxHp}</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${p.stats.speed.toFixed(1)}</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.defense}<span class="stat-item-label">Rid. Danni:</span><span class="stat-item-value">${Math.round(p.stats.dr * 100)}%</span></div></div>`; 
-        playerHTML += `<div class="stats-section"><div class="stats-section-title">Modificatori</div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">${Math.round((p.modifiers.power - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">${Math.round((1 - p.modifiers.frequency) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round((p.modifiers.area - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round((p.modifiers.xpGain - 1) * 100)}%</span></div>`; 
-        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round(p.modifiers.luck * 100)}%</span></div></div>`; 
-        this.dom.playerStatsColumn.innerHTML = playerHTML; 
-        
-        let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`; 
-        let hasWeapons = false; 
-        Object.values(this.spells).filter(s => s.level > 0).forEach(s => { 
-            hasWeapons = true; 
-            weaponsHTML += `<div class="stat-item-title">${s.name} (Liv. ${s.level}) ${s.evolution !== 'none' ? `[EVO]` : ''}</div>`; 
-            let details = ''; 
-            if (s.damage) details += `Danno: ${Math.round(this.getDamage(s.damage))}, `; 
-            if (s.cooldown) details += `Ricarica: ${(s.cooldown * p.modifiers.frequency / 1000).toFixed(2)}s, `; 
-            weaponsHTML += `<div class="weapon-stat-details">${details.slice(0, -2) || 'Statistiche base'}</div>`; 
-        }); 
-        if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`; 
-        weaponsHTML += `</div>`; 
+        const p = this.player;
+        let playerHTML = `<div class="stats-section"><div class="stats-section-title">${p.archetype.name}</div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.health}<span class="stat-item-label">Salute:</span><span class="stat-item-value">${Math.floor(p.hp)} / ${p.stats.maxHp}</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.speed}<span class="stat-item-label">Velocità:</span><span class="stat-item-value">${p.stats.speed.toFixed(1)}</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.defense}<span class="stat-item-label">Rid. Danni:</span><span class="stat-item-value">${Math.round(p.stats.dr * 100)}%</span></div></div>`;
+        playerHTML += `<div class="stats-section"><div class="stats-section-title">Modificatori</div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.power}<span class="stat-item-label">Potenza:</span><span class="stat-item-value">${Math.round((p.modifiers.power - 1) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.frequency}<span class="stat-item-label">Frequenza:</span><span class="stat-item-value">${Math.round((1 - p.modifiers.frequency) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.area}<span class="stat-item-label">Area:</span><span class="stat-item-value">${Math.round((p.modifiers.area - 1) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.xpGain}<span class="stat-item-label">Guadagno XP:</span><span class="stat-item-value">${Math.round((p.modifiers.xpGain - 1) * 100)}%</span></div>`;
+        playerHTML += `<div class="stat-item">${CONFIG.statIcons.luck}<span class="stat-item-label">Fortuna:</span><span class="stat-item-value">${Math.round(p.modifiers.luck * 100)}%</span></div></div>`;
+        this.dom.playerStatsColumn.innerHTML = playerHTML;
+
+        let weaponsHTML = `<div class="stats-section"><div class="stats-section-title">Armi e Abilità</div>`;
+        let hasWeapons = false;
+        Object.values(this.spells).filter(s => s.level > 0).forEach(s => {
+            hasWeapons = true;
+            weaponsHTML += `<div class="stat-item-title">${s.name} (Liv. ${s.level}) ${s.evolution !== 'none' ? `[EVO]` : ''}</div>`;
+            let details = '';
+            if (s.damage) details += `Danno: ${Math.round(this.getDamage(s.damage))}, `;
+            if (s.cooldown) details += `Ricarica: ${(s.cooldown * p.modifiers.frequency / 1000).toFixed(2)}s, `;
+            weaponsHTML += `<div class="weapon-stat-details">${details.slice(0, -2) || 'Statistiche base'}</div>`;
+        });
+        if (!hasWeapons) weaponsHTML += `<div>Nessuna abilità acquisita.</div>`;
+        weaponsHTML += `</div>`;
         this.dom.weaponsStatsColumn.innerHTML = weaponsHTML;
-        
+
         // ANALYTICS VERSIONE 5.4: Statistiche di bilanciamento
         if (this.analyticsManager) {
             const report = this.analyticsManager.getAnalyticsReport();
             const scores = this.analyticsManager.getAllArchetypeScores();
-            
+
             let analyticsHTML = `<div class="stats-section"><div class="stats-section-title">📊 Analytics Bilanciamento</div>`;
             analyticsHTML += `<div class="stat-item">Sessione Corrente: <span>${p.archetype.id}</span></div>`;
             analyticsHTML += `<div class="stat-item">Score Archetipo: <span>${(scores[p.archetype.id] || 0.5).toFixed(2)}</span></div>`;
             analyticsHTML += `<div class="stat-item">Partite Totali: <span>${report.sessionStats.totalSessions}</span></div>`;
             analyticsHTML += `<div class="stat-item">Tempo Medio: <span>${Math.floor(report.sessionStats.avgSessionTime)}s</span></div>`;
-            
+
             // Mostra raccomandazioni di bilanciamento
             if (report.recommendations.length > 0) {
                 analyticsHTML += `<div class="stat-item">Raccomandazioni: <span style="color: #ff6b6b;">${report.recommendations.length} pending</span></div>`;
             }
             analyticsHTML += `</div>`;
-            
+
             // Aggiungi analytics alla colonna delle armi se esiste
             if (this.dom.weaponsStatsColumn) {
                 this.dom.weaponsStatsColumn.innerHTML += analyticsHTML;
             }
-        } 
+        }
     },
 
     generateAndShowDebugCode() {
@@ -514,23 +560,23 @@ export const UISystem = {
 
     copyDebugCode() {
         const debugCode = this.dom.inputs.debugSaveOutput ? this.dom.inputs.debugSaveOutput.value : '';
-        if(debugCode) {
+        if (debugCode) {
             navigator.clipboard.writeText(debugCode).then(() => {
                 this.notifications.push({ text: "Codice Debug Copiato!", life: 120 });
             });
         }
     },
 
-    populateShop() { 
-        if (this.dom.totalGemsShop) this.dom.totalGemsShop.textContent = this.totalGems; 
-        const container = this.dom.containers.permanentUpgradeOptions; 
+    populateShop() {
+        if (this.dom.totalGemsShop) this.dom.totalGemsShop.textContent = this.totalGems;
+        const container = this.dom.containers.permanentUpgradeOptions;
         if (!container) return;
-        
+
         // Inizializza il pulsante di chiusura se non è già stato fatto
         this.initShopCloseButton();
-        
-        container.innerHTML = ''; 
-        
+
+        container.innerHTML = '';
+
         // Aggiungi messaggio se non ci sono cristalli
         if (this.totalGems === 0) {
             container.innerHTML = `<div class="zero-gems-message">
@@ -538,18 +584,18 @@ export const UISystem = {
             </div>`;
             return;
         }
-        
+
         let availableUpgrades = 0;
-        
-        for (const key in this.permanentUpgrades) { 
-            const upg = this.permanentUpgrades[key]; 
+
+        for (const key in this.permanentUpgrades) {
+            const upg = this.permanentUpgrades[key];
             const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
-            
+
             // Conta upgrade disponibili
             if (upg.level < upg.maxLevel) {
                 availableUpgrades++;
             }
-            
+
             let costColor = this.totalGems < cost ? '#e74c3c' : '#fff';
             const permIcon = getUpgradeIcon(key) || (key === 'defense' ? '🛡️' : '✨');
             let optionHTML = `<div class="permanent-upgrade-option">
@@ -571,13 +617,13 @@ export const UISystem = {
             }
             optionHTML += `</div>`;
             container.innerHTML += optionHTML;
-        } 
-        
-        container.querySelectorAll('.buy-button').forEach(btn => { 
-            btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key); 
+        }
+
+        container.querySelectorAll('.buy-button').forEach(btn => {
+            btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key);
         });
     },
-    
+
     initShopCloseButton() {
         // Setup close button se non è già stato fatto
         const closeBtn = document.getElementById('closeShopBtn');
@@ -603,7 +649,7 @@ export const UISystem = {
     populateBossUpgradeMenu() {
         const container = this.dom.containers.upgradeOptions;
         if (!container) return;
-        
+
         container.innerHTML = '';
         const choices = this.getBossUpgradeChoices();
         choices.forEach(upgrade => {
@@ -648,5 +694,168 @@ export const UISystem = {
         if (!target) return;
         target.level++;
         this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
+    },
+
+    // --- BESTIARY & HISTORY ---
+
+    showBestiary() {
+        this.populateBestiary();
+        this.showPopup('bestiary');
+    },
+
+    hideBestiary() {
+        this.hideAllPopups();
+        this.showPopup('start');
+    },
+
+    populateBestiary() {
+        const container = document.getElementById('bestiaryGrid');
+        if (!container || !this.bestiarySystem) return;
+        container.innerHTML = '';
+
+        const data = this.bestiarySystem.getAllEntries();
+        const stageInfo = CONFIG.stages[this.selectedStage] || {}; // Use current selected stage as context or just generic list
+        // Note: For a global bestiary, we might want to iterate over all KNOWN enemy definitions or iterate over the data we have.
+        // Let's iterate over keys in data.
+
+        const sortedKeys = Object.keys(data).sort();
+        if (sortedKeys.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nessun nemico scoperto ancora!</div>';
+            return;
+        }
+
+        sortedKeys.forEach(type => {
+            const entry = data[type];
+            // Try to find display name from somewhere. 
+            // We might need a lookup map for enemy names if not in the entity itself.
+            // For now, capitalize ID.
+            const name = type.charAt(0).toUpperCase() + type.slice(1);
+
+            const div = document.createElement('div');
+            div.className = 'bestiary-card';
+
+            // Icon logic (simplified)
+            let icon = '👾';
+            if (type.includes('boss')) icon = '💀';
+            else if (type.includes('bat')) icon = '🦇';
+            else if (type.includes('slime')) icon = '🦠';
+            else if (type.includes('ghost')) icon = '👻';
+            else if (type.includes('snake')) icon = '🐍';
+            else if (type.includes('tank')) icon = '🛡️';
+
+            div.innerHTML = `
+                <div class="bestiary-icon">${icon}</div>
+                <div class="bestiary-info">
+                    <div class="bestiary-name">${name}</div>
+                    <div class="bestiary-stats">Uccisioni: ${entry.kills}</div>
+                    <div class="bestiary-stats">Max/Run: ${entry.maxKillsInRun}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    },
+
+    showRunHistory() {
+        this.populateRunHistory();
+        this.showPopup('runHistory');
+    },
+
+    hideRunHistory() {
+        this.hideAllPopups();
+        this.showPopup('start');
+    },
+
+    populateRunHistory() {
+        const container = document.getElementById('runHistoryList');
+        if (!container || !this.runHistorySystem) return;
+        container.innerHTML = '';
+
+        const history = this.runHistorySystem.getHistory();
+        if (history.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nessuna partita registrata.</div>';
+            return;
+        }
+
+        history.forEach(run => {
+            const date = new Date(run.date).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            const resultClass = run.result === 'Victory' ? 'victory' : 'defeat';
+            const resultIcon = run.result === 'Victory' ? '🏆' : '💀';
+
+            const div = document.createElement('div');
+            div.className = `history-item ${resultClass}`;
+
+            const archName = CONFIG.characterArchetypes[run.archetype]?.name || run.archetype;
+
+            // Format weapons
+            let weaponsHtml = '';
+            run.weapons.forEach(w => {
+                const icon = getUpgradeIcon(w) || '⚔️';
+                weaponsHtml += `<span title="${w}">${icon}</span>`;
+            });
+
+            div.innerHTML = `
+                <div class="history-header">
+                    <span class="history-result">${resultIcon} ${run.result === 'Victory' ? 'Vittoria' : 'Sconfitta'}</span>
+                    <span class="history-date">${date}</span>
+                </div>
+                <div class="history-details">
+                    <div>Archetipo: <strong>${archName}</strong></div>
+                    <div>Livello: ${run.level}</div>
+                    <div>Tempo: ${Math.floor(run.time / 60)}:${(Math.floor(run.time) % 60).toString().padStart(2, '0')}</div>
+                    <div>Score: ${run.score.toLocaleString()}</div>
+                </div>
+                <div class="history-weapons">
+                    ${weaponsHtml}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    },
+
+    populateCraftingPreview() {
+        const container = document.getElementById('craftingPreviewList');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Combine all items to show
+        const allItems = [
+            ...Object.entries(CONFIG.characterArchetypes).filter(([id]) => id !== 'standard'),
+            ...Object.entries(CONFIG.weapons || {})
+        ];
+
+        if (allItems.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nessuna ricetta disponibile</div>';
+            return;
+        }
+
+        allItems.forEach(([id, data]) => {
+            const div = document.createElement('div');
+            div.className = 'crafting-item';
+
+            const icon = ICONS[id] || '⚒️';
+            const name = data.name || id;
+            const materials = data.materials || (data.cost ? { 'Gemme': data.cost } : {});
+
+            let recipeHtml = '';
+            for (const [matId, count] of Object.entries(materials)) {
+                recipeHtml += `
+                    <div class="recipe-material">
+                        <span>${matId}</span>
+                        <span class="material-count">${count}</span>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="crafting-item-header">
+                    <div class="crafting-item-icon">${icon}</div>
+                    <div class="crafting-item-name">${name}</div>
+                </div>
+                <div class="crafting-recipe">
+                    ${recipeHtml || '<p>Materiali sconosciuti</p>'}
+                </div>
+            `;
+            container.appendChild(div);
+        });
     }
 };

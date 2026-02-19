@@ -67,6 +67,38 @@ export class Player extends Entity {
                     this.modifiers.area *= 1.50;
                     this.modifiers.power *= 0.95;
                     break;
+                case 'prism':
+                    this.modifiers.power *= 1.25;
+                    this.modifiers.area *= 1.20;
+                    this.stats.maxHp = Math.floor(this.stats.maxHp * 0.75);
+                    this.stats.speed *= 0.90;
+                    this._prismExtraSpellLevels = 1; // +1 livello max a tutte le spell
+                    break;
+                case 'unstable':
+                    this.modifiers.power *= 1.40;
+                    this.stats.maxHp = Math.floor(this.stats.maxHp * 0.70);
+                    this._explosionTimer = 0;
+                    this._explosionInterval = 1800; // Ogni 30 secondi (1800 frame a 60fps)
+                    this._selfDamageTimer = 0;
+                    this._selfDamageInterval = 2700; // 5 danni ogni 45 secondi
+                    this._selfDamageAmount = 5;
+                    break;
+                case 'druid':
+                    this.stats.maxHp = Math.floor(this.stats.maxHp * 1.15);
+                    this.modifiers.frequency *= 1.20; // -20% velocità d'attacco (freq più alta = più lento)
+                    this._druidRegenRate = 2; // 2 HP/sec
+                    this._druidDotDurationBonus = 0.50; // +50% durata DoT
+                    break;
+                case 'phantom':
+                    this.stats.speed *= 1.50;
+                    this.stats.maxHp = Math.floor(this.stats.maxHp * 0.60);
+                    this._phantomPassthrough = true; // Attraversa nemici
+                    this._phantomShieldBlock = true; // Non può usare Shield
+                    this._phantomImmunityDuration = 30; // 0.5s di immunità (30 frame)
+                    this._phantomImmunityCooldown = 300; // Ogni 5s (300 frame)
+                    this._phantomImmunityTimer = 0;
+                    this._phantomImmuneActive = false;
+                    break;
             }
         }
 
@@ -188,22 +220,89 @@ export class Player extends Entity {
             if (this.powerUpTimers[key] > 0) this.powerUpTimers[key]--;
         }
         if (this.iFramesTimer > 0) this.iFramesTimer--;
+
+        // Druido: rigenerazione HP passiva
+        if (this._druidRegenRate && this.hp < this.stats.maxHp) {
+            this.hp = Math.min(this.stats.maxHp, this.hp + this._druidRegenRate / 60);
+        }
+
+        // Instabile: esplosione periodica (ogni 30s)
+        if (this._explosionInterval) {
+            this._explosionTimer = (this._explosionTimer || 0) + 1;
+            if (this._explosionTimer >= this._explosionInterval && game) {
+                this._explosionTimer = 0;
+                const explosionRadius = 120;
+                const explosionDamage = 30 * this.modifiers.power;
+                const enemies = [...(game.entities?.enemies || []), ...(game.entities?.bosses || [])];
+                enemies.forEach(enemy => {
+                    if (Utils.getDistance(this, enemy) < explosionRadius) {
+                        enemy.takeDamage(explosionDamage, game);
+                    }
+                });
+                const EffectClass = game._entityClasses?.Effect;
+                if (EffectClass) {
+                    game.addEntity('effects', new EffectClass(this.x, this.y, {
+                        type: 'level_up_burst', maxRadius: explosionRadius, life: 20, initialLife: 20
+                    }));
+                }
+                game.notifications?.push({ text: 'Esplosione Instabile!', life: 90, color: '#ff1744' });
+            }
+        }
+
+        // Instabile: autolesionismo (5 danni ogni 45s)
+        if (this._selfDamageInterval) {
+            this._selfDamageTimer = (this._selfDamageTimer || 0) + 1;
+            if (this._selfDamageTimer >= this._selfDamageInterval) {
+                this._selfDamageTimer = 0;
+                this.hp -= this._selfDamageAmount;
+                if (game) {
+                    game.notifications?.push({ text: 'Instabilità!', life: 60, color: '#ff6b6b' });
+                    if (this.hp <= 0) game.gameOver?.();
+                }
+            }
+        }
+
+        // Fantasma: immunità ciclica (0.5s ogni 5s)
+        if (this._phantomImmunityCooldown) {
+            this._phantomImmunityTimer = (this._phantomImmunityTimer || 0) + 1;
+            if (this._phantomImmuneActive) {
+                // Fase attiva: immunità in corso
+                if (this._phantomImmunityTimer >= this._phantomImmunityDuration) {
+                    this._phantomImmuneActive = false;
+                    this._phantomImmunityTimer = 0;
+                }
+            } else {
+                // Fase cooldown: aspetta il prossimo ciclo
+                if (this._phantomImmunityTimer >= this._phantomImmunityCooldown) {
+                    this._phantomImmuneActive = true;
+                    this._phantomImmunityTimer = 0;
+                }
+            }
+        }
     }
 
     gainXP(amount) {
-        this.xp += amount * this.modifiers.xpGain;
+        const gain = amount * this.modifiers.xpGain;
+        if (!Number.isFinite(gain)) return; // Protegge da NaN/Infinity
+        this.xp += gain;
+        // Auto-heal: se xp è già corrotto, resettalo
+        if (!Number.isFinite(this.xp)) {
+            console.warn('XP corrotto, reset a 0');
+            this.xp = 0;
+        }
     }
 
     levelUp(game) {
         this.level++;
-        this.xp -= this.xpNext;
+        this.xp = Math.max(0, this.xp - this.xpNext);
         const c = CONFIG.player.xpCurve;
         const baseXP = c.base * Math.pow(c.growth, this.level - 1);
         const levelXP = c.levelFactor * this.level;
         this.xpNext = Math.max(1, Math.floor(baseXP + levelXP));
 
-        if (this.xp < 0) this.xp = 0;
-        if (this.xpNext <= 0) this.xpNext = 1;
+        // Protezione da valori corrotti
+        if (!Number.isFinite(this.xp)) this.xp = 0;
+        if (!Number.isFinite(this.xpNext) || this.xpNext <= 0) this.xpNext = 1;
 
         this.hp = this.stats.maxHp;
         this.powerUpTimers.invincibility = 60;
@@ -218,6 +317,15 @@ export class Player extends Entity {
             return;
         }
         if (this.powerUpTimers.invincibility > 0 || this.iFramesTimer > 0) return;
+
+        // Fantasma: immunità ciclica (0.5s ogni 5s)
+        if (this._phantomImmuneActive) {
+            game?.notifications?.push({ text: 'Fase spettrale!', life: 40, color: '#b0bec5' });
+            return;
+        }
+
+        // Fantasma: non può usare Shield (lo scudo non blocca)
+        // Nota: il blocco dello Shield è gestito separatamente nel cast
 
         let maxDR = 0.85;
         if (this.archetype && this.archetype.id === 'steel') {
@@ -242,6 +350,8 @@ export class Player extends Entity {
 
         const finalDamage = amount * (1 - damageReduction);
         this.hp -= finalDamage;
+        // Reset no-damage timer per achievement
+        if (game?.stats) game.stats.noDamageTimer = 0;
         game?.audio?.playDamage();
         game?.addScreenShake?.(10);
         if (!CONFIG.accessibility?.reduceMotion) game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;
@@ -250,7 +360,9 @@ export class Player extends Entity {
     }
 
     draw(ctx, game) {
-        const trailColor = this.archetype?.color || '#4488ff';
+        // Skin system override
+        const skinColor = game?.skinSystem?.getSkinColor(game.totalElapsedTime);
+        const trailColor = skinColor || this.archetype?.color || '#4488ff';
         if (!CONFIG.accessibility?.reduceMotion && this._trail && this._trail.length > 0) {
             const hex = trailColor.startsWith('#') ? trailColor : '#4488ff';
             const rs = parseInt(hex.slice(1, 3), 16);

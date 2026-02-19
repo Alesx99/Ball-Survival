@@ -10,6 +10,7 @@ import { Utils } from '../utils/index.js';
 export class Boss extends Enemy {
     constructor(x, y, stats) {
         super(x, y, stats);
+        this.type = this.stats.type || 'boss';
         this.color = '#8e44ad';
         this.lastAttack = 0;
         this.isBoss = true;
@@ -51,8 +52,24 @@ export class Boss extends Enemy {
         game.addScreenShake?.(12);
         super.onDeath(game);
         game.bossesKilledThisStage++;
+        game.bestiarySystem?.registerKill(this.type || 'boss');
+        if (game.stats) game.stats.bossKills++;
         game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);
         game.gemsThisRun += 100;
+
+        // Golden boss reward
+        if (this._goldenReward) {
+            game.gems = (game.gems || 0) + this._goldenReward;
+            game.notifications?.push?.({ text: `✨ BOSS DORATO SCONFITTO! +${this._goldenReward} 💎`, life: 400, color: '#ffd700' });
+            game.cheatCodeSystem?.discoverEgg('golden_enemy');
+        }
+
+        // Traccia boss kills totali (persistente per sblocco stage)
+        try {
+            const totalBossKills = parseInt(localStorage.getItem('ballSurvivalTotalBossKills') || '0') + 1;
+            localStorage.setItem('ballSurvivalTotalBossKills', totalBossKills.toString());
+        } catch (e) { /* ignore storage errors */ }
+
         game.showBossUpgradePopup();
     }
 

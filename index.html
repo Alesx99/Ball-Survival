@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -8,26 +9,37 @@
     <title>Ball Survival</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div id="gameContainer">
         <div id="menuOverlay" style="display:none;"></div>
         <canvas id="gameCanvas"></canvas>
-        <div id="joystick-container"><div id="joystick-stick"></div></div>
+        <div id="joystick-container">
+            <div id="joystick-stick"></div>
+        </div>
         <div id="pauseButton" aria-label="Pausa"><span aria-hidden="true">⏸</span></div>
-        <button id="pauseButtonMobile" style="display:none; position:fixed; top:12px; right:12px; z-index:1002; font-size:20px; padding:12px 16px; border-radius:50%; background:rgba(18,18,28,0.9); color:var(--text-color); border:1px solid rgba(0,245,255,0.5); box-shadow:0 0 15px rgba(0,245,255,0.3); font-weight:bold; transition:all 0.3s ease;">⏸</button>
+        <button id="pauseButtonMobile"
+            style="display:none; position:fixed; top:12px; right:12px; z-index:1002; font-size:20px; padding:12px 16px; border-radius:50%; background:rgba(18,18,28,0.9); color:var(--text-color); border:1px solid rgba(0,245,255,0.5); box-shadow:0 0 15px rgba(0,245,255,0.3); font-weight:bold; transition:all 0.3s ease;">⏸</button>
 
         <!-- Barra XP Mobile Flottante -->
-        <div id="xpBarMobile" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:1001; background:rgba(10,10,18,0.95); border:1px solid rgba(0,245,255,0.5); border-radius:8px; padding:8px 16px; box-shadow:0 0 20px rgba(0,245,255,0.3);">
-          <div style="display:flex; align-items:center; gap:12px; color:var(--text-color); font-size:14px; font-weight:bold;">
-            <span id="xpBarMobileText">LVL 1</span>
-            <div style="width:120px; height:12px; background:rgba(0,0,0,0.5); border-radius:6px; overflow:hidden; border:1px solid rgba(0,245,255,0.3);">
-              <div id="xpBarMobileFill" style="width:0%; height:100%; background:linear-gradient(90deg, var(--primary-color), var(--secondary-color)); transition:width 0.3s ease-out; box-shadow:0 0 10px rgba(0,245,255,0.5);"></div>
+        <div id="xpBarMobile"
+            style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:1001; background:rgba(10,10,18,0.95); border:1px solid rgba(0,245,255,0.5); border-radius:8px; padding:8px 16px; box-shadow:0 0 20px rgba(0,245,255,0.3);">
+            <div
+                style="display:flex; align-items:center; gap:12px; color:var(--text-color); font-size:14px; font-weight:bold;">
+                <span id="xpBarMobileText">LVL 1</span>
+                <div
+                    style="width:120px; height:12px; background:rgba(0,0,0,0.5); border-radius:6px; overflow:hidden; border:1px solid rgba(0,245,255,0.3);">
+                    <div id="xpBarMobileFill"
+                        style="width:0%; height:100%; background:linear-gradient(90deg, var(--primary-color), var(--secondary-color)); transition:width 0.3s ease-out; box-shadow:0 0 10px rgba(0,245,255,0.5);">
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
 
         <!-- NUOVA UI DI GIOCO -->
@@ -57,11 +69,23 @@
             <div class="main-menu-body">
                 <!-- Game setup cards -->
                 <div class="menu-cards">
+                    <div class="menu-card mode-card">
+                        <h4 class="menu-card-title">Modalità</h4>
+                        <div class="mode-selector">
+                            <button id="modeStandardBtn" class="mode-btn active" data-mode="standard">Standard</button>
+                            <button id="modeEndlessBtn" class="mode-btn" data-mode="endless">Endless</button>
+                            <button id="modeDailyBtn" class="mode-btn" data-mode="daily">Daily</button>
+                            <button id="modeBossRushBtn" class="mode-btn" data-mode="bossRush">Boss Rush</button>
+                            <button id="modeTutorialBtn" class="mode-btn" data-mode="tutorial">Tutorial</button>
+                        </div>
+                        <div id="modeDescription" class="mode-description">Sopravvivi 30 minuti.</div>
+                    </div>
                     <div class="menu-card stage-card">
                         <h4 class="menu-card-title">Stage</h4>
                         <div class="dropdown-container">
                             <label for="stageDropdown" class="visually-hidden">Seleziona stage</label>
-                            <select id="stageDropdown" class="stage-dropdown" autocomplete="off" aria-label="Seleziona stage">
+                            <select id="stageDropdown" class="stage-dropdown" autocomplete="off"
+                                aria-label="Seleziona stage">
                                 <!-- Opzioni popolate da JS -->
                             </select>
                         </div>
@@ -81,6 +105,12 @@
                         <button id="glossaryBtn" class="menu-btn-secondary" title="Glossario">📖</button>
                         <button id="inventoryBtn" class="menu-btn-secondary" title="Inventario">📦</button>
                         <button id="achievementsBtn" class="menu-btn-secondary" title="Achievements">🏆</button>
+                        <button id="bestiaryBtn" class="menu-btn-secondary" title="Bestiario">📖</button>
+                        <button id="runHistoryBtn" class="menu-btn-secondary" title="Storico Partite">📜</button>
+                        <button id="cheatsBtn" class="menu-btn-secondary" title="Codici/Trucchi">🎮</button>
+                        <button id="skinsBtn" class="menu-btn-secondary" title="Skin">🎨</button>
+                        <button id="craftingPreviewBtn" class="menu-btn-secondary"
+                            title="Crafting Anteprima">⚒️</button>
                         <button id="cloudSyncBtn" class="menu-btn-secondary" title="Cloud Sync">☁️</button>
                         <button id="settingsBtn" class="menu-btn-secondary" title="Impostazioni">⚙️</button>
                     </div>
@@ -100,14 +130,18 @@
                             <h4>Accedi</h4>
                             <form method="dialog" onsubmit="return false" aria-label="Form di accesso">
                                 <label for="username" class="visually-hidden">Nome Giocatore</label>
-                                <input type="text" id="username" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
+                                <input type="text" id="username" placeholder="Nome Giocatore" class="login-input"
+                                    autocomplete="username">
                                 <label for="password" class="visually-hidden">Password</label>
-                                <input type="password" id="password" placeholder="Password" class="login-input" autocomplete="current-password">
+                                <input type="password" id="password" placeholder="Password" class="login-input"
+                                    autocomplete="current-password">
                                 <div class="cloud-sync-hint">
                                     <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
                                     <label for="githubToken" class="visually-hidden">Token GitHub</label>
-                                    <input type="password" id="githubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
-                                    <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
+                                    <input type="password" id="githubToken" placeholder="Token GitHub"
+                                        class="login-input" autocomplete="off">
+                                    <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni
+                                            token</a></p>
                                 </div>
                                 <div class="login-buttons">
                                     <button type="button" id="loginBtn" class="btn-login">Accedi</button>
@@ -119,16 +153,21 @@
                             <h4>Registrati</h4>
                             <form method="dialog" onsubmit="return false" aria-label="Form di registrazione">
                                 <label for="regUsername" class="visually-hidden">Nome Giocatore</label>
-                                <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
+                                <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input"
+                                    autocomplete="username">
                                 <label for="regPassword" class="visually-hidden">Password</label>
-                                <input type="password" id="regPassword" placeholder="Password" class="login-input" autocomplete="new-password">
+                                <input type="password" id="regPassword" placeholder="Password" class="login-input"
+                                    autocomplete="new-password">
                                 <label for="regPasswordConfirm" class="visually-hidden">Conferma Password</label>
-                                <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" class="login-input" autocomplete="new-password">
+                                <input type="password" id="regPasswordConfirm" placeholder="Conferma Password"
+                                    class="login-input" autocomplete="new-password">
                                 <div class="cloud-sync-hint">
                                     <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
                                     <label for="regGithubToken" class="visually-hidden">Token GitHub</label>
-                                    <input type="password" id="regGithubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
-                                    <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
+                                    <input type="password" id="regGithubToken" placeholder="Token GitHub"
+                                        class="login-input" autocomplete="off">
+                                    <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni
+                                            token</a></p>
                                 </div>
                                 <div class="login-buttons">
                                     <button type="button" id="registerBtn" class="btn-register">Registrati</button>
@@ -190,7 +229,7 @@
             </div>
             <button id="generateDebugSave" class="debug-only">Genera Codice Parziale</button>
             <div id="debugSaveContainer" class="save-load-container mt-4" style="display: none;">
-                 <p>Copia il codice per testare questo scenario:</p>
+                <p>Copia il codice per testare questo scenario:</p>
                 <label for="debugSaveOutput" class="visually-hidden">Output codice debug</label>
                 <textarea id="debugSaveOutput" readonly autocomplete="off"></textarea>
                 <button id="copyDebugCodeBtn" class="mt-2 w-full">Copia Codice Debug</button>
@@ -204,7 +243,7 @@
             <p>Cristalli raccolti: <span id="gemsEarned">0</span></p>
             <p>Punteggio Finale: <span id="finalScore">0</span></p>
             <div class="save-load-container">
-                 <p>Copia il codice per salvare i tuoi progressi:</p>
+                <p>Copia il codice per salvare i tuoi progressi:</p>
                 <label for="saveCodeOutput" class="visually-hidden">Codice salvataggio</label>
                 <input type="text" id="saveCodeOutput" readonly autocomplete="off">
                 <button id="copyCodeBtn">Copia</button>
@@ -223,9 +262,9 @@
                 <span class="gems-icon">💎</span>
                 <span id="totalGemsShop">0</span>
             </div>
-            
 
-            
+
+
             <div id="permanentUpgradeOptions" class="menu-content shop-content"></div>
         </div>
         <div id="inventoryMenu" class="popup-menu" style="display:none;">
@@ -279,7 +318,7 @@
                 <button id="closeInventoryBtn">Chiudi</button>
             </div>
         </div>
-        
+
         <!-- Popup Impostazioni -->
         <div id="settingsPopup" class="popup-menu" style="display:none;">
             <div class="character-popup-header">
@@ -288,33 +327,45 @@
             </div>
             <div class="menu-content" style="padding: 20px;">
                 <div style="margin-bottom: 16px;">
-                    <label for="effectsVolumeSlider" style="display: block; margin-bottom: 4px; color: var(--text-color);">🔊 Effetti <span id="effectsVolumeValue">100</span>%</label>
-                    <input type="range" id="effectsVolumeSlider" min="0" max="100" value="100" style="width: 100%;" aria-describedby="effectsVolumeValue" autocomplete="off">
+                    <label for="effectsVolumeSlider"
+                        style="display: block; margin-bottom: 4px; color: var(--text-color);">🔊 Effetti <span
+                            id="effectsVolumeValue">100</span>%</label>
+                    <input type="range" id="effectsVolumeSlider" min="0" max="100" value="100" style="width: 100%;"
+                        aria-describedby="effectsVolumeValue" autocomplete="off">
                 </div>
                 <div style="margin-bottom: 16px;">
-                    <label for="musicVolumeSlider" style="display: block; margin-bottom: 4px; color: var(--text-color);">🎵 Musica <span id="musicVolumeValue">100</span>%</label>
-                    <input type="range" id="musicVolumeSlider" min="0" max="100" value="100" style="width: 100%;" aria-describedby="musicVolumeValue" autocomplete="off">
+                    <label for="musicVolumeSlider"
+                        style="display: block; margin-bottom: 4px; color: var(--text-color);">🎵 Musica <span
+                            id="musicVolumeValue">100</span>%</label>
+                    <input type="range" id="musicVolumeSlider" min="0" max="100" value="100" style="width: 100%;"
+                        aria-describedby="musicVolumeValue" autocomplete="off">
                 </div>
                 <div>
-                    <label for="muteCheckbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                    <label for="muteCheckbox"
+                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
                         <input type="checkbox" id="muteCheckbox" autocomplete="off">
                         <span>🔇 Silenzia tutto</span>
                     </label>
                 </div>
                 <div style="margin-top: 16px;">
-                    <button id="testSoundBtn" type="button" style="background: var(--secondary-color); color: #222; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cinzel', serif;">🔊 Test Suono</button>
+                    <button id="testSoundBtn" type="button"
+                        style="background: var(--secondary-color); color: #222; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cinzel', serif;">🔊
+                        Test Suono</button>
                 </div>
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 20px 0;">
                 <h4 style="color: var(--secondary-color); margin-bottom: 12px;">♿ Accessibilità</h4>
                 <div style="margin-bottom: 12px;">
-                    <label for="reduceMotionCheckbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                    <label for="reduceMotionCheckbox"
+                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
                         <input type="checkbox" id="reduceMotionCheckbox" aria-label="Ridotta motion" autocomplete="off">
                         <span>Ridotta motion – meno particelle, shake e effetti visivi</span>
                     </label>
                 </div>
                 <div>
-                    <label for="highContrastCheckbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-                        <input type="checkbox" id="highContrastCheckbox" aria-label="Alta visibilità" autocomplete="off">
+                    <label for="highContrastCheckbox"
+                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="highContrastCheckbox" aria-label="Alta visibilità"
+                            autocomplete="off">
                         <span>Alta visibilità – bordi più marcati e contrasto aumentato</span>
                     </label>
                 </div>
@@ -329,9 +380,11 @@
             </div>
             <div class="glossary-toolbar">
                 <label for="glossarySearch" class="visually-hidden">Cerca termine</label>
-                <input type="text" id="glossarySearch" placeholder="Cerca termine..." class="glossary-search" autocomplete="off">
+                <input type="text" id="glossarySearch" placeholder="Cerca termine..." class="glossary-search"
+                    autocomplete="off">
                 <label for="glossaryCategory" class="visually-hidden">Categoria glossario</label>
-                <select id="glossaryCategory" class="glossary-category" aria-label="Categoria glossario" autocomplete="off">
+                <select id="glossaryCategory" class="glossary-category" aria-label="Categoria glossario"
+                    autocomplete="off">
                     <option value="">Tutte le categorie</option>
                     <option value="base">Base</option>
                     <option value="combattimento">Combattimento</option>
@@ -356,7 +409,61 @@
             </div>
             <!-- Pulsante Chiudi rimosso per evitare duplicati - usa la X nell'header -->
         </div>
-        
+
+        <!-- Popup Bestiario -->
+        <div id="bestiaryPopup" class="popup-menu" style="display:none;">
+            <div class="achievements-header">
+                <h3>📖 Bestiario</h3>
+                <button id="closeBestiaryBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="bestiaryGrid" class="menu-content bestiary-grid">
+                <!-- Mostri popolati da JS -->
+            </div>
+        </div>
+
+        <!-- Popup Storico Partite -->
+        <div id="runHistoryPopup" class="popup-menu" style="display:none;">
+            <div class="achievements-header">
+                <h3>📜 Storico Partite</h3>
+                <button id="closeRunHistoryBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="runHistoryList" class="menu-content history-list">
+                <!-- Partite popolate da JS -->
+            </div>
+        </div>
+
+        <!-- Popup Anteprima Crafting -->
+        <div id="craftingPopup" class="popup-menu" style="display:none;">
+            <div class="achievements-header">
+                <h3>⚒️ Officina Archetipi (Anteprima)</h3>
+                <button id="closeCraftingBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="craftingContent" class="menu-content">
+                <p style="text-align: center; color: var(--text-muted-color); font-style: italic; margin-bottom: 20px;">
+                    In arrivo nello Sprint 10: Crea e potenzia i tuoi archetipi e armi usando i materiali raccolti!
+                </p>
+                <div id="craftingPreviewList" class="crafting-grid">
+                    <!-- Preview oggetti popolata da JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Anteprima Crafting -->
+        <div id="craftingPopup" class="popup-menu" style="display:none;">
+            <div class="achievements-header">
+                <h3>⚒️ Officina Archetipi (Anteprima)</h3>
+                <button id="closeCraftingBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div id="craftingContent" class="menu-content">
+                <p style="text-align: center; color: var(--text-muted-color); font-style: italic; margin-bottom: 20px;">
+                    In arrivo nello Sprint 10: Crea e potenzia i tuoi archetipi e armi usando i materiali raccolti!
+                </p>
+                <div id="craftingPreviewList" class="crafting-grid">
+                    <!-- Preview oggetti popolata da JS -->
+                </div>
+            </div>
+        </div>
+
         <!-- Popup Cloud Sync Configuration -->
         <div id="cloudSyncPopup" class="popup-menu" style="display:none;">
             <div class="cloud-sync-header">
@@ -370,25 +477,65 @@
                         <p>🔄 Verificando configurazione...</p>
                     </div>
                 </div>
-                
-                <form method="dialog" onsubmit="return false" class="token-config" aria-label="Configurazione token Cloud Sync">
+
+                <form method="dialog" onsubmit="return false" class="token-config"
+                    aria-label="Configurazione token Cloud Sync">
                     <h4>🔑 Token GitHub</h4>
                     <label for="cloudSyncToken" class="visually-hidden">Token GitHub Cloud Sync</label>
-                    <input type="password" id="cloudSyncToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                    <input type="password" id="cloudSyncToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"
+                        style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
                     <small style="color: #888; font-size: 12px;">
-                        💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Crea token GitHub</a> | 
+                        💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Crea
+                            token GitHub</a> |
                         <strong>Permessi necessari:</strong> gist (per salvare dati)
                     </small>
                 </form>
-                
+
                 <div class="sync-actions">
-                    <button id="configureCloudSyncBtn" style="background: #4CAF50; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">✅ Configura e Sincronizza</button>
-                    <button id="testCloudSyncBtn" style="background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🧪 Test Connessione</button>
-                    <button id="syncUserAccountsBtn" style="background: #FF9800; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔄 Sync Account</button>
-                    <button id="resetCloudSyncBtn" style="background: #f44336; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔧 Reset Config</button>
+                    <button id="configureCloudSyncBtn"
+                        style="background: #4CAF50; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">✅
+                        Configura e Sincronizza</button>
+                    <button id="testCloudSyncBtn"
+                        style="background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🧪
+                        Test Connessione</button>
+                    <button id="syncUserAccountsBtn"
+                        style="background: #FF9800; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔄
+                        Sync Account</button>
+                    <button id="resetCloudSyncBtn"
+                        style="background: #f44336; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">🔧
+                        Reset Config</button>
                 </div>
-                
-                <div id="cloudSyncMessage" style="margin: 10px 0; padding: 8px; border-radius: 4px; display: none; font-size: 12px;"></div>
+
+                <div id="cloudSyncMessage"
+                    style="margin: 10px 0; padding: 8px; border-radius: 4px; display: none; font-size: 12px;"></div>
+            </div>
+        </div>
+
+        <!-- Popup Daily Challenge Details -->
+        <div id="dailyChallengePopup" class="popup-menu" style="display:none;">
+            <div class="daily-challenge-header">
+                <h3>📅 Daily Challenge</h3>
+                <button id="closeDailyChallengeBtn" class="close-popup-btn">✕</button>
+            </div>
+            <div class="daily-content menu-content">
+                <div class="daily-info-row">
+                    <span>Data:</span> <strong id="dailyDate">--/--/----</strong>
+                </div>
+                <div class="daily-info-row">
+                    <span>Archetipo:</span> <strong id="dailyArchetype" style="color:var(--primary-color)">---</strong>
+                </div>
+                <div class="daily-info-row">
+                    <span>Arma Iniziale:</span> <strong id="dailyWeapon">---</strong>
+                </div>
+                <div class="daily-modifier-box">
+                    <h4>⚠️ Modificatore Giornaliero</h4>
+                    <p id="dailyModifierName" class="modifier-name">---</p>
+                    <p id="dailyModifierDesc" class="modifier-desc">---</p>
+                </div>
+                <div class="daily-rewards">
+                    <p>🏆 Ricompensa: <span style="color:#ffd700">2x Gemme & XP</span></p>
+                </div>
+                <button id="startDailyBtn" class="btn-cta">Avvia Challenge</button>
             </div>
         </div>
     </div>
@@ -398,24 +545,27 @@
         <div class="container">
             <h2>🔧 Configurazione Cloud Sync</h2>
             <p>Per sincronizzare i tuoi dati tra dispositivi, inserisci il tuo token GitHub:</p>
-            
+
             <form method="dialog" onsubmit="return false" aria-label="Configurazione token avvio">
                 <div class="form-group">
                     <label for="startupToken">Token GitHub:</label>
-                    <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+                    <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                        autocomplete="off" />
                     <small>
                         <a href="https://github.com/settings/tokens" target="_blank">🔗 Crea token GitHub</a>
                         <br>
                         <strong>Permessi necessari:</strong> gist (per salvare dati)
                     </small>
                 </div>
-                
+
                 <div class="button-group">
-                    <button type="button" id="configureStartupTokenBtn" class="btn btn-primary">✅ Configura e Sincronizza</button>
-                    <button type="button" id="skipTokenSetupBtn" class="btn btn-secondary">⏭️ Salta (Solo Locale)</button>
+                    <button type="button" id="configureStartupTokenBtn" class="btn btn-primary">✅ Configura e
+                        Sincronizza</button>
+                    <button type="button" id="skipTokenSetupBtn" class="btn btn-secondary">⏭️ Salta (Solo
+                        Locale)</button>
                 </div>
             </form>
-            
+
             <div id="tokenSetupStatus" class="status-message"></div>
         </div>
     </div>
@@ -430,7 +580,7 @@
                 </div>
                 <p id="syncStatus">Caricamento dati dal cloud...</p>
             </div>
-            
+
             <div id="syncDetails" class="sync-details">
                 <p>📊 Analytics: <span id="analyticsStatus">⏳</span></p>
                 <p>👤 Account: <span id="accountsStatus">⏳</span></p>
@@ -442,8 +592,12 @@
     <script type="module" src="src/main.js"></script>
 
     <!-- Banner Ads Placeholder (src caricato via JS solo se mostrato, evita CORB) -->
-    <div id="banner-ads-placeholder" style="display:none;width:468px; height:60px; margin:0 auto; position:fixed; bottom:0; left:0; right:0; z-index:99999; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; border-top:3px solid #4a90e2; border-radius:8px 8px 0 0; box-shadow:0 -4px 16px #000a;">
-      <div role="img" aria-label="Banner pubblicitario" style="width:468px; height:60px; background:rgba(50,50,60,0.9); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#888; font-size:12px;">468×60</div>
+    <div id="banner-ads-placeholder"
+        style="display:none;width:468px; height:60px; margin:0 auto; position:fixed; bottom:0; left:0; right:0; z-index:99999; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; border-top:3px solid #4a90e2; border-radius:8px 8px 0 0; box-shadow:0 -4px 16px #000a;">
+        <div role="img" aria-label="Banner pubblicitario"
+            style="width:468px; height:60px; background:rgba(50,50,60,0.9); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#888; font-size:12px;">
+            468×60</div>
     </div>
 </body>
+
 </html>

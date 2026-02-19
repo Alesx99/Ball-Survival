@@ -16,6 +16,7 @@ export class AudioManager {
         this._bgmCalmGain = null;
         this._bgmBattleGain = null;
         this._bgmMode = 'calm';
+        this._currentStageTone = 1; // Playback rate multiplier per stage
         this._effectsGain = null;
         this._masterGain = null;
         this.effectsVolume = 1;
@@ -243,6 +244,116 @@ export class AudioManager {
         this._beep(600, 0.02, 'sine', 0.08);
     }
 
+    /** Boss spawn: dramatic rising sweep + low boom */
+    playBossSpawn() {
+        if (!this._ensureContext() || !this._effectsGain) return;
+        try {
+            const now = this.ctx.currentTime;
+            // Rising sweep
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this._effectsGain);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(80, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.6);
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.start(now);
+            osc.stop(now + 0.8);
+            // Low boom
+            const boom = this.ctx.createOscillator();
+            const bGain = this.ctx.createGain();
+            boom.connect(bGain);
+            bGain.connect(this._effectsGain);
+            boom.type = 'sine';
+            boom.frequency.setValueAtTime(60, now + 0.5);
+            boom.frequency.exponentialRampToValueAtTime(30, now + 1.2);
+            this._applyEnvelope(bGain, now + 0.5, 0.7, 0.25, 0.05);
+            boom.start(now + 0.5);
+            boom.stop(now + 1.2);
+        } catch (e) { /* ignore */ }
+    }
+
+    /** Achievement unlock: triumphant ascending fanfare */
+    playAchievementUnlock() {
+        if (!this._ensureContext() || !this._effectsGain) return;
+        try {
+            const notes = [392, 523, 659, 784, 1047]; // G4 C5 E5 G5 C6
+            notes.forEach((freq, i) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this._effectsGain);
+                osc.frequency.value = this._pitchVariation(freq, 0.02);
+                osc.type = 'sine';
+                const t = this.ctx.currentTime + i * 0.1;
+                this._applyEnvelope(gain, t, 0.2, 0.12, 0.15);
+                osc.start(t);
+                osc.stop(t + 0.2);
+            });
+        } catch (e) { /* ignore */ }
+    }
+
+    /** Craft success: metallic ding chord */
+    playCraftSuccess() {
+        if (!this._ensureContext() || !this._effectsGain) return;
+        try {
+            const now = this.ctx.currentTime;
+            [880, 1108, 1320].forEach((freq, i) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this._effectsGain);
+                osc.frequency.value = this._pitchVariation(freq, 0.03);
+                osc.type = 'triangle';
+                this._applyEnvelope(gain, now + i * 0.05, 0.25, 0.1, 0.1);
+                osc.start(now + i * 0.05);
+                osc.stop(now + i * 0.05 + 0.25);
+            });
+        } catch (e) { /* ignore */ }
+    }
+
+    /** Critical hit: sharp impact crack */
+    playCriticalHit() {
+        if (!this._ensureContext() || !this._effectsGain) return;
+        try {
+            const now = this.ctx.currentTime;
+            // White noise burst
+            const bufLen = Math.floor(this.ctx.sampleRate * 0.04);
+            const buf = this.ctx.createBuffer(1, bufLen, this.ctx.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < bufLen; i++) d[i] = (Math.random() * 2 - 1) * 0.3;
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+            const gain = this.ctx.createGain();
+            src.connect(gain);
+            gain.connect(this._effectsGain);
+            this._applyEnvelope(gain, now, 0.04, 0.2, 0.05);
+            src.start(now);
+            // High pitch accent
+            this._beep(1200, 0.03, 'square', 0.12);
+        } catch (e) { /* ignore */ }
+    }
+
+    /** Per-stage BGM tonal modifier: shifts playback rate for different stage feel */
+    setStageTone(stageId) {
+        const tones = {
+            1: 1.0,    // Base
+            2: 0.97,   // Slightly darker (forest)
+            3: 1.03,   // Slightly brighter (desert)
+            4: 0.95,   // Colder (ice)
+            5: 1.05,   // Cosmic, ethereal
+            6: 0.90,   // Deep, infernal
+            7: 1.08,   // Heavenly, bright
+            8: 0.85    // Void, very dark
+        };
+        this._currentStageTone = tones[stageId] || 1.0;
+        if (this._bgmCalmSource) this._bgmCalmSource.playbackRate.value = this._currentStageTone;
+        if (this._bgmBattleSource) this._bgmBattleSource.playbackRate.value = this._currentStageTone;
+    }
+
     _createCalmBgmBuffer() {
         if (!this._ensureContext()) return null;
         const duration = 8;
@@ -342,11 +453,13 @@ export class AudioManager {
             this._bgmCalmSource.buffer = calmBuf;
             this._bgmCalmSource.loop = true;
             this._bgmCalmSource.connect(this._bgmCalmGain);
+            this._bgmCalmSource.playbackRate.value = this._currentStageTone || 1;
 
             this._bgmBattleSource = this.ctx.createBufferSource();
             this._bgmBattleSource.buffer = battleBuf;
             this._bgmBattleSource.loop = true;
             this._bgmBattleSource.connect(this._bgmBattleGain);
+            this._bgmBattleSource.playbackRate.value = this._currentStageTone || 1;
 
             this._bgmMode = 'calm';
             this._applyVolumeToBgm();
@@ -361,13 +474,13 @@ export class AudioManager {
         if (!this._ensureContext()) return;
         this.stopBackgroundMusic();
         if (this.ctx.state === 'suspended') {
-            this.ctx.resume().catch(() => {});
+            this.ctx.resume().catch(() => { });
         }
         this._startBgmNow();
     }
 
     stopBackgroundMusic() {
-        const stop = (s) => { try { s?.stop(); } catch (_) {} };
+        const stop = (s) => { try { s?.stop(); } catch (_) { } };
         stop(this._bgmCalmSource);
         stop(this._bgmBattleSource);
         this._bgmCalmSource = null;

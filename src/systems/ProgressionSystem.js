@@ -15,16 +15,16 @@ export const ProgressionSystem = {
 
     checkForLevelUp() {
         if (this.state !== 'running') return;
-        
+
         // Controlli di sicurezza per evitare loop infiniti
         let levelUpCount = 0;
         const maxLevelUpsPerFrame = 10; // Limite di sicurezza
-        
+
         while (this.player.xp >= this.player.xpNext && this.player.xpNext > 0 && levelUpCount < maxLevelUpsPerFrame) {
             this.handleLevelUp();
             levelUpCount++;
         }
-        
+
         // Se abbiamo raggiunto il limite, log per debug
         if (levelUpCount >= maxLevelUpsPerFrame) {
             console.warn(`Troppi level up in un frame! XP: ${this.player.xp}, XP necessario: ${this.player.xpNext}`);
@@ -52,18 +52,19 @@ export const ProgressionSystem = {
             const baseUpgrade = upgradeTree[spellKey];
             if (!baseUpgrade) continue;
 
-            if (spell.level === baseUpgrade.maxLevel && spell.evolution === 'none') {
+            const extraLevels = this.player._prismExtraSpellLevels || 0;
+            if (spell.level === (baseUpgrade.maxLevel + extraLevels) && spell.evolution === 'none') {
                 const evolutions = Object.keys(upgradeTree).filter(id => id.startsWith(spellKey + '_evolve_'));
                 evolutions.forEach(evoId => availableEvolutions.push(upgradeTree[evoId]));
             } else if (spell.evolution !== 'none' && !spell.mastered) {
                 const masteryId = `${spellKey}_mastery_${spell.evolution}`;
                 const masteryUpgrade = upgradeTree[masteryId];
-                if(masteryUpgrade) {
+                if (masteryUpgrade) {
                     availableMasteries.push(masteryUpgrade);
                 }
             }
         }
-        
+
         const availableFusions = [];
         const fusions = CONFIG.fusions || [];
         for (const f of fusions) {
@@ -72,8 +73,9 @@ export const ProgressionSystem = {
             const pTree = upgradeTree[f.primary];
             const sTree = upgradeTree[f.secondary];
             if (!primary || !secondary || !pTree || !sTree) continue;
-            const pMax = pTree.maxLevel ?? 4;
-            const sMax = sTree.maxLevel ?? 4;
+            const extraLevels = this.player._prismExtraSpellLevels || 0;
+            const pMax = (pTree.maxLevel ?? 4) + extraLevels;
+            const sMax = (sTree.maxLevel ?? 4) + extraLevels;
             if (primary.level >= pMax && secondary.level >= sMax && primary.evolution === 'none' && secondary.evolution === 'none') {
                 if (!primary.fusionId && !secondary.fusedInto) {
                     availableFusions.push({ ...f, type: 'fusion' });
@@ -83,8 +85,8 @@ export const ProgressionSystem = {
 
         const priorityPool = [...availableEvolutions, ...availableMasteries, ...availableFusions];
         if (priorityPool.length > 0) {
-            while(choices.length < 3 && priorityPool.length > 0) {
-                 choices.push(priorityPool.splice(Math.floor(Math.random() * priorityPool.length), 1)[0]);
+            while (choices.length < 3 && priorityPool.length > 0) {
+                choices.push(priorityPool.splice(Math.floor(Math.random() * priorityPool.length), 1)[0]);
             }
         }
 
@@ -99,9 +101,10 @@ export const ProgressionSystem = {
                 const baseId = id.split('_')[0];
                 const spell = this.spells[baseId];
                 if (spell) {
+                    const extraLevels = this.player._prismExtraSpellLevels || 0;
                     if (spell.level === 0) {
                         newSkillsPool.push(upgradeTree[id]);
-                    } else if (spell.level > 0 && spell.level < (upgradeTree[id].maxLevel || Infinity) && spell.evolution === 'none') {
+                    } else if (spell.level > 0 && spell.level < ((upgradeTree[id].maxLevel || Infinity) + extraLevels) && spell.evolution === 'none') {
                         otherUpgradesPool.push(upgradeTree[id]);
                     }
                 }
@@ -111,12 +114,12 @@ export const ProgressionSystem = {
         if (choices.length < 3 && newSkillsPool.length > 0) {
             choices.push(newSkillsPool.splice(Math.floor(Math.random() * newSkillsPool.length), 1)[0]);
         }
-        
+
         const combinedPool = [...newSkillsPool, ...otherUpgradesPool];
         while (choices.length < 3 && combinedPool.length > 0) {
             choices.push(combinedPool.splice(Math.floor(Math.random() * combinedPool.length), 1)[0]);
         }
-        
+
         return choices.filter(c => c);
     },
 
@@ -145,28 +148,28 @@ export const ProgressionSystem = {
         if (!upgrade) return;
         let baseId = upgrade.id.split('_')[0];
 
-        if(upgrade.type === 'evolution') {
+        if (upgrade.type === 'evolution') {
             const evoType = upgrade.id.split('_evolve_')[1];
             if (this.spells[baseId]) {
                 this.spells[baseId].evolution = evoType;
-                if(upgrade.id === 'shield_evolve_orbital') { this.castOrbital(Date.now()); }
+                if (upgrade.id === 'shield_evolve_orbital') { this.castOrbital(Date.now()); }
             }
             return;
         }
 
-        if(upgrade.type === 'mastery') {
-             if (this.spells[baseId]) {
+        if (upgrade.type === 'mastery') {
+            if (this.spells[baseId]) {
                 this.spells[baseId].mastered = true;
                 if (upgradeId === 'fireball_mastery_giant') { this.spells.fireball.damage += 50; this.spells.fireball.burnDamage += 10; }
                 if (upgradeId === 'fireball_mastery_meteor') { this.spells.fireball.meteorCount += 2; this.spells.fireball.explosionRadius += 20; }
                 if (upgradeId === 'lightning_mastery_storm') { this.spells.lightning.fieldDuration += 200; this.spells.lightning.fieldTickRate = Math.max(8, this.spells.lightning.fieldTickRate - 8); }
                 if (upgradeId === 'lightning_mastery_spear') { this.spells.lightning.damage *= 1.5; this.spells.lightning.stunChance += 0.2; }
                 if (upgradeId === 'frostbolt_mastery_glacial') { this.spells.frostbolt.auraDps += 8; this.spells.frostbolt.auraSlow += 0.2; }
-                if (upgradeId === 'frostbolt_mastery_comet') { this.spells.frostbolt.leavesIcePatch = true; this.spells.frostbolt.icePatchDamage = 15; } 
-             }
+                if (upgradeId === 'frostbolt_mastery_comet') { this.spells.frostbolt.leavesIcePatch = true; this.spells.frostbolt.icePatchDamage = 15; }
+            }
             return;
         }
-        
+
         let target;
         if (upgrade.type === 'passive') {
             target = this.passives[upgrade.id];
@@ -175,7 +178,7 @@ export const ProgressionSystem = {
         }
 
         if (!target) { return; }
-        
+
         target.level++;
 
         if (upgrade.id === 'fireball') { target.damage += 8; target.explosionRadius += 8; }

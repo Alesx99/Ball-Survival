@@ -11,6 +11,7 @@ export class Enemy extends Entity {
     constructor(x, y, stats) {
         super(x, y);
         this.stats = { ...stats };
+        this.type = this.stats.type || 'enemy';
         this.hp = this.stats.maxHp || this.stats.hp || 25;
         this.stats.maxHp = this.hp;
         this.spawnImmunityTimer = CONFIG.enemies.spawnImmunity;
@@ -31,6 +32,11 @@ export class Enemy extends Entity {
         if (this.stunTimer > 0) {
             this.stunTimer--;
             return;
+        }
+
+        // Regen da difficulty tier (tier 4+)
+        if (this.stats.regen && this.hp < this.stats.maxHp) {
+            this.hp = Math.min(this.stats.maxHp, this.hp + this.stats.regen / 60);
         }
 
         let speed = this.stats.speed;
@@ -61,10 +67,13 @@ export class Enemy extends Entity {
         this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y));
 
         if (dist < game.player.stats.radius + this.stats.radius) {
-            const cooldown = CONFIG.enemies.contactDamageCooldown ?? 0.9;
-            if (game.totalElapsedTime - this.lastContactDamageTime >= cooldown) {
-                game.player.takeDamage(this.stats.damage, game, this);
-                this.lastContactDamageTime = game.totalElapsedTime;
+            // Fantasma: attraversa nemici (no danno da contatto)
+            if (!game.player._phantomPassthrough) {
+                const cooldown = CONFIG.enemies.contactDamageCooldown ?? 0.9;
+                if (game.totalElapsedTime - this.lastContactDamageTime >= cooldown) {
+                    game.player.takeDamage(this.stats.damage, game, this);
+                    this.lastContactDamageTime = game.totalElapsedTime;
+                }
             }
 
             // Contact effects from player archetype
@@ -85,6 +94,9 @@ export class Enemy extends Entity {
         const finalDamage = amount * (1 - dr);
         this.hp -= finalDamage;
 
+        // Stats tracking per achievement
+        if (game.stats) game.stats.totalDamageDealt += finalDamage;
+
         // Lifesteal (da powerUp e da Core Sangue)
         const lsPower = game.player.powerUpTimers?.lifesteal > 0 ? 0.15 : 0;
         const lsCore = game.player.modifiers?.lifestealPercent ?? 0;
@@ -101,9 +113,30 @@ export class Enemy extends Entity {
     onDeath(game) {
         this.toRemove = true;
         game.audio?.playEnemyDeath();
-        game.addScreenShake?.(this.stats.isElite ? 5 : 3);
+        game.addScreenShake?.(this.stats.isElite ? 5 : (this.stats.isGolden ? 10 : 3));
         game.enemiesKilled++;
-        game.score += 10 * (this.stats.isElite ? 3 : 1);
+        game.bestiarySystem?.registerKill(this.type);
+        game.score += 10 * (this.stats.isElite ? 3 : (this.stats.isGolden ? 50 : 1));
+
+        // Golden enemy reward
+        if (this.stats.isGolden) {
+            game.gems = (game.gems || 0) + 500;
+            game.notifications?.push?.({ text: '✨ NEMICO DORATO! +500 💎', life: 300, color: '#ffd700' });
+            game.cheatCodeSystem?.discoverEgg('golden_enemy');
+            game.audio?.playAchievementUnlock?.();
+            // Confetti particles
+            const { Particle } = game._entityClasses;
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 5;
+                const colors = ['#ffd700', '#ff6347', '#00ff88', '#ff69b4', '#87ceeb'];
+                game.addEntity('particles', new Particle(this.x, this.y, {
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    life: 40 + Math.floor(Math.random() * 30),
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                }));
+            }
+        }
 
         // Death particles
         const stageInfo = CONFIG.stages[game.currentStage];
@@ -153,6 +186,22 @@ export class Enemy extends Entity {
         if (game.achievementSystem) {
             game.achievementSystem.updateProgress('enemies_killed', 1, game);
         }
+
+        // Stats tracking per combat achievements
+        if (game.stats) {
+            game.stats.kills++;
+            // Easter egg: 666 kills
+            game.cheatCodeSystem?.check666(game.stats.kills);
+            // Combo kills (entro 3s)
+            const now = Date.now();
+            if (now - game.stats._lastKillTime < 3000) {
+                game.stats._comboKillCount++;
+                game.stats.bestComboKills = Math.max(game.stats.bestComboKills, game.stats._comboKillCount);
+            } else {
+                game.stats._comboKillCount = 1;
+            }
+            game.stats._lastKillTime = now;
+        }
     }
 
     draw(ctx, game) {
@@ -162,11 +211,24 @@ export class Enemy extends Entity {
 
         const stageInfo = CONFIG.stages[game.currentStage];
         const shape = stageInfo?.enemies?.shape || 'circle';
-        const baseColor = this.stats.isElite
-            ? (stageInfo?.enemies?.eliteColor || '#c0392b')
-            : (stageInfo?.enemies?.baseColor || '#e74c3c');
+        const baseColor = this.stats.isGolden ? '#ffd700'
+            : this.stats.isElite
+                ? (stageInfo?.enemies?.eliteColor || '#c0392b')
+                : (stageInfo?.enemies?.baseColor || '#e74c3c');
 
         Utils.drawEnemySprite(ctx, this.x, this.y, this.stats.radius, shape, baseColor, this.stats.isElite);
+
+        // Golden enemy sparkle
+        if (this.stats.isGolden) {
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 15 + Math.sin(Date.now() / 200) * 5;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.stats.radius + 2, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
 
         // HP bar
         if (this.hp < this.stats.maxHp) {

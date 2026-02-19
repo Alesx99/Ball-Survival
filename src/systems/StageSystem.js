@@ -17,16 +17,17 @@ export const StageSystem = {
         this.stageStartTime = this.totalElapsedTime;
         this.bossesKilledThisStage = 0;
         this.elitesKilledThisStage = 0;
-        
+        this.audio?.setStageTone?.(newStage);
+
         const stageInfo = CONFIG.stages[newStage];
         this.notifications.push({ text: `STAGE ${newStage}: ${stageInfo.message}`, life: 400 });
-        
+
         // Effetto visivo di transizione
         for (let i = 0; i < 20; i++) {
             setTimeout(() => {
                 this.addEntity('particles', new Particle(
-                    Math.random() * CONFIG.world.width, 
-                    Math.random() * CONFIG.world.height, 
+                    Math.random() * CONFIG.world.width,
+                    Math.random() * CONFIG.world.height,
                     { vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 60, color: stageInfo.background.color }
                 ));
             }, i * 50);
@@ -39,9 +40,9 @@ export const StageSystem = {
             if (!stage.unlocked && stage.unlockRequirement) {
                 if (this.checkUnlockRequirement(stage.unlockRequirement)) {
                     stage.unlocked = true;
-                    this.notifications.push({ 
-                        text: `🎉 NUOVO STAGE SBLOCCATO: ${stage.name}!`, 
-                        life: 500 
+                    this.notifications.push({
+                        text: `🎉 NUOVO STAGE SBLOCCATO: ${stage.name}!`,
+                        life: 500
                     });
                     this.saveStageProgress();
                 }
@@ -52,42 +53,43 @@ export const StageSystem = {
     checkUnlockRequirement(requirement) {
         switch (requirement.type) {
             case 'craft_core':
-                // Crea un core specifico
                 return this.cores[requirement.coreId] !== undefined;
-                
+
             case 'craft_weapon':
-                // Crea un'arma specifica
                 return this.weapons[requirement.weaponId] !== undefined;
-                
+
             case 'kill_elites':
-                // Uccidi X elite in uno stage specifico
                 if (this.currentStage.toString() === requirement.stage.toString()) {
                     return this.elitesKilledThisStage >= requirement.count;
                 }
                 return false;
-                
+
             case 'reach_level':
-                // Raggiungi un livello specifico
                 return this.player.level >= requirement.level;
-                
+
             case 'arsenal_size':
-                // Possiedi un numero minimo di core e armi
                 const coreCount = Object.keys(this.cores).length;
                 const weaponCount = Object.keys(this.weapons).length;
                 return coreCount >= requirement.cores && weaponCount >= requirement.weapons;
-                
+
             case 'survival':
-                // Sopravvivi X secondi in uno stage specifico
+                // Sopravvivi X secondi, opzionalmente in uno stage specifico
+                if (requirement.stage) {
+                    return this.currentStage.toString() === requirement.stage.toString() && this.totalElapsedTime >= requirement.time;
+                }
                 return this.totalElapsedTime >= requirement.time;
-                
+
             case 'boss_kill':
-                // Uccidi X boss in uno stage specifico
                 return this.bossesKilledThisStage >= requirement.count;
-                
+
+            case 'boss_kill_total':
+                // Controlla boss totali uccisi (persistente)
+                const totalBossKills = parseInt(localStorage.getItem('ballSurvivalTotalBossKills') || '0');
+                return totalBossKills >= requirement.count;
+
             case 'total_time':
-                // Tempo totale di gioco
                 return this.totalElapsedTime >= requirement.time;
-                
+
             default:
                 return false;
         }

@@ -105,6 +105,10 @@ export const ICONS = {
     frost: '❄️',
     shadow: '🌑',
     tech: '🤖',
+    prism: '🔮',
+    unstable: '💥',
+    druid: '🌿',
+    phantom: '👻',
 
     // Glossario / termini generici
     xp: '💚',
