@@ -98,39 +98,43 @@
                         </div>
                         <div id="loginForm" class="login-form" style="display: none;">
                             <h4>Accedi</h4>
-                            <label for="username" class="visually-hidden">Nome Giocatore</label>
-                            <input type="text" id="username" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
-                            <label for="password" class="visually-hidden">Password</label>
-                            <input type="password" id="password" placeholder="Password" class="login-input" autocomplete="current-password">
-                            <div class="cloud-sync-hint">
-                                <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
-                                <label for="githubToken" class="visually-hidden">Token GitHub</label>
-                                <input type="password" id="githubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
-                                <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
-                            </div>
-                            <div class="login-buttons">
-                                <button id="loginBtn" class="btn-login">Accedi</button>
-                                <button id="backToLoginMenuBtn1" class="btn-back">Indietro</button>
-                            </div>
+                            <form method="dialog" onsubmit="return false" aria-label="Form di accesso">
+                                <label for="username" class="visually-hidden">Nome Giocatore</label>
+                                <input type="text" id="username" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
+                                <label for="password" class="visually-hidden">Password</label>
+                                <input type="password" id="password" placeholder="Password" class="login-input" autocomplete="current-password">
+                                <div class="cloud-sync-hint">
+                                    <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
+                                    <label for="githubToken" class="visually-hidden">Token GitHub</label>
+                                    <input type="password" id="githubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
+                                    <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
+                                </div>
+                                <div class="login-buttons">
+                                    <button type="button" id="loginBtn" class="btn-login">Accedi</button>
+                                    <button type="button" id="backToLoginMenuBtn1" class="btn-back">Indietro</button>
+                                </div>
+                            </form>
                         </div>
                         <div id="registerForm" class="login-form" style="display: none;">
                             <h4>Registrati</h4>
-                            <label for="regUsername" class="visually-hidden">Nome Giocatore</label>
-                            <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
-                            <label for="regPassword" class="visually-hidden">Password</label>
-                            <input type="password" id="regPassword" placeholder="Password" class="login-input" autocomplete="new-password">
-                            <label for="regPasswordConfirm" class="visually-hidden">Conferma Password</label>
-                            <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" class="login-input" autocomplete="new-password">
-                            <div class="cloud-sync-hint">
-                                <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
-                                <label for="regGithubToken" class="visually-hidden">Token GitHub</label>
-                                <input type="password" id="regGithubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
-                                <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
-                            </div>
-                            <div class="login-buttons">
-                                <button id="registerBtn" class="btn-register">Registrati</button>
-                                <button id="backToLoginMenuBtn2" class="btn-back">Indietro</button>
-                            </div>
+                            <form method="dialog" onsubmit="return false" aria-label="Form di registrazione">
+                                <label for="regUsername" class="visually-hidden">Nome Giocatore</label>
+                                <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
+                                <label for="regPassword" class="visually-hidden">Password</label>
+                                <input type="password" id="regPassword" placeholder="Password" class="login-input" autocomplete="new-password">
+                                <label for="regPasswordConfirm" class="visually-hidden">Conferma Password</label>
+                                <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" class="login-input" autocomplete="new-password">
+                                <div class="cloud-sync-hint">
+                                    <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
+                                    <label for="regGithubToken" class="visually-hidden">Token GitHub</label>
+                                    <input type="password" id="regGithubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
+                                    <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
+                                </div>
+                                <div class="login-buttons">
+                                    <button type="button" id="registerBtn" class="btn-register">Registrati</button>
+                                    <button type="button" id="backToLoginMenuBtn2" class="btn-back">Indietro</button>
+                                </div>
+                            </form>
                         </div>
                         <div id="playerInfo" class="player-info" style="display: none;">
                             <h4>Benvenuto!</h4>
@@ -367,7 +371,7 @@
                     </div>
                 </div>
                 
-                <div class="token-config">
+                <form method="dialog" onsubmit="return false" class="token-config" aria-label="Configurazione token Cloud Sync">
                     <h4>🔑 Token GitHub</h4>
                     <label for="cloudSyncToken" class="visually-hidden">Token GitHub Cloud Sync</label>
                     <input type="password" id="cloudSyncToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
@@ -375,7 +379,7 @@
                         💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Crea token GitHub</a> | 
                         <strong>Permessi necessari:</strong> gist (per salvare dati)
                     </small>
-                </div>
+                </form>
                 
                 <div class="sync-actions">
                     <button id="configureCloudSyncBtn" style="background: #4CAF50; color: white; padding: 10px 16px; border: none; border-radius: 4px; font-size: 14px; margin: 5px; cursor: pointer;">✅ Configura e Sincronizza</button>
@@ -395,20 +399,22 @@
             <h2>🔧 Configurazione Cloud Sync</h2>
             <p>Per sincronizzare i tuoi dati tra dispositivi, inserisci il tuo token GitHub:</p>
             
-            <div class="form-group">
-                <label for="startupToken">Token GitHub:</label>
-                <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
-                <small>
-                    <a href="https://github.com/settings/tokens" target="_blank">🔗 Crea token GitHub</a>
-                    <br>
-                    <strong>Permessi necessari:</strong> gist (per salvare dati)
-                </small>
-            </div>
-            
-            <div class="button-group">
-                <button id="configureStartupTokenBtn" class="btn btn-primary">✅ Configura e Sincronizza</button>
-                <button id="skipTokenSetupBtn" class="btn btn-secondary">⏭️ Salta (Solo Locale)</button>
-            </div>
+            <form method="dialog" onsubmit="return false" aria-label="Configurazione token avvio">
+                <div class="form-group">
+                    <label for="startupToken">Token GitHub:</label>
+                    <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+                    <small>
+                        <a href="https://github.com/settings/tokens" target="_blank">🔗 Crea token GitHub</a>
+                        <br>
+                        <strong>Permessi necessari:</strong> gist (per salvare dati)
+                    </small>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" id="configureStartupTokenBtn" class="btn btn-primary">✅ Configura e Sincronizza</button>
+                    <button type="button" id="skipTokenSetupBtn" class="btn btn-secondary">⏭️ Salta (Solo Locale)</button>
+                </div>
+            </form>
             
             <div id="tokenSetupStatus" class="status-message"></div>
         </div>

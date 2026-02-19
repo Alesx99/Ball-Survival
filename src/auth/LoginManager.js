@@ -704,5 +704,5 @@ export function setupLoginHandlers(auth = playerAuth, deps = {}) {
     const forcePushBtn = document.getElementById('forcePushSyncBtn');
     if (forcePushBtn) forcePushBtn.addEventListener('click', () => auth.forcePushCurrentUserToCloud());
 
-    auth.initLogin();
+    requestAnimationFrame(() => auth.initLogin());
 }
