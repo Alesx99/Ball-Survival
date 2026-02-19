@@ -42,6 +42,8 @@ jobs:
 
       - name: Build with Vite
         run: npm run build
+        env:
+          VITE_BASE: /Ball-Survival/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -1,5 +1,17 @@
 /* Il CSS verrà estratto da <style> in index.html e incollato qui. */ 
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 :root {
     /* Dark Neon palette */
     --primary-color: #00f5ff; /* Neon cyan */
@@ -1703,20 +1715,6 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
         inset 0 0 80px rgba(0, 245, 255, 0.04),
         0 0 0 1px rgba(255, 0, 255, 0.15);
     position: relative;
-}
-
-.main-menu::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg, transparent 40%, rgba(0, 245, 255, 0.2) 50%, transparent 60%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
 }
 
 .main-menu-header {

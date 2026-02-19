@@ -21,6 +21,7 @@ export class AudioManager {
         this.effectsVolume = 1;
         this.musicVolume = 1;
         this.muted = false;
+        this._resumePromise = null;
     }
 
     init() {
@@ -125,8 +126,16 @@ export class AudioManager {
 
     unlock() {
         if (!this._ensureContext()) return Promise.resolve();
+        if (this.ctx.state === 'running') {
+            this.unlocked = true;
+            return Promise.resolve();
+        }
+        if (this._resumePromise) return this._resumePromise;
         if (this.ctx.state === 'suspended') {
-            return this.ctx.resume().then(() => { this.unlocked = true; });
+            this._resumePromise = this.ctx.resume()
+                .then(() => { this.unlocked = true; this._resumePromise = null; })
+                .catch(() => { this._resumePromise = null; });
+            return this._resumePromise;
         }
         this.unlocked = true;
         return Promise.resolve();
@@ -352,7 +361,7 @@ export class AudioManager {
         if (!this._ensureContext()) return;
         this.stopBackgroundMusic();
         if (this.ctx.state === 'suspended') {
-            this.ctx.resume().catch(e => console.warn('BGM resume failed:', e));
+            this.ctx.resume().catch(() => {});
         }
         this._startBgmNow();
     }

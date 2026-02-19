@@ -60,7 +60,8 @@
                     <div class="menu-card stage-card">
                         <h4 class="menu-card-title">Stage</h4>
                         <div class="dropdown-container">
-                            <select id="stageDropdown" class="stage-dropdown">
+                            <label for="stageDropdown" class="visually-hidden">Seleziona stage</label>
+                            <select id="stageDropdown" class="stage-dropdown" autocomplete="off" aria-label="Seleziona stage">
                                 <!-- Opzioni popolate da JS -->
                             </select>
                         </div>
@@ -97,11 +98,14 @@
                         </div>
                         <div id="loginForm" class="login-form" style="display: none;">
                             <h4>Accedi</h4>
-                            <input type="text" id="username" placeholder="Nome Giocatore" class="login-input">
-                            <input type="password" id="password" placeholder="Password" class="login-input">
+                            <label for="username" class="visually-hidden">Nome Giocatore</label>
+                            <input type="text" id="username" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
+                            <label for="password" class="visually-hidden">Password</label>
+                            <input type="password" id="password" placeholder="Password" class="login-input" autocomplete="current-password">
                             <div class="cloud-sync-hint">
                                 <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
-                                <input type="password" id="githubToken" placeholder="Token GitHub" class="login-input">
+                                <label for="githubToken" class="visually-hidden">Token GitHub</label>
+                                <input type="password" id="githubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
                                 <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
                             </div>
                             <div class="login-buttons">
@@ -111,12 +115,16 @@
                         </div>
                         <div id="registerForm" class="login-form" style="display: none;">
                             <h4>Registrati</h4>
-                            <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input">
-                            <input type="password" id="regPassword" placeholder="Password" class="login-input">
-                            <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" class="login-input">
+                            <label for="regUsername" class="visually-hidden">Nome Giocatore</label>
+                            <input type="text" id="regUsername" placeholder="Nome Giocatore" class="login-input" autocomplete="username">
+                            <label for="regPassword" class="visually-hidden">Password</label>
+                            <input type="password" id="regPassword" placeholder="Password" class="login-input" autocomplete="new-password">
+                            <label for="regPasswordConfirm" class="visually-hidden">Conferma Password</label>
+                            <input type="password" id="regPasswordConfirm" placeholder="Conferma Password" class="login-input" autocomplete="new-password">
                             <div class="cloud-sync-hint">
                                 <p>🔧 <strong>Cloud Sync (Opzionale):</strong></p>
-                                <input type="password" id="regGithubToken" placeholder="Token GitHub" class="login-input">
+                                <label for="regGithubToken" class="visually-hidden">Token GitHub</label>
+                                <input type="password" id="regGithubToken" placeholder="Token GitHub" class="login-input" autocomplete="off">
                                 <p class="hint"><a href="https://github.com/settings/tokens" target="_blank">Ottieni token</a></p>
                             </div>
                             <div class="login-buttons">
@@ -143,7 +151,8 @@
 
                 <div class="save-load-container">
                     <p>Carica progressi:</p>
-                    <input type="text" id="loadCodeInput" placeholder="Incolla il codice...">
+                    <label for="loadCodeInput" class="visually-hidden">Codice salvataggio</label>
+                    <input type="text" id="loadCodeInput" placeholder="Incolla il codice..." autocomplete="off">
                     <button id="loadGameBtn">Carica</button>
                     <div id="load-notification"></div>
                 </div>
@@ -178,7 +187,8 @@
             <button id="generateDebugSave" class="debug-only">Genera Codice Parziale</button>
             <div id="debugSaveContainer" class="save-load-container mt-4" style="display: none;">
                  <p>Copia il codice per testare questo scenario:</p>
-                <textarea id="debugSaveOutput" readonly></textarea>
+                <label for="debugSaveOutput" class="visually-hidden">Output codice debug</label>
+                <textarea id="debugSaveOutput" readonly autocomplete="off"></textarea>
                 <button id="copyDebugCodeBtn" class="mt-2 w-full">Copia Codice Debug</button>
             </div>
         </div>
@@ -191,7 +201,8 @@
             <p>Punteggio Finale: <span id="finalScore">0</span></p>
             <div class="save-load-container">
                  <p>Copia il codice per salvare i tuoi progressi:</p>
-                <input type="text" id="saveCodeOutput" readonly>
+                <label for="saveCodeOutput" class="visually-hidden">Codice salvataggio</label>
+                <input type="text" id="saveCodeOutput" readonly autocomplete="off">
                 <button id="copyCodeBtn">Copia</button>
             </div>
             <div class="menu-actions">
@@ -273,16 +284,16 @@
             </div>
             <div class="menu-content" style="padding: 20px;">
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; margin-bottom: 4px; color: var(--text-color);">🔊 Effetti <span id="effectsVolumeValue">100</span>%</label>
-                    <input type="range" id="effectsVolumeSlider" min="0" max="100" value="100" style="width: 100%;">
+                    <label for="effectsVolumeSlider" style="display: block; margin-bottom: 4px; color: var(--text-color);">🔊 Effetti <span id="effectsVolumeValue">100</span>%</label>
+                    <input type="range" id="effectsVolumeSlider" min="0" max="100" value="100" style="width: 100%;" aria-describedby="effectsVolumeValue" autocomplete="off">
                 </div>
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; margin-bottom: 4px; color: var(--text-color);">🎵 Musica <span id="musicVolumeValue">100</span>%</label>
-                    <input type="range" id="musicVolumeSlider" min="0" max="100" value="100" style="width: 100%;">
+                    <label for="musicVolumeSlider" style="display: block; margin-bottom: 4px; color: var(--text-color);">🎵 Musica <span id="musicVolumeValue">100</span>%</label>
+                    <input type="range" id="musicVolumeSlider" min="0" max="100" value="100" style="width: 100%;" aria-describedby="musicVolumeValue" autocomplete="off">
                 </div>
                 <div>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-                        <input type="checkbox" id="muteCheckbox">
+                    <label for="muteCheckbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="muteCheckbox" autocomplete="off">
                         <span>🔇 Silenzia tutto</span>
                     </label>
                 </div>
@@ -292,14 +303,14 @@
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 20px 0;">
                 <h4 style="color: var(--secondary-color); margin-bottom: 12px;">♿ Accessibilità</h4>
                 <div style="margin-bottom: 12px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-                        <input type="checkbox" id="reduceMotionCheckbox" aria-label="Ridotta motion">
+                    <label for="reduceMotionCheckbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="reduceMotionCheckbox" aria-label="Ridotta motion" autocomplete="off">
                         <span>Ridotta motion – meno particelle, shake e effetti visivi</span>
                     </label>
                 </div>
                 <div>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-                        <input type="checkbox" id="highContrastCheckbox" aria-label="Alta visibilità">
+                    <label for="highContrastCheckbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+                        <input type="checkbox" id="highContrastCheckbox" aria-label="Alta visibilità" autocomplete="off">
                         <span>Alta visibilità – bordi più marcati e contrasto aumentato</span>
                     </label>
                 </div>
@@ -313,8 +324,10 @@
                 <button id="closeGlossaryBtn" class="close-popup-btn" aria-label="Chiudi">✕</button>
             </div>
             <div class="glossary-toolbar">
-                <input type="text" id="glossarySearch" placeholder="Cerca termine..." class="glossary-search">
-                <select id="glossaryCategory" class="glossary-category">
+                <label for="glossarySearch" class="visually-hidden">Cerca termine</label>
+                <input type="text" id="glossarySearch" placeholder="Cerca termine..." class="glossary-search" autocomplete="off">
+                <label for="glossaryCategory" class="visually-hidden">Categoria glossario</label>
+                <select id="glossaryCategory" class="glossary-category" aria-label="Categoria glossario" autocomplete="off">
                     <option value="">Tutte le categorie</option>
                     <option value="base">Base</option>
                     <option value="combattimento">Combattimento</option>
@@ -356,7 +369,8 @@
                 
                 <div class="token-config">
                     <h4>🔑 Token GitHub</h4>
-                    <input type="password" id="cloudSyncToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                    <label for="cloudSyncToken" class="visually-hidden">Token GitHub Cloud Sync</label>
+                    <input type="password" id="cloudSyncToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
                     <small style="color: #888; font-size: 12px;">
                         💡 <a href="https://github.com/settings/tokens" target="_blank" style="color: #4a90e2;">Crea token GitHub</a> | 
                         <strong>Permessi necessari:</strong> gist (per salvare dati)
@@ -383,7 +397,7 @@
             
             <div class="form-group">
                 <label for="startupToken">Token GitHub:</label>
-                <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+                <input type="password" id="startupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
                 <small>
                     <a href="https://github.com/settings/tokens" target="_blank">🔗 Crea token GitHub</a>
                     <br>
@@ -421,9 +435,9 @@
     <!-- Single ES module entry point (Vite-compatible) -->
     <script type="module" src="src/main.js"></script>
 
-    <!-- Banner Ads Placeholder -->
+    <!-- Banner Ads Placeholder (src caricato via JS solo se mostrato, evita CORB) -->
     <div id="banner-ads-placeholder" style="display:none;width:468px; height:60px; margin:0 auto; position:fixed; bottom:0; left:0; right:0; z-index:99999; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; border-top:3px solid #4a90e2; border-radius:8px 8px 0 0; box-shadow:0 -4px 16px #000a;">
-      <img src="https://source.unsplash.com/random/468x60" alt="Banner Ads" style="width:468px; height:60px; object-fit:cover; border-radius:4px;" />
+      <div role="img" aria-label="Banner pubblicitario" style="width:468px; height:60px; background:rgba(50,50,60,0.9); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#888; font-size:12px;">468×60</div>
     </div>
 </body>
 </html>

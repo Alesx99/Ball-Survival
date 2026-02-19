@@ -149,9 +149,18 @@ export class BallSurvivalGame {
             if (resizeT) clearTimeout(resizeT);
             resizeT = setTimeout(() => this.resizeCanvas(), 150);
         });
-        if (this.dom.buttons.start) this.dom.buttons.start.onclick = () => this.startGame();
-        if (this.dom.buttons.restart) this.dom.buttons.restart.onclick = () => this.startGame();
-        if (this.dom.buttons.restartFromPause) this.dom.buttons.restartFromPause.onclick = () => this.startGame();
+        if (this.dom.buttons.start) {
+            this.dom.buttons.start.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
+            this.dom.buttons.start.onclick = () => this.startGame();
+        }
+        if (this.dom.buttons.restart) {
+            this.dom.buttons.restart.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
+            this.dom.buttons.restart.onclick = () => this.startGame();
+        }
+        if (this.dom.buttons.restartFromPause) {
+            this.dom.buttons.restartFromPause.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
+            this.dom.buttons.restartFromPause.onclick = () => this.startGame();
+        }
         if (this.dom.buttons.pause) this.dom.buttons.pause.onclick = () => this.togglePause();
         if (this.dom.buttons.copy) this.dom.buttons.copy.onclick = () => this.copySaveCode();
         if (this.dom.buttons.load) this.dom.buttons.load.onclick = () => this.loadFromSaveCode();
@@ -244,7 +253,7 @@ export class BallSurvivalGame {
             if (p) p.addEventListener('click', e => e.stopPropagation());
         });
         document.addEventListener('keydown', (e) => {
-            this.audio?.unlock();
+            if (this.state === 'running') this.audio?.unlock();
             this.player.keys[e.code] = true;
             if (e.code === 'Escape') this.handleEscapeKey();
             if (e.code === 'KeyE') this.handleInteractionKey();
@@ -308,8 +317,7 @@ export class BallSurvivalGame {
         this.state = 'running';
         this._updateAccumulator = 0;
         this.lastFrameTime = performance.now();
-        this.audio?.unlock();
-        this.audio?.playBackgroundMusic();
+        this.audio?.unlock().then(() => this.audio?.playBackgroundMusic());
         if (!this.gameLoopId) this.gameLoop();
     }
     gameOver() {
