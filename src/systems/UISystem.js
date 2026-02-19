@@ -321,7 +321,9 @@ export const UISystem = {
         if (popupKey === 'settings') {
             /* settings overlay: no state change */
         } else if (popupKey !== 'upgrade' && popupKey !== 'shop') {
-            this.state = (popupKey === 'gameOver' || popupKey === 'start') ? popupKey : 'paused';
+            if (popupKey === 'start') this.state = 'startScreen';
+            else if (popupKey === 'gameOver') this.state = 'gameOver';
+            else this.state = 'paused';
         } else if (this.state === 'running') {
             this.state = 'paused';
         }
