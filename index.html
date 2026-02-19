@@ -14,10 +14,10 @@
 <body>
 
     <div id="gameContainer">
-        <div id="menuOverlay"></div>
+        <div id="menuOverlay" style="display:none;"></div>
         <canvas id="gameCanvas"></canvas>
         <div id="joystick-container"><div id="joystick-stick"></div></div>
-        <div id="pauseButton">||</div>
+        <div id="pauseButton" aria-label="Pausa"><span aria-hidden="true">⏸</span></div>
         <button id="pauseButtonMobile" style="display:none; position:fixed; top:12px; right:12px; z-index:1002; font-size:20px; padding:12px 16px; border-radius:50%; background:rgba(18,18,28,0.9); color:var(--text-color); border:1px solid rgba(0,245,255,0.5); box-shadow:0 0 15px rgba(0,245,255,0.3); font-weight:bold; transition:all 0.3s ease;">⏸</button>
 
         <!-- Barra XP Mobile Flottante -->
@@ -40,8 +40,8 @@
             <div id="gemCounter">💎 0</div>
         </div>
 
-        <!-- Popups -->
-        <div id="startScreen" class="popup-menu main-menu">
+        <!-- Popups (nascosti inline fino a showPopup per evitare flash) -->
+        <div id="startScreen" class="popup-menu main-menu" style="display:none;">
             <header class="main-menu-header">
                 <div class="main-menu-brand">
                     <div class="main-menu-logo" aria-hidden="true"></div>
@@ -164,7 +164,7 @@
         </div>
 
         <!-- NUOVO POPUP PER SELEZIONE PERSONAGGI -->
-        <div id="characterSelectionPopup" class="popup-menu character-popup">
+        <div id="characterSelectionPopup" class="popup-menu character-popup" style="display:none;">
             <div class="character-popup-header">
                 <h3>Scegli il tuo Archetipo</h3>
                 <button id="closeCharacterPopupBtn" class="close-popup-btn">✕</button>
@@ -173,11 +173,11 @@
                 <!-- I personaggi verranno popolati qui -->
             </div>
         </div>
-        <div id="upgradeMenu" class="popup-menu">
+        <div id="upgradeMenu" class="popup-menu" style="display:none;">
             <h3>Scegli un Potenziamento!</h3>
             <div id="upgradeOptions" class="menu-content"></div>
         </div>
-        <div id="pauseMenu" class="popup-menu">
+        <div id="pauseMenu" class="popup-menu" style="display:none;">
             <h2>Pausa</h2>
             <div id="runStatsContainer"></div>
             <div id="pauseStatsContainer" class="menu-content">
@@ -196,7 +196,7 @@
                 <button id="copyDebugCodeBtn" class="mt-2 w-full">Copia Codice Debug</button>
             </div>
         </div>
-        <div id="gameOver" class="popup-menu">
+        <div id="gameOver" class="popup-menu" style="display:none;">
             <h2>Game Over!</h2>
             <p>Sei sopravvissuto per <span id="survivalTime">0</span> secondi</p>
             <p>Livello raggiunto: <span id="levelReached">1</span></p>
@@ -214,7 +214,7 @@
                 <button id="returnToMenuBtn">Torna al Menù</button>
             </div>
         </div>
-        <div id="permanentUpgradeShop" class="popup-menu">
+        <div id="permanentUpgradeShop" class="popup-menu" style="display:none;">
             <div class="shop-header">
                 <h3>Negozio Permanente</h3>
                 <button id="closeShopBtn" class="close-shop-btn">✕</button>
@@ -228,7 +228,7 @@
             
             <div id="permanentUpgradeOptions" class="menu-content shop-content"></div>
         </div>
-        <div id="inventoryMenu" class="popup-menu">
+        <div id="inventoryMenu" class="popup-menu" style="display:none;">
             <h3>📦 Inventario Materiali</h3>
             <div class="inventory-tabs">
                 <button class="tab-btn active" data-tab="materials">Materiali</button>
@@ -281,7 +281,7 @@
         </div>
         
         <!-- Popup Impostazioni -->
-        <div id="settingsPopup" class="popup-menu">
+        <div id="settingsPopup" class="popup-menu" style="display:none;">
             <div class="character-popup-header">
                 <h3>⚙️ Impostazioni</h3>
                 <button id="closeSettingsBtn" class="close-popup-btn">✕</button>
@@ -322,7 +322,7 @@
         </div>
 
         <!-- Popup Glossario -->
-        <div id="glossaryPopup" class="popup-menu glossary-popup">
+        <div id="glossaryPopup" class="popup-menu glossary-popup" style="display:none;">
             <div class="glossary-header">
                 <h3>📖 Glossario</h3>
                 <button id="closeGlossaryBtn" class="close-popup-btn" aria-label="Chiudi">✕</button>
@@ -346,7 +346,7 @@
         </div>
 
         <!-- Popup Achievements -->
-        <div id="achievementsPopup" class="popup-menu">
+        <div id="achievementsPopup" class="popup-menu" style="display:none;">
             <div class="achievements-header">
                 <h3>🏆 Achievements</h3>
                 <button id="closeAchievementsBtn" class="close-popup-btn">✕</button>
@@ -358,7 +358,7 @@
         </div>
         
         <!-- Popup Cloud Sync Configuration -->
-        <div id="cloudSyncPopup" class="popup-menu">
+        <div id="cloudSyncPopup" class="popup-menu" style="display:none;">
             <div class="cloud-sync-header">
                 <h3>☁️ Configurazione Cloud Sync</h3>
                 <button id="closeCloudSyncBtn" class="close-popup-btn">✕</button>

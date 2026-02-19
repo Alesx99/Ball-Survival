@@ -413,6 +413,10 @@ export const UISystem = {
             else if (this.state === 'paused') this.showPopup('pause');
             return;
         }
+        if (this.state === 'startScreen' && !forceNoResume) {
+            this.showPopup('start');
+            return;
+        }
         if (this.state === 'paused' && !forceNoResume) {
             if (this.gameLoopId != null) {
                 this.state = 'running';

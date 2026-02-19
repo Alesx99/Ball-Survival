@@ -382,8 +382,8 @@ export const RenderSystem = {
 
     showInGameUI() {
         if (this.dom.inGameUI) this.dom.inGameUI.style.display = 'flex';
-        if (this.dom.pauseButton) this.dom.pauseButton.style.display = 'block';
-        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'block';
+        if (this.dom.pauseButton) this.dom.pauseButton.style.display = 'flex';
+        if (this.dom.pauseButtonMobile) this.dom.pauseButtonMobile.style.display = 'flex';
         
         // Mostra la barra XP mobile se siamo su mobile
         const xpBarMobile = document.getElementById('xpBarMobile');

@@ -529,20 +529,31 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     right: 15px; 
     width: 45px; 
     height: 45px; 
+    padding: 0;
     background: rgba(18, 18, 28, 0.9); 
     color: var(--text-color); 
     border: 1px solid rgba(0, 245, 255, 0.5); 
     border-radius: 50%; 
     display: none; 
+    flex-direction: row;
     justify-content: center; 
     align-items: center; 
-    font-size: 18px; 
-    line-height: 1; 
+    font-size: 22px;
+    line-height: 1;
     font-weight: bold; 
     cursor: pointer; 
     z-index: 150; 
     box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
     transition: all 0.3s ease;
+}
+#pauseButton span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    transform: translate(1px, -2px);
 }
 
 #pauseButton:hover {
@@ -550,6 +561,16 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
     border-color: var(--primary-color);
     transform: scale(1.1);
     box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+}
+
+#pauseButtonMobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    min-width: 48px;
+    min-height: 48px;
+    box-sizing: border-box;
 }
 
 .save-load-container { margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.4); border-radius: var(--radius-md); border: 1px solid rgba(0, 245, 255, 0.3); }
@@ -1714,7 +1735,6 @@ button:disabled { background: #566573; filter: grayscale(80%); cursor: not-allow
         0 0 60px rgba(0, 245, 255, 0.12),
         inset 0 0 80px rgba(0, 245, 255, 0.04),
         0 0 0 1px rgba(255, 0, 255, 0.15);
-    position: relative;
 }
 
 .main-menu-header {
