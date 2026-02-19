@@ -67,6 +67,8 @@ export class BallSurvivalGame {
         this.populateStageSelection();
         this.updateCharacterPreview(); // Inizializza l'anteprima del personaggio
         this.showPopup('start');
+        this.draw();
+        if (!this.gameLoopId) this.gameLoop();
         
         this.sessionStartTime = 0;
         this.lastPeriodicCloudSyncTime = 0; // Timestamp ultimo sync periodico

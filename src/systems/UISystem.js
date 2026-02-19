@@ -240,6 +240,7 @@ export const UISystem = {
     
     populateStageSelection() {
         const dropdown = this.dom.containers.stageDropdown;
+        if (!dropdown || !CONFIG.stages) return;
         dropdown.innerHTML = '';
         
         Object.keys(CONFIG.stages).forEach(stageId => {
@@ -312,7 +313,8 @@ export const UISystem = {
             cancelAnimationFrame(this.gameLoopId);
             this.gameLoopId = null;
         }
-        this.draw(); 
+        this.draw();
+        if (!this.gameLoopId) this.gameLoop();
     },
 
     showPopup(popupKey) { 

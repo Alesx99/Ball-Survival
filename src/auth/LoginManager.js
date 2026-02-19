@@ -678,7 +678,7 @@ export const playerAuth = new LoginManager();
  * @param {{ analyticsManager?: object }} deps - Dependencies (analyticsManager from game)
  */
 export function setupLoginHandlers(auth = playerAuth, deps = {}) {
-    if (deps.analyticsManager) auth.setDependencies({ analyticsManager: deps.analyticsManager });
+    if (deps.analyticsManager || deps.game) auth.setDependencies({ analyticsManager: deps.analyticsManager, game: deps.game });
 
     // Attach event listeners (no inline onclick)
     const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', () => fn()); };
