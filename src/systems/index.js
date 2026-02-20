@@ -390,8 +390,8 @@ class AchievementSystem {
         // Gem rewards per tier
         const gemRewards = achievement.gemReward || [5, 15, 50];
         const gemAmount = gemRewards[tier] || gemRewards[gemRewards.length - 1] || 5;
-        if (game?.gems !== undefined) {
-            game.gems += gemAmount;
+        if (game?.totalGems !== undefined) {
+            game.totalGems += gemAmount;
         }
 
         const tierBadge = tier === 0 ? '🥉' : tier === 1 ? '🥈' : '🥇';

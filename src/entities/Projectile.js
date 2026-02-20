@@ -9,13 +9,25 @@ import { Utils } from '../utils/index.js';
 export class Projectile extends Entity {
     constructor(x, y, props) {
         super(x, y);
+        this.init(x, y, props);
+        this.poolType = 'Projectile';
+    }
+
+    init(x, y, props) {
+        this.x = x;
+        this.y = y;
+        this.toRemove = false;
         this.penetrated = 0;
         this.penetration = props.penetration ?? 1;
         if (props.angle !== undefined) {
             this.vx = Math.cos(props.angle) * props.speed;
             this.vy = Math.sin(props.angle) * props.speed;
+        } else {
+            this.vx = 0;
+            this.vy = 0;
         }
         Object.assign(this, props);
+        return this;
     }
 
     update(game) {

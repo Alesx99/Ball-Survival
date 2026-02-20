@@ -2,6 +2,7 @@ import { Utils } from '../utils/index.js';
 import { Projectile } from '../entities/Projectile.js';
 import { Aura, StaticField, Orbital, Sanctuary } from '../entities/Areas.js';
 import { Particle, FireTrail, Effect } from '../entities/Particles.js';
+import { poolManager } from '../utils/PoolManager.js';
 
 export const SpellSystem = {
 
@@ -58,7 +59,7 @@ export const SpellSystem = {
         const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
-        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
             angle, damage: this.getDamage(s.damage), speed: s.speed, life: 80,
             size: s.size * this.player.modifiers.area, penetration: 1, color: '#9d75ff'
         }));
@@ -75,13 +76,13 @@ export const SpellSystem = {
         const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
-        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
             angle, damage, type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, burnDamage,
             drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 1.5); g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2); ctx.fill(); }
         }));
         return true;
     },
-    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses()); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; },
+    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses()); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; },
     castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = this.getEnemiesAndBosses().filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 2.5)); for (let k = 0; k < 15; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 40, color: '#ffaa00' })); }, 750); } return true; },
     castLightning(now) {
         const s = this.spells.lightning;
@@ -122,7 +123,7 @@ export const SpellSystem = {
         const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
-        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
             angle, damage: this.getDamage(s.damage) * 3, speed: 12, life: 100,
             size: 10 * this.player.modifiers.area, penetration: 999, type: 'lightning_spear',
             stunChance: s.stunChance, stunDuration: s.stunDuration,
@@ -142,7 +143,7 @@ export const SpellSystem = {
         const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
-        this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
             angle, damage, speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration, slow, slowDuration: s.slowDuration,
             drawFunc: (ctx, p) => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6, outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
         }));
@@ -186,7 +187,7 @@ export const SpellSystem = {
             const offset = (i - (count - 1) / 2) * (s.angleSpread / count);
             let finalDamage = damage;
             if (critChance && Math.random() < critChance) finalDamage *= 2;
-            this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
                 angle: angleBase + offset, damage: finalDamage, speed: 10, life: 30, size: 4 * this.player.modifiers.area, penetration: 1, color: '#ffaa00'
             }));
         }
@@ -199,7 +200,7 @@ export const SpellSystem = {
         const angleBase = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
         for (let i = 0; i < s.count; i++) {
             const offset = (i - (s.count - 1) / 2) * (s.angleSpread / s.count);
-            this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+            this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
                 angle: angleBase + offset, damage: this.getDamage(s.damage), speed: 10, life: 30,
                 size: 6 * this.player.modifiers.area, penetration: 1, color: '#ffaa00',
                 onDeathEffect: 'explosion', explosionRadius: 40 * this.player.modifiers.area
@@ -212,7 +213,7 @@ export const SpellSystem = {
         for (let i = 0; i < 20; i++) {
             setTimeout(() => {
                 const angle = Math.random() * 2 * Math.PI;
-                this.addEntity('projectiles', new Projectile(this.player.x, this.player.y, {
+                this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
                     angle, damage: this.getDamage(s.damage) * 0.7, speed: 8, life: 40,
                     size: 4, penetration: 1, color: '#ff5500'
                 }));

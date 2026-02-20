@@ -2,13 +2,14 @@ import { CONFIG } from '../config/index.js';
 import { Utils } from '../utils/index.js';
 import { cloudSyncManager } from '../utils/cloudSync.js';
 import { SeededRNG } from '../utils/SeededRNG.js';
+import { poolManager } from '../utils/PoolManager.js';
 import { DailyChallengeSystem } from '../systems/DailyChallengeSystem.js';
 import { BestiarySystem } from '../systems/BestiarySystem.js';
 import { RunHistorySystem } from '../systems/RunHistorySystem.js';
 import { TutorialSystem } from '../systems/TutorialSystem.js';
 import {
     Player, Enemy, Boss,
-    Projectile, Aura, Orbital, StaticField, Sanctuary,
+    Projectile, Aura, Orbital, StaticField, Sanctuary, AnomalousArea,
     XpOrb, GemOrb, MaterialOrb,
     Chest, DroppedItem,
     Particle, FireTrail, Effect
@@ -26,6 +27,8 @@ import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { BalanceSystem } from '../systems/BalanceSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { UISystem } from '../systems/UISystem.js';
+import { InputManager } from './InputManager.js';
+import { MenuController } from './MenuController.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { CheatCodeSystem } from '../systems/CheatCodeSystem.js';
 import { SkinSystem } from '../systems/SkinSystem.js';
@@ -34,10 +37,13 @@ export class BallSurvivalGame {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
         this.initDOM();
-        this.initInputHandlers();
         this.camera = { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height };
         this.player = new Player();
         this.joystick = { dx: 0, dy: 0, ...this.dom.joystick };
+        this.inputManager = new InputManager(this);
+        this.inputManager.init();
+        this.menuController = new MenuController(this);
+        this.menuController.init();
         this._joystickPending = { dx: 0, dy: 0 };
         this._joystickRAF = null;
         this.state = 'startScreen';
@@ -90,7 +96,7 @@ export class BallSurvivalGame {
                 runHistory: this.runHistorySystem?.getHistory() || []
             }
         }));
-        this._entityClasses = { Projectile, Aura, Orbital, StaticField, Sanctuary, XpOrb, GemOrb, MaterialOrb, Chest, DroppedItem, Particle, FireTrail, Effect, Boss, Enemy };
+        this._entityClasses = { Projectile, Aura, Orbital, StaticField, Sanctuary, AnomalousArea, XpOrb, GemOrb, MaterialOrb, Chest, DroppedItem, Particle, FireTrail, Effect, Boss, Enemy };
         this.unlockedArchetypes = new Set(['standard']);
 
         this.loadGameData();
@@ -200,217 +206,7 @@ export class BallSurvivalGame {
         };
     }
     initInputHandlers() {
-        let resizeT = null;
-        window.addEventListener('resize', () => {
-            if (resizeT) clearTimeout(resizeT);
-            resizeT = setTimeout(() => this.resizeCanvas(), 150);
-        });
-        if (this.dom.buttons.start) {
-            this.dom.buttons.start.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
-            this.dom.buttons.start.onclick = () => this.startGame(this.selectedMode);
-        }
-
-        // Mode Selection Handlers
-        const updateModeUI = (mode) => {
-            this.selectedMode = mode;
-            ['modeStandard', 'modeEndless', 'modeDaily', 'modeBossRush', 'modeTutorial'].forEach(key => {
-                if (this.dom.buttons[key]) this.dom.buttons[key].classList.remove('active');
-            });
-
-            const desc = document.getElementById('modeDescription');
-            if (mode === 'standard') {
-                this.dom.buttons.modeStandard?.classList.add('active');
-                if (desc) desc.innerText = "Sopravvivi 30 minuti.";
-            } else if (mode === 'endless') {
-                this.dom.buttons.modeEndless?.classList.add('active');
-                if (desc) desc.innerText = "Sopravvivi il più a lungo possibile. Difficoltà infinita.";
-            } else if (mode === 'daily') {
-                this.dom.buttons.modeDaily?.classList.add('active');
-                if (desc) desc.innerText = "Sfida giornaliera con seed e build fissa.";
-                this.showDailyChallengePopup();
-            } else if (mode === 'bossRush') {
-                this.dom.buttons.modeBossRush?.classList.add('active');
-                if (desc) desc.innerText = "Combatti contro ondate di boss senza sosta!";
-            } else if (mode === 'tutorial') {
-                this.dom.buttons.modeTutorial?.classList.add('active');
-                if (desc) desc.innerText = "Impara come giocare a Ball Survival.";
-            }
-        };
-
-        if (this.dom.buttons.modeStandard) this.dom.buttons.modeStandard.onclick = () => updateModeUI('standard');
-        if (this.dom.buttons.modeEndless) this.dom.buttons.modeEndless.onclick = () => updateModeUI('endless');
-        if (this.dom.buttons.modeDaily) this.dom.buttons.modeDaily.onclick = () => updateModeUI('daily');
-        if (this.dom.buttons.modeBossRush) this.dom.buttons.modeBossRush.onclick = () => updateModeUI('bossRush');
-        if (this.dom.buttons.modeTutorial) this.dom.buttons.modeTutorial.onclick = () => updateModeUI('tutorial');
-
-        // Daily Challenge Popup Handlers
-        if (this.dom.buttons.startDaily) {
-            this.dom.buttons.startDaily.onclick = () => {
-                this.hideAllPopups();
-                this.startGame('daily');
-            };
-        }
-        if (this.dom.buttons.closeDaily) {
-            this.dom.buttons.closeDaily.onclick = () => {
-                this.dom.popups.dailyChallenge.style.display = 'none';
-                updateModeUI('standard');
-            };
-        }
-        if (this.dom.buttons.restart) {
-            this.dom.buttons.restart.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
-            this.dom.buttons.restart.onclick = () => this.startGame();
-        }
-        if (this.dom.buttons.restartFromPause) {
-            this.dom.buttons.restartFromPause.addEventListener('pointerdown', () => this.audio?.unlock(), { capture: true });
-            this.dom.buttons.restartFromPause.onclick = () => this.startGame();
-        }
-        if (this.dom.buttons.pause) this.dom.buttons.pause.onclick = () => this.togglePause();
-        if (this.dom.buttons.copy) this.dom.buttons.copy.onclick = () => this.copySaveCode();
-        if (this.dom.buttons.load) this.dom.buttons.load.onclick = () => this.loadFromSaveCode();
-        if (this.dom.buttons.generateDebugSave) this.dom.buttons.generateDebugSave.onclick = () => this.generateAndShowDebugCode();
-        if (this.dom.buttons.copyDebugCodeBtn) this.dom.buttons.copyDebugCodeBtn.onclick = () => this.copyDebugCode();
-        if (this.dom.buttons.returnToMenu) this.dom.buttons.returnToMenu.onclick = () => this.returnToStartScreen();
-        if (this.dom.buttons.returnToMenuPause) this.dom.buttons.returnToMenuPause.onclick = () => this.returnToStartScreen();
-
-        if (this.dom.buttons.settings) this.dom.buttons.settings.onclick = () => this.showSettingsPopup();
-
-        // Sprint 5: Cheat code + Skin buttons
-        if (this.dom.buttons.cheats) this.dom.buttons.cheats.onclick = () => this.cheatCodeSystem?.showCheatPopup();
-        if (this.dom.buttons.skins) this.dom.buttons.skins.onclick = () => this.skinSystem?.showSkinPopup();
-
-        // Sprint 8: Bestiary/History
-        if (this.dom.buttons.bestiary) this.dom.buttons.bestiary.onclick = () => this.uiSystem?.showBestiary();
-        if (this.dom.buttons.closeBestiary) this.dom.buttons.closeBestiary.onclick = () => this.uiSystem?.hideBestiary();
-        if (this.dom.buttons.runHistory) this.dom.buttons.runHistory.onclick = () => this.uiSystem?.showRunHistory();
-        if (this.dom.buttons.closeRunHistory) this.dom.buttons.closeRunHistory.onclick = () => this.uiSystem?.hideRunHistory();
-        if (this.dom.buttons.craftingPreview) this.dom.buttons.craftingPreview.onclick = () => this.uiSystem?.showCrafting();
-        if (this.dom.buttons.closeCrafting) this.dom.buttons.closeCrafting.onclick = () => this.uiSystem?.hideCrafting();
-
-        // Logo tap easter egg
-        const logo = document.querySelector('.main-menu-logo');
-        if (logo) logo.addEventListener('click', () => this.cheatCodeSystem?.onLogoTap());
-
-        // Settings long press easter egg (5s)
-        if (this.dom.buttons.settings) {
-            let pressTimer = null;
-            this.dom.buttons.settings.addEventListener('pointerdown', () => {
-                pressTimer = setTimeout(() => this.cheatCodeSystem?.onSettingsLongPress(), 5000);
-            });
-            this.dom.buttons.settings.addEventListener('pointerup', () => clearTimeout(pressTimer));
-            this.dom.buttons.settings.addEventListener('pointerleave', () => clearTimeout(pressTimer));
-        }
-
-        // Keyboard 'S' in start screen for shake easter egg
-        document.addEventListener('keydown', (e) => {
-            if (this.state === 'startScreen') this.cheatCodeSystem?.onKeyInStartScreen(e.key);
-        });
-        if (this.dom.buttons.closeSettings) this.dom.buttons.closeSettings.onclick = () => {
-            if (this.state === 'startScreen') {
-                this.returnToStartScreen();
-            } else if (this.state === 'paused') {
-                this.hideAllPopups();
-                this.showPopup('pause');
-            } else {
-                this.hideAllPopups();
-                this.showPopup('start');
-            }
-        };
-        this._wireSettingsAudio();
-        this._wireSettingsAccessibility();
-        // Pulsante inventario
-        if (this.dom.buttons.inventory) this.dom.buttons.inventory.onclick = () => this.showInventory();
-        if (this.dom.buttons.closeInventory) this.dom.buttons.closeInventory.onclick = () => this.closeInventory();
-
-        // Pulsanti popup personaggi
-        if (this.dom.buttons.openCharacterPopup) this.dom.buttons.openCharacterPopup.onclick = () => this.showCharacterPopup();
-        if (this.dom.buttons.closeCharacterPopup) this.dom.buttons.closeCharacterPopup.onclick = () => this.hideCharacterPopup();
-
-        // Pulsante achievements
-        if (this.dom.buttons.achievements) {
-            this.dom.buttons.achievements.onclick = () => this.showAchievements();
-        }
-        // Pulsante glossario
-        if (this.dom.buttons.glossary) {
-            this.dom.buttons.glossary.onclick = () => this.showGlossary();
-        }
-        if (this.dom.buttons.closeGlossary) {
-            this.dom.buttons.closeGlossary.onclick = () => this.hideGlossary();
-        }
-
-        // Pulsante chiudi achievements
-        if (this.dom.buttons.closeAchievements) {
-            this.dom.buttons.closeAchievements.onclick = () => {
-                this.hideAllPopups();
-                this.showPopup('start');
-            };
-        }
-
-        // Pulsante chiudi negozio
-        const closeShopBtn = document.getElementById('closeShopBtn');
-        if (closeShopBtn) {
-            closeShopBtn.onclick = () => {
-                this.hideAllPopups();
-                if (this.state === 'startScreen') this.showPopup('start');
-            };
-        }
-
-        // Dropdown stage
-        if (this.dom.containers.stageDropdown) {
-            this.dom.containers.stageDropdown.onchange = (e) => {
-                this.selectStage(parseInt(e.target.value));
-            };
-        }
-
-        // Tasto pausa mobile
-        const pauseBtnMobile = document.getElementById('pauseButtonMobile');
-        if (pauseBtnMobile) {
-            pauseBtnMobile.onclick = () => this.togglePause();
-        }
-
-        if (this.dom.menuOverlay) {
-            this.dom.menuOverlay.onclick = () => {
-                if (this.state === 'gameOver' || this.state === 'startScreen') {
-                    return;
-                }
-
-                // Se il popup dei personaggi è aperto, torna al menù principale
-                if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
-                    this.hideCharacterPopup();
-                    return;
-                }
-
-                this.hideAllPopups();
-            };
-        }
-
-        // Cloud status indicator
-        this._cloudStatusInterval = setInterval(() => {
-            const btn = document.getElementById('cloudSyncBtn');
-            if (btn && this.cloudSyncManager) {
-                const icon = this.cloudSyncManager.getStatusIcon();
-                // Update only if changed to avoid DOM thrashing
-                if (!btn.innerHTML.includes(icon)) {
-                    btn.innerHTML = `☁️ <span style="font-size:0.8em">${icon}</span>`;
-                }
-            }
-        }, 1000);
-
-        Object.values(this.dom.popups).forEach(p => {
-            if (p) p.addEventListener('click', e => e.stopPropagation());
-        });
-        document.addEventListener('keydown', (e) => {
-            if (this.state === 'running') this.audio?.unlock();
-            this.player.keys[e.code] = true;
-            if (e.code === 'Escape') this.handleEscapeKey();
-            if (e.code === 'KeyE') this.handleInteractionKey();
-        });
-        document.addEventListener('keyup', (e) => { this.player.keys[e.code] = false; });
-        if (this.canvas) {
-            this.canvas.addEventListener('pointerdown', this.handlePointerDown.bind(this));
-            this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this));
-            this.canvas.addEventListener('pointerup', this.handlePointerEnd.bind(this));
-            this.canvas.addEventListener('pointercancel', this.handlePointerEnd.bind(this));
-        }
+        // Obsolete: Handled by InputManager and MenuController
     }
     startGame(mode = 'standard', isLoadedRun = false) {
         this.gameMode = mode;
@@ -565,7 +361,7 @@ export class BallSurvivalGame {
         }, 100);
     }
     resetRunState() {
-        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [] };
+        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [], anomalousAreas: [] };
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.runKillsByType = {};
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
@@ -634,6 +430,7 @@ export class BallSurvivalGame {
     }
     update(deltaTime) {
         if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
+        this.gameTime = this.totalElapsedTime; // Alias per BalanceSystem / AchievementSystem
         this.player.update(this, this.joystick);
 
         if (this.gameMode === 'tutorial') {
@@ -649,7 +446,10 @@ export class BallSurvivalGame {
             for (let i = this.entities[type].length - 1; i >= 0; i--) {
                 const entity = this.entities[type][i];
                 entity.update(this);
-                if (entity.toRemove) this.entities[type].splice(i, 1);
+                if (entity.toRemove) {
+                    this.entities[type].splice(i, 1);
+                    if (entity.poolType) poolManager.release(entity.poolType, entity);
+                }
             }
         }
 
@@ -663,6 +463,7 @@ export class BallSurvivalGame {
         this.spawnBoss();
         this.spawnChests();
         this.spawnMapXpOrbs();
+        this.spawnDynamicEvents();
         this.castSpells();
 
         const inBattle = this.getEnemiesAndBosses().length > 0;

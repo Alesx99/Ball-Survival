@@ -9,6 +9,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { Chest } from '../entities/Items.js';
 import { XpOrb } from '../entities/Orbs.js';
+import { poolManager } from '../utils/PoolManager.js';
 
 export const SpawnSystem = {
     spawnEnemies() {
@@ -209,7 +210,7 @@ export const SpawnSystem = {
             }
 
             finalStats.type = finalStats.isGolden ? 'golden' : finalStats.isElite ? 'elite' : 'enemy';
-            this.addEntity('enemies', new Enemy(spawnX, spawnY, finalStats));
+            this.addEntity('enemies', poolManager.get('Enemy', () => new Enemy(spawnX, spawnY, finalStats)).init(spawnX, spawnY, finalStats));
         }
 
         // Easter egg: Golden Boss from cheat code
@@ -302,6 +303,49 @@ export const SpawnSystem = {
                 }
             }
             this.nextMapXpSpawnTime = this.totalElapsedTime + c.interval;
+        }
+    },
+
+    spawnDynamicEvents() {
+        if (this.gameMode === 'tutorial' || this.gameMode === 'bossRush') return;
+
+        this._lastEventSpawnTime = this._lastEventSpawnTime || 0;
+        const eventInterval = (5 + this.rng.next() * 3) * 60; // 5 to 8 minutes in secondi
+
+        // Prima volta dopo 3 min
+        if (this._lastEventSpawnTime === 0 && this.totalElapsedTime < 3 * 60) {
+            return;
+        }
+
+        if (this.totalElapsedTime - this._lastEventSpawnTime > eventInterval) {
+            this._lastEventSpawnTime = this.totalElapsedTime;
+
+            if (this.entities.anomalousAreas && this.entities.anomalousAreas.length >= 1) return; // solo 1 alla volta
+
+            const isKillEvent = this.rng.next() > 0.5;
+            const eventType = isKillEvent ? 'kill' : 'survive';
+
+            const angle = this.rng.next() * Math.PI * 2;
+            const distance = 400 + this.rng.next() * 300;
+            const x = this.player.x + Math.cos(angle) * distance;
+            const y = this.player.y + Math.sin(angle) * distance;
+
+            const maxProgress = isKillEvent ? 20 + Math.floor(this.totalElapsedTime / 60) : 60 * 60; // 20+ kills, or 60s
+            const duration = isKillEvent ? 120 * 60 : 70 * 60; // 120s max for kill, 70s max for 60s survive
+
+            const { AnomalousArea } = this._entityClasses;
+            this.addEntity('anomalousAreas', new AnomalousArea(x, y, {
+                radius: 180,
+                duration: duration,
+                eventType: eventType,
+                maxProgress: maxProgress,
+                reward: this.rng.next() > 0.8 ? 'epic_chest' : 'gems',
+                color: isKillEvent ? '#ff4444' : '#4444ff'
+            }));
+
+            if (this.notifications) {
+                this.notifications.push({ text: "ANOMALIA RILEVATA NEI PARAGGI!", life: 250, color: '#ff00ff' });
+            }
         }
     }
 };

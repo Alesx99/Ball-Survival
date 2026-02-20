@@ -45,6 +45,7 @@ export const RenderSystem = {
             this.entities.bosses.forEach(e => e.draw(this.ctx, this));
             this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
             this.entities.enemyProjectiles.forEach(e => e.draw(this.ctx, this));
+            if (this.entities.anomalousAreas) this.entities.anomalousAreas.filter(inView).forEach(e => e.draw(this.ctx, this));
             this.entities.auras.forEach(e => e.draw(this.ctx, this));
             this.entities.orbitals.forEach(e => e.draw(this.ctx, this));
             this.entities.particles.filter(inView).forEach(e => e.draw(this.ctx, this));
@@ -665,6 +666,21 @@ export const RenderSystem = {
                 this.entities.enemies.forEach(e => {
                     if (e.stats.isElite) drawDot(e.x, e.y, '#e74c3c', 3);
                     else drawDot(e.x, e.y, '#c0392b', 1.5);
+                });
+            }
+
+            // Anomalous Areas (Cyan, larger hollow dot)
+            if (this.entities.anomalousAreas) {
+                this.entities.anomalousAreas.forEach(e => {
+                    const dx = (e.x - px) * scale;
+                    const dy = (e.y - py) * scale;
+                    if (Math.abs(dx) < mapSize / 2 && Math.abs(dy) < mapSize / 2) {
+                        ctx.strokeStyle = e.color || '#00ffff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(dx, dy, 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
                 });
             }
 

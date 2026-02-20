@@ -10,6 +10,14 @@ import { Utils } from '../utils/index.js';
 export class Enemy extends Entity {
     constructor(x, y, stats) {
         super(x, y);
+        this.init(x, y, stats);
+        this.poolType = 'Enemy';
+    }
+
+    init(x, y, stats) {
+        this.x = x;
+        this.y = y;
+        this.toRemove = false;
         this.stats = { ...stats };
         this.type = this.stats.type || 'enemy';
         this.hp = this.stats.maxHp || this.stats.hp || 25;
@@ -21,6 +29,7 @@ export class Enemy extends Entity {
         this.burnTimer = 0;
         this.burnDamage = 0;
         this.lastContactDamageTime = -999;
+        return this;
     }
 
     update(game) {
@@ -118,9 +127,20 @@ export class Enemy extends Entity {
         game.bestiarySystem?.registerKill(this.type);
         game.score += 10 * (this.stats.isElite ? 3 : (this.stats.isGolden ? 50 : 1));
 
+        // AnomalousArea progress (evento kill)
+        if (game.entities && game.entities.anomalousAreas) {
+            game.entities.anomalousAreas.forEach(area => {
+                if (!area.completed && area.eventType === 'kill') {
+                    if (Utils.getDistance(this, area) < area.radius) {
+                        area.progress++;
+                    }
+                }
+            });
+        }
+
         // Golden enemy reward
         if (this.stats.isGolden) {
-            game.gems = (game.gems || 0) + 500;
+            game.gemsThisRun += 500;
             game.notifications?.push?.({ text: '✨ NEMICO DORATO! +500 💎', life: 300, color: '#ffd700' });
             game.cheatCodeSystem?.discoverEgg('golden_enemy');
             game.audio?.playAchievementUnlock?.();

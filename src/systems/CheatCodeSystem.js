@@ -87,7 +87,7 @@ export class CheatCodeSystem {
 
         switch (code.reward) {
             case 'gems':
-                if (this.game) this.game.gems = (this.game.gems || 0) + code.gems;
+                if (this.game) this.game.totalGems = (this.game.totalGems || 0) + code.gems;
                 break;
             case 'skin':
                 this.game?.skinSystem?.unlockSkin?.(code.skinId);
@@ -175,7 +175,7 @@ export class CheatCodeSystem {
             'Tempo totale': this._formatTime(persistent.totalTime || 0),
             'Miglior livello': persistent.bestLevel || 0,
             'Boss uccisi': localStorage.getItem('ballSurvivalTotalBossKills') || '0',
-            'Gemme attuali': g?.gems ?? 0,
+            'Gemme attuali': g?.totalGems ?? 0,
             'Achievement': `${achievementProgress.unlocked}/${achievementProgress.total}`,
             'Skin sbloccate': skinCount,
             'Easter Egg': `${Object.keys(this.discoveredEggs).length}/${Object.keys(this.easterEggs).length}`,
@@ -414,7 +414,7 @@ export class CheatCodeSystem {
         if (!this.discoveredEggs.shake_world) {
             this.discoverEgg('shake_world');
             if (this.game) {
-                this.game.gems = (this.game.gems || 0) + 50;
+                this.game.totalGems = (this.game.totalGems || 0) + 50;
                 this.game.addScreenShake?.(20);
             }
         }

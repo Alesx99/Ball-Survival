@@ -157,3 +157,97 @@ export class Sanctuary extends Entity {
         ctx.fill();
     }
 }
+
+export class AnomalousArea extends Entity {
+    constructor(x, y, props) {
+        super(x, y);
+        this.radius = props.radius || 150;
+        this.life = props.duration || 3600; // 60s
+        this.maxLife = this.life;
+        this.eventType = props.eventType || 'survive'; // survive o kill
+        this.progress = 0;
+        this.maxProgress = props.maxProgress || (this.eventType === 'survive' ? 1200 : 20); // 20 sec o 20 kill
+        this.completed = false;
+        this.reward = props.reward || 'epic_chest';
+        this.color = props.color || '#ff00ff';
+        this.glowPhase = 0;
+    }
+
+    update(game) {
+        if (this.completed || this.toRemove) return;
+
+        this.life--;
+        this.glowPhase += 0.05;
+
+        if (this.life <= 0) {
+            this.toRemove = true;
+            return;
+        }
+
+        const distanceToPlayer = Utils.getDistance(this, game.player);
+        const playerInside = distanceToPlayer < this.radius;
+
+        if (playerInside) {
+            if (this.eventType === 'survive') {
+                this.progress++;
+            }
+        }
+
+        if (this.progress >= this.maxProgress) {
+            this.completeEvent(game);
+        }
+    }
+
+    completeEvent(game) {
+        this.completed = true;
+        this.toRemove = true;
+
+        // Conferisce la ricompensa
+        if (this.reward === 'epic_chest') {
+            const { Chest } = game._entityClasses;
+            game.addEntity('chests', new Chest(this.x, this.y, { type: 'epic' }));
+        } else if (this.reward === 'gems') {
+            for (let i = 0; i < 20; i++) {
+                const { GemOrb } = game._entityClasses;
+                game.addEntity('gemOrbs', new GemOrb(this.x + (Math.random() - 0.5) * 40, this.y + (Math.random() - 0.5) * 40, { xp: 15 }));
+            }
+        }
+
+        // Segnala al giocatore
+        if (game.notifications) {
+            game.notifications.push({ text: "EVENTO COMPLETATO!", life: 180, color: '#00ffff' });
+        }
+    }
+
+    draw(ctx, game) {
+        const glow = Math.sin(this.glowPhase) * 0.2 + 0.3;
+        ctx.strokeStyle = `rgba(255, 0, 255, ${glow})`;
+        ctx.lineWidth = 4;
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = `rgba(255, 0, 255, ${glow * 0.2})`;
+        ctx.fill();
+
+        if (!this.completed) {
+            const barWidth = 100;
+            const barHeight = 8;
+            const px = this.x - barWidth / 2;
+            const py = this.y + this.radius + 15;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(px, py, barWidth, barHeight);
+
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(px, py, barWidth * (this.progress / this.maxProgress), barHeight);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Courier';
+            ctx.textAlign = 'center';
+            const timeRemaining = Math.ceil(this.life / 60);
+            ctx.fillText(`${this.eventType.toUpperCase()} - ${timeRemaining}s`, this.x, py - 10);
+        }
+    }
+}

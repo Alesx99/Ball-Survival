@@ -48,8 +48,8 @@ export class SkinSystem {
         const skin = this.skins[skinId];
         if (!skin || skin.cost <= 0) return false;
         if (this.unlockedSkins[skinId]) return false;
-        if ((this.game?.gems ?? 0) < skin.cost) return false;
-        this.game.gems -= skin.cost;
+        if ((this.game?.totalGems ?? 0) < skin.cost) return false;
+        this.game.totalGems -= skin.cost;
         return this.unlockSkin(skinId);
     }
 
@@ -97,7 +97,7 @@ export class SkinSystem {
         for (const [id, skin] of Object.entries(this.skins)) {
             const owned = this.unlockedSkins[id];
             const equipped = this.equippedSkin === id;
-            const canBuy = !owned && skin.cost > 0 && (this.game?.gems ?? 0) >= skin.cost;
+            const canBuy = !owned && skin.cost > 0 && (this.game?.totalGems ?? 0) >= skin.cost;
             const borderColor = equipped ? '#00ffff' : owned ? '#4caf50' : '#333';
 
             html += `<div style="display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:6px;border-radius:10px;background:rgba(255,255,255,0.04);border:2px solid ${borderColor};">`;

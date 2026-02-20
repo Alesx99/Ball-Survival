@@ -1,0 +1,77 @@
+/**
+ * InputManager
+ * Handles keyboard, pointer, and gamepad inputs.
+ */
+
+export class InputManager {
+    constructor(game) {
+        this.game = game;
+        this.keys = {}; // Current state of keys
+        this.pointers = {}; // Pointer states
+    }
+
+    init() {
+        this.bindKeyboard();
+        this.bindPointers();
+        this.bindGamepad();
+    }
+
+    bindKeyboard() {
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    }
+
+    bindPointers() {
+        const gameContainer = document.getElementById('gameContainer') || document.body;
+        gameContainer.addEventListener('pointerdown', (e) => this.handlePointerDown(e));
+        gameContainer.addEventListener('pointermove', (e) => this.handlePointerMove(e), { passive: false });
+        gameContainer.addEventListener('pointerup', (e) => this.handlePointerEnd(e));
+        gameContainer.addEventListener('pointercancel', (e) => this.handlePointerEnd(e));
+        // Prevent default touch behaviors
+        gameContainer.addEventListener('touchstart', (e) => {
+            // Only prevent default on non-UI elements to allow scrolling in lists if needed
+            if (e.target.tagName !== 'BUTTON' && !e.target.closest('.scrollable')) {
+                if (e.cancelable) e.preventDefault();
+            }
+        }, { passive: false });
+        gameContainer.addEventListener('touchmove', (e) => {
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
+    }
+
+    bindGamepad() {
+        // Future gamepad support can be added here
+    }
+
+    handleKeyDown(e) {
+        if (this.game.state === 'running') this.game.audio?.unlock();
+        this.game.player.keys[e.code] = true;
+
+        if (e.code === 'Escape') this.game.handleEscapeKey();
+        if (e.code === 'KeyE') this.game.handleInteractionKey();
+        if (e.code === 'KeyJ') {
+            this.game.logLevelSystem?.discoverLog('test_log');
+        }
+    }
+
+    handleKeyUp(e) {
+        this.game.player.keys[e.code] = false;
+    }
+
+    handlePointerDown(e) {
+        this.game.handlePointerDown(e);
+    }
+
+    handlePointerMove(e) {
+        if (e.cancelable) e.preventDefault();
+        this.game.handlePointerMove(e);
+    }
+
+    handlePointerEnd(e) {
+        this.game.handlePointerEnd(e);
+    }
+
+    cleanup() {
+        // Remove event listeners if needed when destroying game
+    }
+}

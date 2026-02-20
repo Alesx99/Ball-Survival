@@ -6,6 +6,7 @@
 import { Enemy } from './Enemy.js';
 import { CONFIG } from '../config/index.js';
 import { Utils } from '../utils/index.js';
+import { poolManager } from '../utils/PoolManager.js';
 
 export class Boss extends Enemy {
     constructor(x, y, stats) {
@@ -24,7 +25,7 @@ export class Boss extends Enemy {
         if (now - this.lastAttack > CONFIG.boss.attack.cooldown) {
             const angleToPlayer = Math.atan2(game.player.y - this.y, game.player.x - this.x);
             const { Projectile } = game._entityClasses;
-            game.addEntity('enemyProjectiles', new Projectile(this.x, this.y, {
+            game.addEntity('enemyProjectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.x, this.y, {
                 angle: angleToPlayer,
                 speed: CONFIG.boss.attack.projectileSpeed,
                 damage: this.stats.damage,
@@ -59,7 +60,7 @@ export class Boss extends Enemy {
 
         // Golden boss reward
         if (this._goldenReward) {
-            game.gems = (game.gems || 0) + this._goldenReward;
+            game.gemsThisRun += this._goldenReward;
             game.notifications?.push?.({ text: `✨ BOSS DORATO SCONFITTO! +${this._goldenReward} 💎`, life: 400, color: '#ffd700' });
             game.cheatCodeSystem?.discoverEgg('golden_enemy');
         }
