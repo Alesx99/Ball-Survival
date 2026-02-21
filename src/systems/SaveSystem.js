@@ -87,7 +87,11 @@ export const SaveSystem = {
                 this.player.y = run.player.y;
 
                 this.spells = run.spells;
-                this.passives = run.passives;
+                this.passives = run.passives || {};
+                const upgradeTree = CONFIG.upgradeTree || {};
+                for (const id in upgradeTree) {
+                    if (upgradeTree[id].type === 'passive' && !this.passives[id]) this.passives[id] = { level: 0 };
+                }
 
                 this.player.stats.maxHp += ((this.passives.health?.level || 0) * 25);
                 this.player.stats.speed += ((this.passives.speed?.level || 0) * 0.4);

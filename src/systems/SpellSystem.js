@@ -3,6 +3,7 @@ import { Projectile } from '../entities/Projectile.js';
 import { Aura, StaticField, Orbital, Sanctuary } from '../entities/Areas.js';
 import { Particle, FireTrail, Effect } from '../entities/Particles.js';
 import { poolManager } from '../utils/PoolManager.js';
+import { CONFIG } from '../config/index.js';
 
 export const SpellSystem = {
 
@@ -21,7 +22,11 @@ export const SpellSystem = {
             cloaking: { id: 'cloaking', name: "Velo D'Ombra", level: 0, evolution: 'none', mastered: false, duration: 3000, cooldown: 12000, lastCast: 0 }
         };
         Object.values(this.spells).forEach(s => s.level = 0);
-        this.passives = { health: { level: 0 }, speed: { level: 0 }, armor: { level: 0 }, attack_speed: { level: 0 } };
+        this.passives = {};
+        const upgradeTree = CONFIG.upgradeTree || {};
+        for (const id in upgradeTree) {
+            if (upgradeTree[id].type === 'passive') this.passives[id] = { level: 0 };
+        }
     },
 
     castSpells() {
@@ -341,6 +346,33 @@ export const SpellSystem = {
                     }
                 }
             }
+            draw(ctx, game) {
+                const opacity = this.life > 30 ? 0.6 : (this.life / 30) * 0.6;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(Date.now() / 150);
+
+                const gradient = ctx.createRadialGradient(0, 0, this.radius * 0.1, 0, 0, this.radius);
+                gradient.addColorStop(0, `rgba(200, 200, 255, ${opacity})`);
+                gradient.addColorStop(0.5, `rgba(138, 43, 226, ${opacity * 0.8})`);
+                gradient.addColorStop(1, `rgba(75, 0, 130, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.5})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.moveTo(this.radius * 0.2, 0);
+                    ctx.quadraticCurveTo(this.radius * 0.5, this.radius * 0.5, this.radius * 0.9, 0);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
         }
         this.addEntity('areas', new CycloneAura(this.player.x, this.player.y, {
             radius: s.radius, life: s.duration, color: 'rgba(138, 43, 226, 0.4)'
@@ -351,6 +383,7 @@ export const SpellSystem = {
     castArmageddon(now) {
         const s = this.spells.armageddon;
         this.addScreenShake(30);
+        this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'armageddon_flash', life: 60, initialLife: 60 }));
         if (this.notifications) this.notifications.push({ text: "ARMAGEDDON!", life: 180, color: '#ff0000' });
         const targets = this.getEnemiesAndBosses();
         for (let enemy of targets) {

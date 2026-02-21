@@ -217,6 +217,7 @@ export const ProgressionSystem = {
 
         let target;
         if (upgrade.type === 'passive') {
+            if (!this.passives[upgrade.id]) this.passives[upgrade.id] = { level: 0 };
             target = this.passives[upgrade.id];
         } else {
             target = this.spells[baseId];
