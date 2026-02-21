@@ -370,18 +370,56 @@ export class Player extends Entity {
         const skinColor = game?.skinSystem?.getSkinColor(game.totalElapsedTime);
         const trailColor = skinColor || this.archetype?.color || '#4488ff';
         if (!CONFIG.accessibility?.reduceMotion && this._trail && this._trail.length > 0) {
-            const hex = trailColor.startsWith('#') ? trailColor : '#4488ff';
-            const rs = parseInt(hex.slice(1, 3), 16);
-            const gs = parseInt(hex.slice(3, 5), 16);
-            const bs = parseInt(hex.slice(5, 7), 16);
-            this._trail.forEach((p, i) => {
-                const alpha = (1 - i / this._trail.length) * 0.35;
-                const rad = this.stats.radius * (0.6 + (i / this._trail.length) * 0.4);
-                ctx.fillStyle = `rgba(${rs},${gs},${bs},${alpha})`;
+            if (this._trail.length > 2) {
+                // Glow effect setup
+                ctx.save();
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = trailColor;
+
+                // Draw a continuous smooth curve through the history points
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
-                ctx.fill();
-            });
+                ctx.moveTo(this._trail[0].x, this._trail[0].y);
+
+                for (let i = 1; i < this._trail.length - 1; i++) {
+                    const xc = (this._trail[i].x + this._trail[i + 1].x) / 2;
+                    const yc = (this._trail[i].y + this._trail[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(this._trail[i].x, this._trail[i].y, xc, yc);
+                }
+
+                // Curve up to the last point
+                const last = this._trail.length - 1;
+                ctx.lineTo(this._trail[last].x, this._trail[last].y);
+
+                // Create a fading gradient along the path direction
+                const grad = ctx.createLinearGradient(
+                    this._trail[0].x, this._trail[0].y,
+                    this._trail[last].x, this._trail[last].y
+                );
+
+                const hex = trailColor.startsWith('#') ? trailColor : '#4488ff';
+                const rs = parseInt(hex.slice(1, 3), 16) || 68;
+                const gs = parseInt(hex.slice(3, 5), 16) || 136;
+                const bs = parseInt(hex.slice(5, 7), 16) || 255;
+
+                grad.addColorStop(0, `rgba(${rs},${gs},${bs},0.6)`); // Head of trail (near player)
+                grad.addColorStop(1, `rgba(${rs},${gs},${bs},0.0)`); // Tail of trail
+
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = this.stats.radius * 0.8;
+                ctx.stroke();
+
+                // Draw a thinner, brighter core inside the trail
+                grad.addColorStop(0, `rgba(255,255,255,0.8)`);
+                grad.addColorStop(1, `rgba(255,255,255,0.0)`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = this.stats.radius * 0.3;
+                ctx.shadowBlur = 0; // Remove shadow from inner core to avoid muddiness
+                ctx.stroke();
+
+                ctx.restore();
+            }
         }
         if (this.archetype && this.archetype.draw) {
             this.archetype.draw(ctx, this);
