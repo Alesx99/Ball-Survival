@@ -50,6 +50,24 @@ export const Utils = {
         ctx.restore();
     },
 
+    /** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y @param {number} w @param {number} h @param {number} r @param {boolean} doFill @param {boolean} doStroke */
+    drawRoundedRect: (ctx, x, y, w, h, r, doFill = true, doStroke = false) => {
+        const rad = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rad, y);
+        ctx.lineTo(x + w - rad, y);
+        ctx.arc(x + w - rad, y + rad, rad, -Math.PI / 2, 0);
+        ctx.lineTo(x + w, y + h - rad);
+        ctx.arc(x + w - rad, y + h - rad, rad, 0, Math.PI / 2);
+        ctx.lineTo(x + rad, y + h);
+        ctx.arc(x + rad, y + h - rad, rad, Math.PI / 2, Math.PI);
+        ctx.lineTo(x, y + rad);
+        ctx.arc(x + rad, y + rad, rad, Math.PI, Math.PI * 1.5);
+        ctx.closePath();
+        if (doFill) ctx.fill();
+        if (doStroke) ctx.stroke();
+    },
+
     drawGroundShadow: (ctx, x, y, radius) => {
         ctx.save();
         ctx.translate(x, y + radius * 1.1);
