@@ -17,15 +17,89 @@ export class SkinSystem {
     get skins() {
         return {
             default: { name: 'Classico', desc: 'La skin base del gioco', color: '#4488ff', glow: '#4488ff', trail: '#4488ff', border: '#2266dd', cost: 0, icon: '🔵' },
-            retro_8bit: { name: 'Retro 8-bit', desc: 'Pixel art d\'epoca', color: '#00ff00', glow: '#00ff00', trail: '#00aa00', border: '#008800', cost: 0, icon: '👾', unlock: 'Codice Konami' },
-            rainbow: { name: 'Arcobaleno', desc: 'Colori cangianti', color: 'rainbow', glow: '#fff', trail: 'rainbow', border: '#ff0000', cost: 0, icon: '🌈', unlock: 'Codice Rainbow' },
-            night_shadow: { name: 'Ombra Notturna', desc: 'L\'oscurità ti avvolge', color: '#1a1a2e', glow: '#4a0080', trail: '#2d0050', border: '#6a0dad', cost: 0, icon: '🌙', unlock: 'Gioca di notte' },
-            peace_aura: { name: 'Aura di Pace', desc: 'La calma è la vera forza', color: '#88ddff', glow: '#00ffcc', trail: '#66ffaa', border: '#00cc99', cost: 0, icon: '☮️', unlock: 'Pacifista 3min' },
-            golden: { name: 'Dorato', desc: 'Brillante come l\'oro', color: '#ffd700', glow: '#ffaa00', trail: '#ff8800', border: '#cc8800', cost: 500, icon: '✨' },
-            infernal: { name: 'Infernale', desc: 'Forgiato nel fuoco', color: '#ff3300', glow: '#ff6600', trail: '#ff4400', border: '#cc2200', cost: 750, icon: '🔥' },
-            void_walker: { name: 'Camminatore del Vuoto', desc: 'Fra le dimensioni', color: '#8800ff', glow: '#aa00ff', trail: '#6600cc', border: '#5500aa', cost: 1000, icon: '🌀' },
-            diamond: { name: 'Diamante', desc: 'Indistruttibile', color: '#b9f2ff', glow: '#e0f7ff', trail: '#88ddff', border: '#66bbdd', cost: 2000, icon: '💎' }
+            retro_8bit: { name: 'Retro 8-bit', desc: 'Pixel art d\'epoca', color: '#00ff00', glow: '#00ff00', trail: '#00aa00', border: '#008800', cost: 0, icon: '👾', unlock: 'Codice Konami', effect: 'matrix' },
+            rainbow: { name: 'Arcobaleno', desc: 'Colori cangianti', color: 'rainbow', glow: '#fff', trail: 'rainbow', border: '#ff0000', cost: 0, icon: '🌈', unlock: 'Codice Rainbow', effect: 'pulse' },
+            night_shadow: { name: 'Ombra Notturna', desc: 'L\'oscurità ti avvolge', color: '#1a1a2e', glow: '#4a0080', trail: '#2d0050', border: '#6a0dad', cost: 0, icon: '🌙', unlock: 'Gioca di notte', effect: 'aura' },
+            peace_aura: { name: 'Aura di Pace', desc: 'La calma è la vera forza', color: '#88ddff', glow: '#00ffcc', trail: '#66ffaa', border: '#00cc99', cost: 0, icon: '☮️', unlock: 'Pacifista 3min', effect: 'aura' },
+            golden: { name: 'Dorato', desc: 'Brillante come l\'oro', color: '#ffd700', glow: '#ffaa00', trail: '#ff8800', border: '#cc8800', cost: 500, icon: '✨', effect: 'pulse' },
+            infernal: { name: 'Infernale', desc: 'Forgiato nel fuoco', color: '#ff3300', glow: '#ff6600', trail: '#ff4400', border: '#cc2200', cost: 750, icon: '🔥', effect: 'fire' },
+            void_walker: { name: 'Camminatore del Vuoto', desc: 'Fra le dimensioni', color: '#8800ff', glow: '#aa00ff', trail: '#6600cc', border: '#5500aa', cost: 1000, icon: '🌀', effect: 'matrix' },
+            diamond: { name: 'Diamante', desc: 'Indistruttibile', color: '#b9f2ff', glow: '#e0f7ff', trail: '#88ddff', border: '#66bbdd', cost: 2000, icon: '💎', effect: 'sparkle' }
         };
+    }
+
+    /**
+     * Draws an animated visual effect layer over the player.
+     * @param {CanvasRenderingContext2D} ctx 
+     * @param {Player} player 
+     */
+    drawEffectLayer(ctx, player) {
+        const skin = this.getEquipped();
+        if (!skin.effect) return;
+
+        const r = player.stats.radius;
+        const t = Date.now() / 1000;
+
+        ctx.save();
+        ctx.translate(player.x, player.y);
+
+        switch (skin.effect) {
+            case 'matrix':
+                ctx.strokeStyle = skin.glow;
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.4;
+                for (let i = 0; i < 4; i++) {
+                    const y = ((t * 20 + i * 10) % (r * 2)) - r;
+                    ctx.beginPath();
+                    ctx.moveTo(-r, y); ctx.lineTo(r, y);
+                    ctx.stroke();
+                }
+                break;
+            case 'pulse':
+                const s = 1 + Math.sin(t * 5) * 0.2;
+                ctx.strokeStyle = skin.glow;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath();
+                ctx.arc(0, 0, r * s, 0, Math.PI * 2);
+                ctx.stroke();
+                break;
+            case 'aura':
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = skin.glow;
+                ctx.strokeStyle = skin.glow;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.3;
+                ctx.rotate(t);
+                for (let i = 0; i < 3; i++) {
+                    ctx.rotate(Math.PI * 2 / 3);
+                    ctx.beginPath();
+                    ctx.arc(r + 2, 0, 4, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                break;
+            case 'fire':
+                ctx.globalAlpha = 0.4;
+                ctx.fillStyle = '#ff6600';
+                for (let i = 0; i < 5; i++) {
+                    const a = (t * 2 + i) % (Math.PI * 2);
+                    const dist = r * (0.8 + Math.random() * 0.4);
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(a) * dist, Math.sin(a) * dist, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+            case 'sparkle':
+                if (Math.random() > 0.8) {
+                    ctx.fillStyle = '#fff';
+                    const sx = (Math.random() - 0.5) * r * 2;
+                    const sy = (Math.random() - 0.5) * r * 2;
+                    ctx.fillRect(sx, sy, 3, 3);
+                }
+                break;
+        }
+
+        ctx.restore();
     }
 
     unlockSkin(skinId) {

@@ -50,7 +50,31 @@ export const Utils = {
         ctx.restore();
     },
 
+    drawGroundShadow: (ctx, x, y, radius) => {
+        ctx.save();
+        ctx.translate(x, y + radius * 1.1);
+        ctx.scale(1.2, 0.35);
+        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+        grad.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    },
+
+    drawSpecularHighlight: (ctx, x, y, radius) => {
+        ctx.save();
+        ctx.translate(x, y);
+        const grad = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, -radius * 0.3, -radius * 0.3, radius * 0.8);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    },
+
     drawEnemySprite: (ctx, x, y, radius, type, color, isElite = false) => {
+        Utils.drawGroundShadow(ctx, x, y, radius);
         ctx.save();
         switch (type) {
             case 'circle': Utils.drawSlimeSprite(ctx, x, y, radius, color, isElite); break;
@@ -61,6 +85,7 @@ export const Utils = {
             default: Utils.drawSlimeSprite(ctx, x, y, radius, color, isElite);
         }
         ctx.restore();
+        Utils.drawSpecularHighlight(ctx, x, y, radius);
     },
 
     drawSlimeSprite: (ctx, x, y, radius, color, isElite) => {

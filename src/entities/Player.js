@@ -427,6 +427,11 @@ export class Player extends Entity {
             CONFIG.characterArchetypes.standard.draw(ctx, this);
         }
 
+        // Apply skin-specific effect layer (Aura, Matrix, etc.)
+        if (game?.skinSystem) {
+            game.skinSystem.drawEffectLayer(ctx, this);
+        }
+
         this.drawActiveCores(ctx, game);
         this.drawActiveWeapons(ctx, game);
 

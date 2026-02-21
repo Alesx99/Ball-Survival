@@ -4,6 +4,7 @@
  */
 
 import { Utils } from '../utils/index.js';
+import { PlayerDraw } from '../render/PlayerDraw.js';
 
 export const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
@@ -32,44 +33,7 @@ export const CONFIG = {
             malus: "Nessuno.",
             color: '#4488ff',
             cost: 0,
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.002;
-                const pulse = Math.sin(t) * 2;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                // Outer glow
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = player.archetype.color;
-
-                // Core
-                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r + pulse);
-                grad.addColorStop(0, '#ffffff');
-                grad.addColorStop(0.4, player.archetype.color);
-                grad.addColorStop(1, 'rgba(68, 136, 255, 0.1)');
-
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(0, 0, r + pulse, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Orbiting Rings
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.shadowBlur = 5;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, r + 4 + pulse, r / 2, t, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.strokeStyle = player.archetype.color;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, r + 4 + pulse, r / 2, -t * 1.5, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawStandard(ctx, player)
         },
         'steel': {
             id: 'steel',
@@ -81,51 +45,7 @@ export const CONFIG = {
             color: '#bdc3c7',
             cost: 200,
             weaponBonuses: { shockwave: { damage: 1.4, knockback: 1.5, radius: 1.25 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.001;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#7f8c8d';
-
-                // Metallic Core
-                const grad = ctx.createRadialGradient(-r / 3, -r / 3, 0, 0, 0, r);
-                grad.addColorStop(0, '#ecf0f1');
-                grad.addColorStop(0.5, player.archetype.color);
-                grad.addColorStop(1, '#2c3e50');
-
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(0, 0, r, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Rotating Armor Plates
-                ctx.rotate(t);
-                ctx.strokeStyle = '#95a5a6';
-                ctx.lineWidth = 4;
-                ctx.lineCap = 'round';
-
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, r + 2, i * (Math.PI * 2 / 3) + 0.2, (i + 1) * (Math.PI * 2 / 3) - 0.2);
-                    ctx.stroke();
-                }
-
-                // Inner details
-                ctx.rotate(-t * 2);
-                ctx.strokeStyle = '#bdc3c7';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, r - 5, i * (Math.PI * 2 / 3), (i + 1) * (Math.PI * 2 / 3) - 0.5);
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawSteel(ctx, player)
         },
         'magma': {
             id: 'magma',
@@ -137,53 +57,7 @@ export const CONFIG = {
             color: '#e67e22',
             cost: 300,
             weaponBonuses: { fireball: { burnDamage: 1.6, damage: 1.25 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.005;
-                const pulse = Math.sin(t * 0.5) * 3;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                // Deep glow
-                ctx.shadowBlur = 20 + pulse * 2;
-                ctx.shadowColor = '#ff4500';
-
-                // Core
-                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
-                grad.addColorStop(0, '#ffffcc');
-                grad.addColorStop(0.3, '#ffaa00');
-                grad.addColorStop(0.8, '#ff3300');
-                grad.addColorStop(1, '#8b0000');
-
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(0, 0, r, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Animated flames
-                ctx.fillStyle = 'rgba(255, 69, 0, 0.6)';
-                ctx.beginPath();
-                for (let i = 0; i < 8; i++) {
-                    const a = (i * Math.PI * 2) / 8 + t * 0.2;
-                    const flameHeight = r + 5 + Math.sin(t + i) * 6;
-                    const ctrlDist = r + 2;
-
-                    const pX = Math.cos(a) * flameHeight;
-                    const pY = Math.sin(a) * flameHeight;
-
-                    const c1a = a - 0.2;
-                    const c1X = Math.cos(c1a) * ctrlDist;
-                    const c1Y = Math.sin(c1a) * ctrlDist;
-
-                    if (i === 0) ctx.moveTo(pX, pY);
-                    else ctx.quadraticCurveTo(c1X, c1Y, pX, pY);
-                }
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawMagma(ctx, player)
         },
         'frost': {
             id: 'frost',
@@ -195,39 +69,7 @@ export const CONFIG = {
             color: '#3498db',
             cost: 300,
             weaponBonuses: { frostbolt: { slow: 1.4, damage: 1.25, penetration: 1.3 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.001;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = '#00ffff';
-
-                // Core crystal
-                ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Rotating Snowflake / Crystal layers
-                ctx.strokeStyle = '#ecf0f1';
-                ctx.lineWidth = 2;
-
-                // Outer slow rotation
-                ctx.rotate(t * 0.5);
-                Utils.drawPolygon(ctx, 0, 0, r + Math.sin(t * 2), 6, 0, 'rgba(52, 152, 219, 0.6)');
-                ctx.stroke();
-
-                // Inner fast reverse rotation
-                ctx.rotate(-t * 1.5);
-                ctx.strokeStyle = '#00ffff';
-                Utils.drawPolygon(ctx, 0, 0, r * 0.8, 6, 0, 'transparent');
-                ctx.stroke();
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawFrost(ctx, player)
         },
         'shadow': {
             id: 'shadow',
@@ -239,39 +81,7 @@ export const CONFIG = {
             color: '#8e44ad',
             cost: 400,
             weaponBonuses: { shotgun: { count: 2, critChance: 0.25, damage: 1.15 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.002;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                ctx.shadowBlur = 25;
-                ctx.shadowColor = '#4a235a'; // Deep purple glow
-
-                // Event Horizon
-                const g = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r * 1.5);
-                g.addColorStop(0, '#000000');
-                g.addColorStop(0.6, player.archetype.color);
-                g.addColorStop(1, 'rgba(0,0,0,0)');
-
-                ctx.fillStyle = g;
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 1.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Swirling dark matter
-                ctx.strokeStyle = 'rgba(142, 68, 173, 0.5)';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 3; i++) {
-                    ctx.rotate(t + i * Math.PI / 1.5);
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, r * 1.2, r * 0.4, 0, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawShadowModel(ctx, player)
         },
         'tech': {
             id: 'tech',
@@ -283,51 +93,7 @@ export const CONFIG = {
             color: '#1abc9c',
             cost: 800,
             weaponBonuses: { lightning: { chains: 3, area: 1.4, damage: 1.25 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.002;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = player.archetype.color;
-
-                // Center node
-                ctx.fillStyle = '#16a085';
-                ctx.beginPath(); ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2); ctx.fill();
-
-                ctx.strokeStyle = player.archetype.color;
-                ctx.lineWidth = 2;
-
-                // Ring 1 (Inner, rotating right)
-                ctx.save();
-                ctx.rotate(t);
-                ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 1.5); ctx.stroke();
-                ctx.fillStyle = player.archetype.color;
-                ctx.beginPath(); ctx.arc(r * 0.6, 0, 3, 0, Math.PI * 2); ctx.fill();
-                ctx.restore();
-
-                // Ring 2 (Middle, rotating left)
-                ctx.save();
-                ctx.rotate(-t * 1.2);
-                ctx.beginPath(); ctx.arc(0, 0, r * 0.85, Math.PI * 0.5, Math.PI * 2); ctx.stroke();
-                ctx.beginPath(); ctx.arc(0, r * 0.85, 3, 0, Math.PI * 2); ctx.fill();
-                ctx.restore();
-
-                // Ring 3 (Outer, segments)
-                ctx.save();
-                ctx.rotate(t * 0.8);
-                ctx.lineWidth = 3;
-                for (let i = 0; i < 4; i++) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, r * 1.1, i * Math.PI / 2, i * Math.PI / 2 + 0.5);
-                    ctx.stroke();
-                }
-                ctx.restore();
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawTech(ctx, player)
         },
         'prism': {
             id: 'prism',
@@ -340,52 +106,7 @@ export const CONFIG = {
             cost: 1000,
             unlockRequirement: { type: 'all_stages', count: 5 },
             weaponBonuses: { magicMissile: { damage: 1.25, area: 1.2 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.001;
-                const pulse = Math.sin(t * 3) * 2;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                // Dynamically changing shadow color
-                const hue = (Date.now() / 20) % 360;
-                ctx.shadowBlur = 20 + pulse;
-                ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-
-                // Core isometric diamond
-                ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.4)`;
-                ctx.beginPath();
-                ctx.moveTo(0, -r);
-                ctx.lineTo(r, 0);
-                ctx.lineTo(0, r);
-                ctx.lineTo(-r, 0);
-                ctx.fill();
-
-                // 3D-like wireframe
-                ctx.strokeStyle = `hsl(${(hue + 60) % 360}, 100%, 70%)`;
-                ctx.lineWidth = 2;
-                ctx.rotate(t);
-
-                // Draw 6-sided crystal structure
-                for (let i = 0; i < 6; i++) {
-                    const a = i * Math.PI / 3;
-                    const nextA = (i + 1) * Math.PI / 3;
-
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(a) * (r * 0.4 + pulse), Math.sin(a) * (r * 0.4 + pulse));
-                    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-                    ctx.lineTo(Math.cos(nextA) * r, Math.sin(nextA) * r);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, 4, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawPrism(ctx, player)
         },
         'unstable': {
             id: 'unstable',
@@ -398,48 +119,7 @@ export const CONFIG = {
             cost: 600,
             unlockRequirement: { type: 'boss_kills_single_run', count: 3 },
             weaponBonuses: { fireball: { damage: 1.4, burnDamage: 1.3 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.005;
-                const pulse = Math.sin(t * 0.8) * 3;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                const colorPhase = (Date.now() / 150) % 3;
-                const baseColor = colorPhase < 1 ? '#ff1744' : colorPhase < 2 ? '#ffea00' : '#ffffff';
-
-                ctx.shadowBlur = 15 + Math.random() * 10;
-                ctx.shadowColor = baseColor;
-
-                // Core
-                ctx.fillStyle = baseColor;
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.5 + pulse, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Sparking electrical arcs
-                ctx.strokeStyle = '#ffea00';
-                ctx.lineWidth = 1.5;
-
-                for (let i = 0; i < 6; i++) {
-                    if (Math.random() > 0.4) continue; // Random sparking
-                    const a = Math.random() * Math.PI * 2;
-                    const len = r * (0.8 + Math.random() * 0.5);
-                    const midX = Math.cos(a + 0.2) * len * 0.5;
-                    const midY = Math.sin(a + 0.2) * len * 0.5;
-                    const endX = Math.cos(a) * len;
-                    const endY = Math.sin(a) * len;
-
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(midX, midY); // Jagged middle point
-                    ctx.lineTo(endX, endY);
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawUnstable(ctx, player)
         },
         'druid': {
             id: 'druid',
@@ -452,49 +132,7 @@ export const CONFIG = {
             cost: 500,
             unlockRequirement: { type: 'materials_collected', count: 1000 },
             weaponBonuses: { heal: { healAmount: 1.4, cooldown: 0.85 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.001;
-                const pulse = Math.sin(t * 2) * 2;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = '#00e676';
-
-                // Core sphere
-                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r + pulse);
-                grad.addColorStop(0, '#76ff03');
-                grad.addColorStop(0.5, 'rgba(0, 230, 118, 0.4)');
-                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(0, 0, r + pulse, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Orbiting 'leaves'
-                ctx.fillStyle = '#00e676';
-                for (let i = 0; i < 4; i++) {
-                    const a = t * 1.5 + i * Math.PI / 2;
-                    const orbitDist = r * 1.4 + Math.sin(t * 3 + i) * 2;
-                    const leafX = Math.cos(a) * orbitDist;
-                    const leafY = Math.sin(a) * orbitDist;
-
-                    ctx.save();
-                    ctx.translate(leafX, leafY);
-                    ctx.rotate(a + Math.PI / 4);
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, 4, 1.5, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
-
-                ctx.restore();
-            }
+            draw: (ctx, player) => PlayerDraw.drawDruid(ctx, player)
         },
         'phantom': {
             id: 'phantom',
@@ -507,49 +145,8 @@ export const CONFIG = {
             cost: 1200,
             unlockRequirement: { type: 'total_deaths', count: 100 },
             weaponBonuses: { shotgun: { count: 1, damage: 1.2, critChance: 0.15 } },
-            draw: (ctx, player) => {
-                const r = player.stats.radius;
-                const t = Date.now() * 0.002;
-
-                ctx.save();
-                ctx.translate(player.x, player.y);
-
-                const hoverOffset = Math.sin(t) * 3;
-
-                ctx.globalAlpha = 0.6 + Math.sin(t * 0.5) * 0.2;
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = '#e0f7fa';
-
-                // Ethereal wisp body using a path
-                // creating a teardrop-like ghost shape
-                ctx.fillStyle = 'rgba(176, 190, 197, 0.6)';
-                ctx.beginPath();
-                ctx.moveTo(0, -r + hoverOffset); // Top
-                ctx.bezierCurveTo(r, -r + hoverOffset, r * 1.2, r * 0.5 + hoverOffset, 0, r * 1.5 + hoverOffset); // Right curve
-                ctx.bezierCurveTo(-r * 1.2, r * 0.5 + hoverOffset, -r, -r + hoverOffset, 0, -r + hoverOffset); // Left curve
-                ctx.fill();
-
-                // Core inner glow
-                const g = ctx.createRadialGradient(0, hoverOffset, 0, 0, hoverOffset, r);
-                g.addColorStop(0, '#ffffff');
-                g.addColorStop(0.5, 'rgba(176, 190, 197, 0.5)');
-                g.addColorStop(1, 'rgba(176, 190, 197, 0)');
-                ctx.fillStyle = g;
-                ctx.beginPath(); ctx.arc(0, hoverOffset, r, 0, Math.PI * 2); ctx.fill();
-
-                // Glowing eyes
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = '#ffffff';
-
-                const eyeSpread = 5;
-                const eyeY = -4 + hoverOffset;
-                ctx.beginPath(); ctx.arc(-eyeSpread, eyeY, 2, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(eyeSpread, eyeY, 2, 0, Math.PI * 2); ctx.fill();
-
-                ctx.restore();
-            }
-        }
+            draw: (ctx, player) => PlayerDraw.drawPhantom(ctx, player)
+        },
     },
     enemies: {
         spawnInterval: 0.7,
