@@ -372,7 +372,7 @@ export const UISystem = {
     showPopup(popupKey) {
         if (popupKey === 'settings') {
             /* settings overlay: no state change */
-        } else if (popupKey !== 'upgrade' && popupKey !== 'shop') {
+        } else if (popupKey !== 'upgrade' && popupKey !== 'shop' && popupKey !== 'secretShop') {
             if (popupKey === 'start') this.state = 'startScreen';
             else if (popupKey === 'gameOver') this.state = 'gameOver';
             else this.state = 'paused';
@@ -388,6 +388,8 @@ export const UISystem = {
 
         if (popupKey === 'shop') {
             this.populateShop();
+        } else if (popupKey === 'secretShop') {
+            this.populateSecretShop();
         }
         if (popupKey === 'pause') {
             this.populateStatsMenu();
@@ -644,6 +646,69 @@ export const UISystem = {
                 this.hideAllPopups();
             });
         }
+    },
+
+    populateSecretShop() {
+        const gemsEl = document.getElementById('totalGemsSecretShop');
+        if (gemsEl) gemsEl.textContent = this.totalGems;
+        const container = document.getElementById('secretShopOptions');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const items = [
+            { id: 'divine_shard', name: 'Frammento Divino', desc: 'Invincibilità e Danni ++ per 60s.', cost: 500, icon: '🔮', type: 'item' },
+            { id: 'treasure_map', name: 'Evoca Tesoro', desc: 'Spawna istantaneamente un Forziere Epico.', cost: 300, icon: '🗺️', type: 'buff' },
+            { id: 'full_heal', name: 'Cura Miracolosa', desc: 'Ripristina tutti gli HP attuali.', cost: 150, icon: '❤️', type: 'heal' }
+        ];
+
+        items.forEach(item => {
+            const canAfford = this.totalGems >= item.cost;
+            const costColor = canAfford ? '#fff' : '#e74c3c';
+            const btnHTML = `<div class="skill-node-cost" style="color:${costColor}">${item.cost} 💎</div>
+                             <button class="skill-node-btn buy-button" data-key="${item.id}" data-cost="${item.cost}" data-type="${item.type}" ${canAfford ? '' : 'disabled'}>
+                                 ${canAfford ? 'Acquista' : 'Cristalli Insuff.'}
+                             </button>`;
+
+            const nodeHTML = `
+                <div class="skill-node" style="border-color: #ff0000; background: rgba(255,0,0,0.05);">
+                    <div class="skill-node-header">
+                        <div class="skill-node-icon">${item.icon}</div>
+                    </div>
+                    <div class="skill-node-title" style="color:#ff6b6b;">${item.name}</div>
+                    <div class="skill-node-desc">${item.desc}</div>
+                    ${btnHTML}
+                </div>
+            `;
+            container.innerHTML += nodeHTML;
+        });
+
+        container.querySelectorAll('.buy-button').forEach(btn => {
+            btn.onclick = () => {
+                const id = btn.dataset.key;
+                const cost = parseInt(btn.dataset.cost);
+
+                if (this.totalGems >= cost) {
+                    this.totalGems -= cost;
+                    if (this.audio) this.audio.playAchievementUnlock?.();
+
+                    if (id === 'divine_shard') {
+                        this.player.powerUpTimers = this.player.powerUpTimers || {};
+                        this.player.powerUpTimers.invincibility = 3600;
+                        this.player.powerUpTimers.damageBoost = 3600;
+                        this.notifications.push({ text: 'Potere Divino Acquisito!', life: 300, color: '#f1c40f' });
+                    } else if (id === 'treasure_map') {
+                        const ChestClass = this._entityClasses.Chest;
+                        this.addEntity('chests', new ChestClass(this.player.x + 200, this.player.y + 200, 'epic'));
+                        this.notifications.push({ text: 'Un Forziere Epico è apparso!', life: 250, color: '#9b59b6' });
+                    } else if (id === 'full_heal') {
+                        this.player.hp = this.player.stats.maxHp;
+                        this.notifications.push({ text: 'Salute Max Ripristinata!', life: 200, color: '#2ecc71' });
+                    }
+
+                    this.populateSecretShop(); // Refresh UI
+                }
+            };
+        });
     },
 
     showBossUpgradePopup() {

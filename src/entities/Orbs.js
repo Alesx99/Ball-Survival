@@ -16,7 +16,7 @@ export class XpOrb extends Entity {
 
     update(game) {
         const player = game.player;
-        const pickupRadius = CONFIG.xpOrbs.pickupRadius * (1 + ((player.modifiers?.area || 1) - 1) * 0.5);
+        const pickupRadius = CONFIG.xpOrbs.pickupRadius * (1 + ((player.modifiers?.area || 1) - 1) * 0.5) * (player.modifiers?.pickupRadius || 1);
         const dist = Utils.getDistance(this, player);
         if (dist < pickupRadius) {
             const angle = Math.atan2(player.y - this.y, player.x - this.x);
@@ -52,7 +52,9 @@ export class GemOrb extends Entity {
     update(game) {
         const player = game.player;
         const dist = Utils.getDistance(this, player);
-        if (dist < 120) {
+        const pickupRadius = 120 * (player.modifiers?.pickupRadius || 1);
+
+        if (dist < pickupRadius) {
             const angle = Math.atan2(player.y - this.y, player.x - this.x);
             this.x += Math.cos(angle) * 5;
             this.y += Math.sin(angle) * 5;
@@ -100,7 +102,7 @@ export class MaterialOrb extends Entity {
 
         const player = game.player;
         const dist = Utils.getDistance(this, player);
-        const magnetRange = 150;
+        const magnetRange = 150 * (player.modifiers?.pickupRadius || 1);
         if (dist < magnetRange) {
             const angle = Math.atan2(player.y - this.y, player.x - this.x);
             const speed = Math.max(3, (magnetRange - dist) * 0.08);

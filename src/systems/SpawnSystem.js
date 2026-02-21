@@ -53,6 +53,10 @@ export const SpawnSystem = {
             dynamicSpawnInterval = Math.max(0.08, 0.25 - (timeInMinutes - 30) * 0.012);
         }
 
+        // Curse scaling
+        const curse = this.player.modifiers?.curse || 0;
+        dynamicSpawnInterval /= (1 + curse);
+
         // Applica spawnMultiplier da difficulty tier attivo
         const activeTier = this._getActiveDifficultyTier();
         if (activeTier?.spawnMultiplier) {
@@ -72,6 +76,7 @@ export const SpawnSystem = {
 
         // Max enemies — scala fino a 300 (base più alta)
         let maxEnemies = Math.min(300, 26 + Math.floor(timeInMinutes * 9));
+        maxEnemies = Math.floor(maxEnemies * (1 + curse));
 
         // Endless mode: cap increases +12 per minute after 30m
         if (this.gameMode === 'endless' && timeInMinutes > 30) {
@@ -103,6 +108,7 @@ export const SpawnSystem = {
         if (this.gameMode === 'endless' && timeInMinutes > 30) {
             batchSize += Math.floor((timeInMinutes - 30) / 1.8);
         }
+        batchSize = Math.floor(batchSize * (1 + curse));
 
         for (let i = 0; i < batchSize; i++) {
             if (this.entities.enemies.length >= maxEnemies) break;
@@ -132,10 +138,10 @@ export const SpawnSystem = {
 
             let finalStats = {
                 ...CONFIG.enemies.base,
-                hp: CONFIG.enemies.base.hp + Math.floor(combinedFactor) * scaling.hpPerFactor,
-                speed: CONFIG.enemies.base.speed + combinedFactor * scaling.speedPerFactor,
+                hp: Math.floor((CONFIG.enemies.base.hp + Math.floor(combinedFactor) * scaling.hpPerFactor) * (1 + curse)),
+                speed: (CONFIG.enemies.base.speed + combinedFactor * scaling.speedPerFactor) * (1 + curse * 0.3),
                 damage: CONFIG.enemies.base.damage + Math.floor(combinedFactor) * scaling.damagePerFactor,
-                xp: CONFIG.enemies.base.xp + Math.floor(Math.pow(combinedFactor, scaling.xpPowerFactor) * scaling.xpPerFactor),
+                xp: Math.floor((CONFIG.enemies.base.xp + Math.floor(Math.pow(combinedFactor, scaling.xpPowerFactor) * scaling.xpPerFactor)) * (1 + curse)),
                 dr: Math.min(0.75, combinedFactor * scaling.drPerFactor)
             };
 
@@ -284,12 +290,65 @@ export const SpawnSystem = {
     },
 
     spawnChests() {
-        if (this.entities.chests.length === 0 && this.totalElapsedTime > this.nextChestSpawnTime) {
+        if (this.gameMode === 'tutorial' || this.gameMode === 'bossRush') return;
+
+        const maxChests = CONFIG.chest.maxMapChests || 1;
+        if (this.entities.chests.length < maxChests && this.totalElapsedTime > this.nextChestSpawnTime) {
             const buffer = 200; let x, y, dist;
-            do { x = this.rng.next() * (CONFIG.world.width - buffer * 2) + buffer; y = this.rng.next() * (CONFIG.world.height - buffer * 2) + buffer; dist = Utils.getDistance({ x, y }, this.player); }
-            while (dist < this.camera.width);
-            this.addEntity('chests', new Chest(x, y));
+            let attempts = 0;
+            do {
+                x = this.rng.next() * (CONFIG.world.width - buffer * 2) + buffer;
+                y = this.rng.next() * (CONFIG.world.height - buffer * 2) + buffer;
+                dist = Utils.getDistance({ x, y }, this.player);
+                attempts++;
+            } while (dist < this.camera.width && attempts < 50);
+
+            // Determine Rarity
+            let rarity = 'normal';
+            const roll = this.rng.next();
+            const epicThreshold = 1.0 - (CONFIG.chest.legendaryChance || 0.03) - (CONFIG.chest.epicChance || 0.12);
+            const legendaryThreshold = 1.0 - (CONFIG.chest.legendaryChance || 0.03);
+
+            if (roll >= legendaryThreshold) {
+                rarity = 'legendary';
+            } else if (roll >= epicThreshold) {
+                rarity = 'epic';
+            }
+
+            this.addEntity('chests', new Chest(x, y, rarity));
+
+            // Notification only
+            if (rarity === 'legendary') {
+                this.notifications.push({ text: "UN FORZIERE LEGGENDARIO È APPARSO!", life: 300, color: '#f1c40f' });
+            } else if (rarity === 'epic') {
+                this.notifications.push({ text: "Un Forziere Epico è nelle vicinanze.", life: 250, color: '#9b59b6' });
+            }
+
             this.nextChestSpawnTime = this.totalElapsedTime + CONFIG.chest.respawnTime;
+        }
+    },
+
+    triggerChestAlarm(x, y, rarity) {
+        if (rarity === 'normal') return;
+
+        const count = rarity === 'legendary' ? 12 : 6;
+        const radius = 250;
+        this.notifications.push({ text: "TRAPPOLA DEL FORZIERE ATTIVATA!", life: 200, color: '#e74c3c' });
+
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 / count) * i;
+            const spawnX = x + Math.cos(angle) * radius;
+            const spawnY = y + Math.sin(angle) * radius;
+
+            const timeFactor = this.totalElapsedTime / 50;
+            if (rarity === 'legendary' && i % 4 === 0) { // Some bosses for legendary
+                const stats = { ...CONFIG.boss.base, hp: 1500 + timeFactor * 500, speed: 1.5, type: 'golem_boss' };
+                stats.maxHp = stats.hp;
+                this.addEntity('bosses', new Boss(spawnX, spawnY, stats));
+            } else { // Elites
+                const stats = { ...CONFIG.enemies.base, hp: CONFIG.enemies.base.hp * 8, damage: CONFIG.enemies.base.damage * 2, speed: CONFIG.enemies.base.speed * 0.9, radius: 25, xp: 50, isElite: true, type: 'elite' };
+                this.addEntity('enemies', new Enemy(spawnX, spawnY, stats));
+            }
         }
     },
 
@@ -341,7 +400,7 @@ export const SpawnSystem = {
                 duration: duration,
                 eventType: eventType,
                 maxProgress: maxProgress,
-                reward: this.rng.next() > 0.8 ? 'epic_chest' : 'gems',
+                reward: 'epic_chest', // Always force epic chest
                 color: isKillEvent ? '#ff4444' : '#4444ff'
             }));
 

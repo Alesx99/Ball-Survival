@@ -31,7 +31,7 @@ export class Player extends Entity {
         this.powerUpTimers = { invincibility: 0, damageBoost: 0, lifesteal: 0 };
         this.iFramesTimer = 0;
         this.stats = { ...this.baseStats };
-        this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false };
+        this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false, hpRegen: 0, pickupRadius: 1, iframeTimer: 0, curse: 0 };
         this.hp = this.stats.maxHp;
         this.archetype = CONFIG.characterArchetypes.standard;
     }
@@ -166,6 +166,11 @@ export class Player extends Entity {
         this.y += fDy * this.stats.speed;
         this.x = Math.max(this.stats.radius, Math.min(CONFIG.world.width - this.stats.radius, this.x));
         this.y = Math.max(this.stats.radius, Math.min(CONFIG.world.height - this.stats.radius, this.y));
+
+        // HP Regeneration logic (per frame at 60fps)
+        if (this.modifiers.hpRegen > 0 && this.hp < this.stats.maxHp) {
+            this.hp = Math.min(this.stats.maxHp, this.hp + this.modifiers.hpRegen / 60);
+        }
 
         if ((fDx !== 0 || fDy !== 0) && this.stats.speed > 0.5) {
             if (!this._trail) this._trail = [];
@@ -355,7 +360,11 @@ export class Player extends Entity {
         game?.audio?.playDamage();
         game?.addScreenShake?.(10);
         if (!CONFIG.accessibility?.reduceMotion) game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;
-        this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
+
+        const baseIFrames = CONFIG.player.iFramesDuration ?? 0.8;
+        const extraIFrames = this.modifiers.iframeTimer || 0;
+        this.iFramesTimer = Math.ceil((baseIFrames + extraIFrames) * 60);
+
         if (this.hp <= 0 && game) {
             if (game.metaProgressionSystem?.onPlayerDeath(this)) {
                 // Il sistema ha annullato la morte (es. revive)

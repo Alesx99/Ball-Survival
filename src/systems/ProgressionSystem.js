@@ -231,11 +231,30 @@ export const ProgressionSystem = {
         else if (upgrade.id === 'frostbolt') { target.damage += 5; target.penetration++; }
         else if (upgrade.id === 'shotgun') { target.damage += 4; target.count += 2; }
         else if (upgrade.id === 'shockwave') { target.damage += 10; target.radius += 15; target.knockback += 5; }
+        else if (upgrade.id === 'cyclone') { target.damage += 5; target.radius += 10; target.duration += 30; }
+        else if (upgrade.id === 'cloaking') { target.duration += 1000; target.cooldown = Math.max(6000, target.cooldown - 1000); }
         else if (upgrade.id === 'heal') { target.amount += 10; target.cooldown = Math.max(4000, target.cooldown - 1000); }
         else if (upgrade.id === 'shield') { target.duration += 300; target.cooldown = Math.max(12000, target.cooldown - 800); }
         else if (upgrade.id === 'health') { this.player.stats.maxHp += 60; this.player.hp += 60; }
         else if (upgrade.id === 'speed') { this.player.stats.speed += 0.4; }
         else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.03, 1.0); }
         else if (upgrade.id === 'attack_speed') { this.player.modifiers.frequency *= 0.92; }
+        else if (upgrade.id === 'regen') { this.player.modifiers.hpRegen += 0.5; }
+        else if (upgrade.id === 'attractorb') { this.player.modifiers.pickupRadius *= 1.25; }
+        else if (upgrade.id === 'aegis') { this.player.modifiers.iframeTimer += 0.2; }
+        else if (upgrade.id === 'skull') {
+            this.player.modifiers.curse += 0.1;
+            this.player.modifiers.xpGain += 0.05;
+        }
+        else if (upgrade.id === 'torrona') {
+            if (target.level === 9) {
+                this.player.modifiers.curse += 1.0;
+            } else {
+                this.player.modifiers.power += 0.04;
+                this.player.modifiers.area += 0.04;
+                this.player.modifiers.frequency *= 0.96;
+                this.player.stats.speed += 0.2;
+            }
+        }
     }
 };

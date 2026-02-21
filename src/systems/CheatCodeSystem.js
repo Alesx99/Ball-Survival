@@ -30,7 +30,8 @@ export class CheatCodeSystem {
             all_directions: { sequence: '↑→↓←↑→↓←', name: 'All Directions', reward: 'effect', effect: 'matrix', desc: 'Modalità Matrix attivata!' },
             secret_boss: { sequence: '↓↓↓BBB', name: 'Secret Boss', reward: 'boss', desc: 'Un Boss Dorato apparirà!' },
             rainbow: { sequence: '←→←→XYXY', name: 'Rainbow', reward: 'skin', skinId: 'rainbow', desc: 'Sblocca la skin Arcobaleno!' },
-            devmode: { sequence: 'XXYY↑↓AB', name: 'Dev Mode', reward: 'devroom', desc: 'Accesso alla Dev Room!' }
+            devmode: { sequence: 'XXYY↑↓AB', name: 'Dev Mode', reward: 'devroom', desc: 'Accesso alla Dev Room!' },
+            secret_room: { sequence: '↑↓↑↓ABXY', name: 'Stanza Segreta', reward: 'secret_merchant', desc: 'Evoca il Mercante Segreto!' }
         };
     }
 
@@ -46,7 +47,13 @@ export class CheatCodeSystem {
             dev_signature: { name: '✍️ Firma dello Sviluppatore', hint: 'Tieni premuto 5s sull\'icona settings', desc: 'Popup: "Made with ❤️ by Alesx99"' },
             pacifist: { name: '☮️ Pacifista', hint: 'Sopravvivi 3 minuti senza uccidere', desc: 'Sblocca la skin "Aura di Pace".' },
             konami_code: { name: '🎮 Konami Code', hint: 'Usa la schermata CODICI: ↑↑↓↓←→←→BA', desc: 'Sblocca la skin "Retro 8-bit".' },
-            devroom_code: { name: '🔧 Dev Mode', hint: 'Usa la schermata CODICI: XXYY↑↓AB', desc: 'Accesso alla Dev Room con glossario easter egg.' }
+            devroom_code: { name: '🔧 Dev Mode', hint: 'Usa la schermata CODICI: XXYY↑↓AB', desc: 'Accesso alla Dev Room con glossario easter egg.' },
+            secret_room: { name: '🤫 Stanza Segreta', hint: 'Usa la schermata CODICI: ↑↓↑↓ABXY', desc: 'Spawna il Mercante Segreto direttamente vicino a te.' },
+            survival_666s: { name: '⏱️ Demone del Tempo', hint: 'Sopravvivi esattamente 666 secondi (11:06)', desc: 'Fa spawnare il Mercante Segreto nella run.' },
+            no_damage_60: { name: '🛡️ Intoccabile', hint: 'Sopravvivi 60 secondi senza subire danni', desc: 'Ricevi una piccola mancia in gemme.' },
+            speedrun_lv10: { name: '⚡ Speed Demon', hint: 'Raggiungi il livello 10 in meno di 60 secondi', desc: 'Sblocca un bonus gemme immediato.' },
+            collector: { name: '💎 Collezionista', hint: 'Raccogli 500 gemme in una singola partita', desc: 'Un tesoro incalcolabile ti aspetta.' },
+            night_merchant: { name: '🦉 Mercante della Notte', hint: 'Parla con il mercante tra le 00:00 e le 05:00', desc: 'Prezzi folli per folletti notturni.' }
         };
     }
 
@@ -104,6 +111,13 @@ export class CheatCodeSystem {
                 break;
             case 'devroom':
                 this._showDevRoom();
+                break;
+            case 'secret_merchant':
+                this.discoverEgg('secret_room');
+                if (this.game) {
+                    this.game._secretMerchantActive = true;
+                    this.game.addScreenShake?.(15);
+                }
                 break;
         }
 

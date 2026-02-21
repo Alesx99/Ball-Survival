@@ -15,7 +15,10 @@ export const SpellSystem = {
             shotgun: { id: 'shotgun', name: "Fucile Arcano", level: 0, evolution: 'none', mastered: false, damage: 8, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0, spinningDuration: 300, spinningRate: 5 },
             shockwave: { id: 'shockwave', name: "Onda d'Urto", level: 0, evolution: 'none', mastered: false, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15, resonantCount: 3, resonantDelay: 15 },
             heal: { id: 'heal', name: "Cura", level: 0, evolution: 'none', mastered: false, amount: 20, cooldown: 10000, lastCast: 0, sanctuaryDuration: 300, sanctuaryHps: 10, lifestealDuration: 300, lifestealPercent: 0.05 },
-            shield: { id: 'shield', name: "Scudo Magico", level: 0, evolution: 'none', mastered: false, duration: 1500, cooldown: 18000, lastCast: 0, active: false, dr: 0.7, reflectDamage: 0.5, orbitalCount: 1, orbitalRadius: 10, orbitalDistance: 60 }
+            shield: { id: 'shield', name: "Scudo Magico", level: 0, evolution: 'none', mastered: false, duration: 1500, cooldown: 18000, lastCast: 0, active: false, dr: 0.7, reflectDamage: 0.5, orbitalCount: 1, orbitalRadius: 10, orbitalDistance: 60 },
+            cyclone: { id: 'cyclone', name: "Ciclone Vuoto", level: 0, evolution: 'none', mastered: false, damage: 12, cooldown: 6000, lastCast: 0, radius: 100, duration: 180, pullForce: 2 },
+            armageddon: { id: 'armageddon', name: "Armageddon", level: 0, evolution: 'none', mastered: false, damage: 99999, cooldown: 60000, lastCast: 0 },
+            cloaking: { id: 'cloaking', name: "Velo D'Ombra", level: 0, evolution: 'none', mastered: false, duration: 3000, cooldown: 12000, lastCast: 0 }
         };
         Object.values(this.spells).forEach(s => s.level = 0);
         this.passives = { health: { level: 0 }, speed: { level: 0 }, armor: { level: 0 }, attack_speed: { level: 0 } };
@@ -319,5 +322,49 @@ export const SpellSystem = {
                 if (onHitCallback) onHitCallback(enemy);
             }
         }
+    },
+
+    castCyclone(now) {
+        const s = this.spells.cyclone;
+        class CycloneAura extends Aura {
+            update(game) {
+                super.update(game);
+                const enemies = game.entities.enemies || [];
+                const bosses = game.entities.bosses || [];
+                for (let e of [...enemies, ...bosses]) {
+                    const dist = Utils.getDistance(this, e);
+                    if (dist < this.radius) {
+                        e.takeDamage((game.spells?.getDamage(s.damage) || s.damage) / 60, game);
+                        const angle = Math.atan2(this.y - e.y, this.x - e.x);
+                        e.x += Math.cos(angle) * s.pullForce;
+                        e.y += Math.sin(angle) * s.pullForce;
+                    }
+                }
+            }
+        }
+        this.addEntity('areas', new CycloneAura(this.player.x, this.player.y, {
+            radius: s.radius, life: s.duration, color: 'rgba(138, 43, 226, 0.4)'
+        }));
+        return true;
+    },
+
+    castArmageddon(now) {
+        const s = this.spells.armageddon;
+        this.addScreenShake(30);
+        if (this.notifications) this.notifications.push({ text: "ARMAGEDDON!", life: 180, color: '#ff0000' });
+        const targets = this.getEnemiesAndBosses();
+        for (let enemy of targets) {
+            enemy.takeDamage(s.damage, this);
+        }
+        return true;
+    },
+
+    castCloaking(now) {
+        const s = this.spells.cloaking;
+        const frames = Math.ceil(s.duration / 1000 * 60);
+        this.player.iFramesTimer = Math.max(this.player.iFramesTimer || 0, frames);
+        this.player.powerUpTimers.invincibility = Math.max(this.player.powerUpTimers.invincibility || 0, frames);
+        if (this.notifications) this.notifications.push({ text: "Velo D'Ombra", life: 60, color: '#555555' });
+        return true;
     }
 };

@@ -164,6 +164,14 @@ export class MenuController {
             };
         }
 
+        // Pulsante chiudi negozio segreto
+        const closeSecretShopBtn = document.getElementById('closeSecretShopBtn');
+        if (closeSecretShopBtn) {
+            closeSecretShopBtn.onclick = () => {
+                this.game.hideAllPopups();
+            };
+        }
+
         // Dropdown stage
         if (this.game.dom.containers.stageDropdown) {
             this.game.dom.containers.stageDropdown.onchange = (e) => {

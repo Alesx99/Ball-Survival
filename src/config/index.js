@@ -265,7 +265,16 @@ export const CONFIG = {
         scaling: { timeFactor: 50, hpPerFactor: 950 },
         attack: { cooldown: 1650, projectileSpeed: 5.5, projectileRadius: 10 }
     },
-    chest: { spawnTime: 20, respawnTime: 30, size: 25, gemDrop: { min: 5, random: 6 } },
+    chest: {
+        spawnTime: 20,
+        respawnTime: 45, // Increased slightly to allow multiple chests
+        maxMapChests: 3,
+        size: 30,
+        normalChance: 0.85,
+        epicChance: 0.12,
+        legendaryChance: 0.03,
+        gemDrop: { min: 10, random: 15 } // Base gems
+    },
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
     xpOrbs: { mapSpawn: { interval: 4, batch: 15, max: 300, value: 5 }, pickupRadius: 100 },
     materials: {
@@ -352,7 +361,15 @@ export const CONFIG = {
         'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
         'armor': { id: 'armor', name: 'Armatura', desc: 'Aumenta la Riduzione Danno del 3%.', maxLevel: 10, type: 'passive' },
         'attack_speed': { id: 'attack_speed', name: "Velocità d'attacco", desc: 'Riduce la ricarica di tutte le abilità del 8%.', maxLevel: 5, type: 'passive' },
+        'regen': { id: 'regen', name: 'Cuore Rigenerante', desc: 'Aumenta la rigenerazione salute.', maxLevel: 5, type: 'passive' },
+        'attractorb': { id: 'attractorb', name: 'Magnete Arcano', desc: 'Aumenta il raggio di raccolta sfere.', maxLevel: 5, type: 'passive' },
+        'aegis': { id: 'aegis', name: 'Mantello Divino', desc: 'Estende la finestra di invulnerabilità ai danni.', maxLevel: 5, type: 'passive' },
+        'skull': { id: 'skull', name: 'Teschio Maledetto', desc: 'Aumenta exp, ma i nemici sono più forti e numerosi (+10% Curse).', maxLevel: 5, type: 'passive' },
+        'torrona': { id: 'torrona', name: 'Scatola di Torrona', desc: 'Aumenta stats generali. Attenzione: al Liv 9 aggiunge +100% Curse.', maxLevel: 9, type: 'passive' },
         'magicMissile': { id: 'magicMissile', name: 'Proiettile Magico', desc: "L'attacco base, non potenziabile.", type: 'active' },
+        'cyclone': { id: 'cyclone', name: 'Ciclone Vuoto', desc: 'Vortice statico che attrae debolmente i nemici prima di esplodere.', maxLevel: 4, type: 'active' },
+        'armageddon': { id: 'armageddon', name: 'Armageddon', desc: 'Danno planetario enorme a schermo intero ogni minuto.', maxLevel: 1, type: 'active' },
+        'cloaking': { id: 'cloaking', name: 'Velo D\'Ombra', desc: 'Diventi intangibile temporaneamente.', maxLevel: 4, type: 'active' },
         'fireball': { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', details: "+8 Danni, +8 Raggio Esplosione", maxLevel: 4 },
         'fireball_evolve_giant': { id: 'fireball_evolve_giant', name: 'EVO: Palla di Fuoco Gigante', desc: 'Palla di fuoco lenta ma devastante.', type: 'evolution' },
         'fireball_evolve_meteor': { id: 'fireball_evolve_meteor', name: 'EVO: Pioggia di Meteore', desc: 'Fa piovere meteore dal cielo.', type: 'evolution' },
@@ -449,11 +466,11 @@ export const CONFIG = {
         spawnInterval: 2, // Seconds between boss spawns after death
         victoryCount: 20,
         // Scaling per onda (i primi boss usano HP base, poi crescono)
-        hpPerKill: 2800,
-        damagePerKill: 15,
-        speedFactorPerKill: 0.08,
-        drPerKill: 0.05,
-        drCap: 0.75,
+        hpPerKill: 1200,
+        damagePerKill: 10,
+        speedFactorPerKill: 0.04,
+        drPerKill: 0.03,
+        drCap: 0.65,
         doubleBossFromWave: 4 // Da onda 4 (1-based) spawnano 2 boss per volta
     }
 };

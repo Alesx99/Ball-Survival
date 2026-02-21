@@ -528,6 +528,28 @@ export const RenderSystem = {
         }
     },
 
+    drawSecretMerchant() {
+        if (!this.ctx || !this.game?._secretMerchantPos) return;
+
+        const m = this.game._secretMerchantPos;
+        this.ctx.fillStyle = '#111'; // Dark robe
+        this.ctx.fillRect(m.x, m.y, m.size, m.size);
+        this.ctx.strokeStyle = '#ff0000'; // Red glow outline
+        this.ctx.lineWidth = 2;
+        this.ctx.shadowBlur = 10;
+        this.ctx.shadowColor = '#ff0000';
+        this.ctx.strokeRect(m.x, m.y, m.size, m.size);
+        this.ctx.shadowBlur = 0; // Reset
+
+        if (this.state === 'running' && Utils.getDistance(this.player, m) < m.interactionRadius) {
+            this.ctx.font = 'bold 14px "Courier New"';
+            this.ctx.fillStyle = '#ff6b6b';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("[E] / Tocca", m.x + m.size / 2, m.y - 25);
+            this.ctx.fillText("Mercato Nero", m.x + m.size / 2, m.y - 10);
+        }
+    },
+
     showInGameUI() {
         if (this.dom.inGameUI) this.dom.inGameUI.style.display = 'flex';
         if (this.dom.pauseButton) this.dom.pauseButton.style.display = 'flex';
@@ -654,40 +676,49 @@ export const RenderSystem = {
         };
 
         // Draw entities
-        if (this.entities) {
-            // Chests (Gold)
-            if (this.entities.chests) this.entities.chests.forEach(e => drawDot(e.x, e.y, '#ffd700', 3));
+        // Chests
+        if (this.entities.chests) {
+            this.entities.chests.forEach(e => {
+                let cColor = '#e67e22'; // normal
+                let cSize = 3;
+                if (e.rarity === 'epic') { cColor = '#9b59b6'; cSize = 4.5; }
+                else if (e.rarity === 'legendary') { cColor = '#f1c40f'; cSize = 6; }
+                drawDot(e.x, e.y, cColor, cSize);
+            });
+        }
+        if (this.entities.bosses) this.entities.bosses.forEach(e => drawDot(e.x, e.y, '#9b59b6', 5));
 
-            // Bosses (Purple/Skull)
-            if (this.entities.bosses) this.entities.bosses.forEach(e => drawDot(e.x, e.y, '#9b59b6', 5));
+        // Enemies (Red dots, smaller)
+        if (this.entities.enemies) {
+            this.entities.enemies.forEach(e => {
+                if (e.stats.isElite) drawDot(e.x, e.y, '#e74c3c', 3);
+                else drawDot(e.x, e.y, '#c0392b', 1.5);
+            });
+        }
 
-            // Enemies (Red dots, smaller)
-            if (this.entities.enemies) {
-                this.entities.enemies.forEach(e => {
-                    if (e.stats.isElite) drawDot(e.x, e.y, '#e74c3c', 3);
-                    else drawDot(e.x, e.y, '#c0392b', 1.5);
-                });
-            }
+        // Anomalous Areas (Cyan, larger hollow dot)
+        if (this.entities.anomalousAreas) {
+            this.entities.anomalousAreas.forEach(e => {
+                const dx = (e.x - px) * scale;
+                const dy = (e.y - py) * scale;
+                if (Math.abs(dx) < mapSize / 2 && Math.abs(dy) < mapSize / 2) {
+                    ctx.strokeStyle = e.color || '#00ffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(dx, dy, 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+        }
 
-            // Anomalous Areas (Cyan, larger hollow dot)
-            if (this.entities.anomalousAreas) {
-                this.entities.anomalousAreas.forEach(e => {
-                    const dx = (e.x - px) * scale;
-                    const dy = (e.y - py) * scale;
-                    if (Math.abs(dx) < mapSize / 2 && Math.abs(dy) < mapSize / 2) {
-                        ctx.strokeStyle = e.color || '#00ffff';
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.arc(dx, dy, 5, 0, Math.PI * 2);
-                        ctx.stroke();
-                    }
-                });
-            }
+        // Merchant (Cyan)
+        if (CONFIG.merchant) {
+            drawDot(CONFIG.merchant.x, CONFIG.merchant.y, '#00ffff', 4);
+        }
 
-            // Merchant (Cyan)
-            if (CONFIG.merchant) {
-                drawDot(CONFIG.merchant.x, CONFIG.merchant.y, '#00ffff', 4);
-            }
+        // Secret Merchant (Red)
+        if (this.game?._secretMerchantActive && this.game?._secretMerchantPos) {
+            drawDot(this.game._secretMerchantPos.x, this.game._secretMerchantPos.y, '#ff0000', 4.5);
         }
 
         // Player (Green center)

@@ -11,7 +11,7 @@ import {
     Player, Enemy, Boss,
     Projectile, Aura, Orbital, StaticField, Sanctuary, AnomalousArea,
     XpOrb, GemOrb, MaterialOrb,
-    Chest, DroppedItem,
+    Chest, DroppedItem, Relic,
     Particle, FireTrail, Effect
 } from '../entities/index.js';
 import { AnalyticsManager, RetentionMonitor, QuickFeedback, ProgressionOptimizer, AchievementSystem } from '../systems/index.js';
@@ -130,6 +130,7 @@ export class BallSurvivalGame {
                 gameOver: document.getElementById('gameOver'),
                 upgrade: document.getElementById('upgradeMenu'),
                 shop: document.getElementById('permanentUpgradeShop'),
+                secretShop: document.getElementById('secretShopPopup'),
                 inventory: document.getElementById('inventoryMenu'),
                 characterSelection: document.getElementById('characterSelectionPopup'),
                 achievements: document.getElementById('achievementsPopup'),
@@ -403,6 +404,26 @@ export class BallSurvivalGame {
         // this.materials, this.cores, this.weapons, this.arsenal rimangono invariati
 
         this.resetSpells();
+
+        // Inizializza Reliquie della Mappa
+        if (this.gameMode !== 'bossRush' && this.gameMode !== 'tutorial') {
+            const relicConfigs = [
+                { type: 'silver_ring', x: -8000, y: 0 },
+                { type: 'gold_ring', x: 8000, y: 0 },
+                { type: 'metaglio_left', x: 0, y: -8000 },
+                { type: 'metaglio_right', x: 0, y: 8000 }
+            ];
+
+            relicConfigs.forEach(rc => {
+                this.addEntity('droppedItems', new Relic(rc.x, rc.y, rc.type));
+                // Spawn 4 guardiani per ogni reliquia
+                const guardianStats = { ...CONFIG.enemies.base, hp: 4000, damage: 25, speed: 0.8, isElite: true };
+                for (let i = 0; i < 4; i++) {
+                    const angle = (Math.PI / 2) * i;
+                    this.addEntity('enemies', new Enemy(rc.x + Math.cos(angle) * 150, rc.y + Math.sin(angle) * 150, guardianStats));
+                }
+            });
+        }
     }
     gameLoop() {
         this.gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
@@ -545,6 +566,43 @@ export class BallSurvivalGame {
             if (this.stats.kills === 0) {
                 this.stats.pacifistTimer += deltaTime;
             }
+
+            // Nuovi Easter Eggs Controls
+            if (this.stats.noDamageTimer >= 60 && this.cheatCodeSystem) {
+                if (this.cheatCodeSystem.discoverEgg('no_damage_60')) {
+                    this.totalGems += 50;
+                    this.notifications.push({ text: '+50 Gemme (Intoccabile)!', life: 250, color: '#f1c40f' });
+                }
+            }
+        }
+
+        if (this.cheatCodeSystem) {
+            if (this.totalElapsedTime >= 666 && this.totalElapsedTime < 667) {
+                if (this.cheatCodeSystem.discoverEgg('survival_666s')) {
+                    this._secretMerchantActive = true;
+                    this.addScreenShake?.(15);
+                }
+            }
+            if (this.player.level >= 10 && this.totalElapsedTime <= 60) {
+                if (this.cheatCodeSystem.discoverEgg('speedrun_lv10')) {
+                    this.totalGems += 100;
+                }
+            }
+            if (this.gemsThisRun >= 500) {
+                if (this.cheatCodeSystem.discoverEgg('collector')) {
+                    this.totalGems += 200; // Bonus extra
+                }
+            }
+        }
+
+        // Lazy initialize Secret Merchant position
+        if (this._secretMerchantActive && !this._secretMerchantPos && CONFIG.secretMerchant) {
+            this._secretMerchantPos = {
+                x: this.player.x + (Math.random() > 0.5 ? 400 : -400),
+                y: this.player.y + (Math.random() > 0.5 ? 400 : -400),
+                size: CONFIG.secretMerchant.size,
+                interactionRadius: CONFIG.secretMerchant.interactionRadius
+            };
         }
 
         // Monitoraggio versione 5.3 - ogni 30 secondi (1800 frame a 60fps)
@@ -706,9 +764,15 @@ export class BallSurvivalGame {
         }
 
         const distance = Utils.getDistance(this.player, CONFIG.merchant);
-
         if (distance < CONFIG.merchant.interactionRadius) {
             this.showPopup('shop');
+        }
+
+        if (this._secretMerchantActive && this._secretMerchantPos) {
+            const secretDistance = Utils.getDistance(this.player, this._secretMerchantPos);
+            if (secretDistance < this._secretMerchantPos.interactionRadius) {
+                this.showPopup('secretShop');
+            }
         }
     }
     handlePointerDown(e) {
@@ -721,9 +785,18 @@ export class BallSurvivalGame {
         const clientY = e.clientY;
         const worldX = (clientX - rect.left) * (this.camera.width / rect.width) + this.camera.x;
         const worldY = (clientY - rect.top) * (this.camera.height / rect.height) + this.camera.y;
-        if (this.state === 'running' && Utils.getDistance({ x: worldX, y: worldY }, CONFIG.merchant) < CONFIG.merchant.interactionRadius) {
-            this.showPopup('shop');
-            return;
+        if (this.state === 'running') {
+            const playerWorldPos = { x: worldX, y: worldY };
+            if (Utils.getDistance(playerWorldPos, CONFIG.merchant) < CONFIG.merchant.interactionRadius) {
+                this.showPopup('shop');
+                return;
+            }
+            if (this._secretMerchantActive && this._secretMerchantPos) {
+                if (Utils.getDistance(playerWorldPos, this._secretMerchantPos) < this._secretMerchantPos.interactionRadius) {
+                    this.showPopup('secretShop');
+                    return;
+                }
+            }
         }
         if (e.pointerType === 'touch' && !this.joystick.active) {
             e.preventDefault();
@@ -915,7 +988,7 @@ export class BallSurvivalGame {
 
         const stats = {
             ...base,
-            hp: (base.hp + k * hpPerKill) * 2.5, // Base HP buff specifica per Boss Rush
+            hp: (base.hp + k * hpPerKill) * 1.5, // Base HP buff ridotto per Boss Rush
             damage: (base.damage || 35) + k * damagePerKill,
             speed: (base.speed || 1.8) * (1 + k * speedFactor),
             dr: Math.min(drCap, k * drPerKill)
