@@ -9,8 +9,9 @@ import { PlayerDraw } from '../render/PlayerDraw.js';
 export const CONFIG = {
     world: { width: 8000, height: 6000, gridSize: 100 },
     effects: {
-        screenShakeDecay: 0.88,
-        screenShakeMax: 25,
+        screenShakeDecay: 0.90,
+        screenShakeMax: 10,
+        screenShakeScale: 0.5,
         cameraLerp: 0.1,
         hitFlashFrames: 10,
     },

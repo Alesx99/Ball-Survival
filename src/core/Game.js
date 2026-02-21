@@ -434,8 +434,9 @@ export class BallSurvivalGame {
 
     addScreenShake(amount) {
         if (CONFIG.accessibility?.reduceMotion) return;
-        const max = CONFIG.effects?.screenShakeMax ?? 25;
-        this.screenShakeIntensity = Math.min(max, (this.screenShakeIntensity || 0) + amount);
+        const max = CONFIG.effects?.screenShakeMax ?? 10;
+        const scaled = amount * (CONFIG.effects?.screenShakeScale ?? 0.5);
+        this.screenShakeIntensity = Math.min(max, (this.screenShakeIntensity || 0) + scaled);
     }
 
     checkDailyObjective() {
