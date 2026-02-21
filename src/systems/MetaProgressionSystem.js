@@ -1,3 +1,5 @@
+import { CONFIG } from '../config/index.js';
+
 export class MetaProgressionSystem {
     constructor(game) {
         this.game = game;
@@ -19,7 +21,7 @@ export class MetaProgressionSystem {
     }
 
     canUnlockNode(nodeId) {
-        const nodeData = this.game.CONFIG.skillTree[nodeId];
+        const nodeData = CONFIG.skillTree ? CONFIG.skillTree[nodeId] : null;
         if (!nodeData) return false;
 
         // Se è già al livello massimo non si può sbloccare oltre
@@ -38,7 +40,7 @@ export class MetaProgressionSystem {
     }
 
     getNodeCost(nodeId) {
-        const nodeData = this.game.CONFIG.skillTree[nodeId];
+        const nodeData = CONFIG.skillTree ? CONFIG.skillTree[nodeId] : null;
         if (!nodeData) return Infinity;
         const currentLevel = this.getUnlockedLevel(nodeId);
         // Costo cresce del 30% per livello
@@ -71,7 +73,7 @@ export class MetaProgressionSystem {
     applyModifiersToPlayer(player) {
         // Applichiamo i bonus solo dai nodi skillTree
         for (const [nodeId, level] of Object.entries(this.unlockedNodes)) {
-            const nodeData = this.game.CONFIG.skillTree[nodeId];
+            const nodeData = CONFIG.skillTree ? CONFIG.skillTree[nodeId] : null;
             if (!nodeData || level === 0 || !nodeData.effect) continue;
 
             const effect = nodeData.effect;

@@ -181,6 +181,7 @@ export const SpawnSystem = {
             }
 
             // Applica modificatori giornalieri su stats nemici (SOLO in modalità daily)
+            const dailyModId = this.gameMode === 'daily' ? this.dailyChallengeSystem?.config?.modifier?.id : null;
             if (this.gameMode === 'daily' && dailyModId) {
                 if (dailyModId === 'horde') {
                     finalStats.hp = Math.max(1, Math.floor(finalStats.hp * 0.8)); // -20% HP
