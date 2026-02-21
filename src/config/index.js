@@ -458,7 +458,11 @@ export const CONFIG = {
         { id: 'shotgun_shockwave', primary: 'shotgun', secondary: 'shockwave', name: 'Raffica Sismica', desc: 'Proiettili che respingono in area. +30% area.', bonus: { area: 0.3 } },
         { id: 'heal_frostbolt', primary: 'heal', secondary: 'frostbolt', name: 'Rigenerazione Glaciale', desc: 'Cura che rallenta nemici. Heal +40%, area slow.', bonus: { healAmount: 0.4, auraSlow: 0.15 } },
         { id: 'shield_fireball', primary: 'shield', secondary: 'fireball', name: 'Scudo Infuocato', desc: 'Scudo che riflette con fuoco. Reflect +100% danno.', bonus: { reflectDamage: 1.0 } },
-        { id: 'lightning_shotgun', primary: 'lightning', secondary: 'shotgun', name: 'Tempesta di Schegge', desc: 'Rosa di fulmini. +4 proiettili chain.', bonus: { chains: 4 } }
+        { id: 'lightning_shotgun', primary: 'lightning', secondary: 'shotgun', name: 'Tempesta di Schegge', desc: 'Rosa di fulmini. +4 proiettili chain.', bonus: { chains: 4 } },
+        // Advanced Fusions
+        { id: 'tri_elemental', primary: 'fireball', secondary: 'frostbolt', tertiary: 'lightning', name: 'Triade Elementale', desc: 'Fuoco + Gelo + Fulmine MASSIMI: Il caos puro. Danni massicci e status.', bonus: { damage: 1.0, burnDamage: 25, auraDps: 15, auraSlow: 0.3, chains: 5 }, advanced: true },
+        { id: 'radiant_aegis', primary: 'shield', secondary: 'heal', requiredPassive: 'armor', name: 'Egida Radiante', desc: 'Scudo + Cura + Armatura MAX: Invulnerabilità e guarigione passiva.', bonus: { reflectDamage: 2.0, healAmount: 1.0 }, advanced: true },
+        { id: 'cataclysm', primary: 'shockwave', secondary: 'shotgun', tertiary: 'lightning', name: 'Cataclisma', desc: 'Nova + Fucile + Fulmine MASSIMI: Distruzione a schermo intero.', bonus: { damage: 1.5, area: 1.0, knockback: 1.0, count: 6 }, advanced: true }
     ],
     upgradeTree: {
         'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 10, type: 'passive' },

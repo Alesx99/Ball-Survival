@@ -129,6 +129,11 @@ class AnalyticsManager {
 class RetentionMonitor {
     constructor() {
         this.sessionStart = Date.now();
+        this.metricsData = [];
+    }
+
+    trackSession(metrics) {
+        this.metricsData.push({ ...metrics, timestamp: Date.now() });
     }
 
     getSessionDuration() {

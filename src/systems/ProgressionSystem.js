@@ -73,11 +73,37 @@ export const ProgressionSystem = {
             const pTree = upgradeTree[f.primary];
             const sTree = upgradeTree[f.secondary];
             if (!primary || !secondary || !pTree || !sTree) continue;
+
             const extraLevels = this.player._prismExtraSpellLevels || 0;
             const pMax = (pTree.maxLevel ?? 4) + extraLevels;
             const sMax = (sTree.maxLevel ?? 4) + extraLevels;
-            if (primary.level >= pMax && secondary.level >= sMax && primary.evolution === 'none' && secondary.evolution === 'none') {
-                if (!primary.fusionId && !secondary.fusedInto) {
+
+            let tertiaryOk = true;
+            if (f.tertiary) {
+                const tertiary = this.spells[f.tertiary];
+                const tTree = upgradeTree[f.tertiary];
+                if (!tertiary || !tTree) {
+                    tertiaryOk = false;
+                } else {
+                    const tMax = (tTree.maxLevel ?? 4) + extraLevels;
+                    if (tertiary.level < tMax || tertiary.evolution !== 'none') {
+                        tertiaryOk = false;
+                    }
+                }
+            }
+
+            let passiveOk = true;
+            if (f.requiredPassive) {
+                const rqPassive = this.passives[f.requiredPassive];
+                const rqConfig = upgradeTree[f.requiredPassive];
+                if (!rqPassive || !rqConfig || rqPassive.level < (rqConfig.maxLevel || 5)) {
+                    passiveOk = false;
+                }
+            }
+
+            if (primary.level >= pMax && secondary.level >= sMax && primary.evolution === 'none' && secondary.evolution === 'none' && tertiaryOk && passiveOk) {
+                const tertiaryNotFused = !f.tertiary || !this.spells[f.tertiary].fusedInto;
+                if (!primary.fusionId && !secondary.fusedInto && tertiaryNotFused) {
                     availableFusions.push({ ...f, type: 'fusion' });
                 }
             }
@@ -132,6 +158,10 @@ export const ProgressionSystem = {
             if (!f || !this.spells[f.primary] || !this.spells[f.secondary]) return;
             this.spells[f.secondary].level = 0;
             this.spells[f.secondary].fusedInto = f.primary;
+            if (f.tertiary && this.spells[f.tertiary]) {
+                this.spells[f.tertiary].level = 0;
+                this.spells[f.tertiary].fusedInto = f.primary;
+            }
             this.spells[f.primary].fusionId = f.id;
             this.spells[f.primary].fusionBonus = f.bonus || {};
             if (f.bonus?.damage) this.spells[f.primary].damage *= (1 + f.bonus.damage);
@@ -141,6 +171,21 @@ export const ProgressionSystem = {
             if (f.bonus?.auraSlow) this.spells[f.primary].auraSlow = (this.spells[f.primary].auraSlow || 0) + f.bonus.auraSlow;
             if (f.bonus?.count) this.spells[f.primary].count = (this.spells[f.primary].count || 5) + f.bonus.count;
             if (f.bonus?.lifestealOnHit) this.spells[f.primary].lifestealOnHit = f.bonus.lifestealOnHit;
+
+            // Advanced bonuses
+            if (f.bonus?.area) this.spells[f.primary].radius = (this.spells[f.primary].radius || 50) * (1 + f.bonus.area);
+            if (f.bonus?.knockback) this.spells[f.primary].knockback = (this.spells[f.primary].knockback || 10) * (1 + f.bonus.knockback);
+            if (f.bonus?.chains) this.spells[f.primary].chains = (this.spells[f.primary].chains || 2) + f.bonus.chains;
+            if (f.bonus?.reflectDamage) this.spells[f.primary].reflectDamage = (this.spells[f.primary].reflectDamage || 1.0) * f.bonus.reflectDamage;
+            if (f.bonus?.healAmount && f.primary === 'shield') {
+                this.spells[f.primary].healAmount = f.bonus.healAmount; // Adding a custom property handled elsewhere or just as a flag
+                this.spells[f.primary].autoHealInterval = setInterval(() => {
+                    if (this.state === 'running' && this.player) {
+                        this.player.heal(this.spells[f.primary].healAmount * 5); // Example amount
+                    }
+                }, 2000);
+            }
+
             this.notifications?.push({ text: `Fusione: ${f.name}!`, life: 300, color: '#FFD700' });
             return;
         }
