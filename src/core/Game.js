@@ -484,18 +484,18 @@ export class BallSurvivalGame {
             }
         }
 
-        // Monitoraggio versione 5.3 - ogni 30 secondi
-        if (Math.floor(this.gameTime / 30) % 30 === 0) {
+        // Monitoraggio versione 5.3 - ogni 30 secondi (1800 frame a 60fps)
+        if (this.gameTime > 0 && this.gameTime % 1800 === 0) {
             this.trackRetentionMetrics();
         }
 
-        // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi
-        if (Math.floor(this.gameTime / 60) % 60 === 0) {
+        // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi (3600 frame a 60fps)
+        if (this.gameTime > 0 && this.gameTime % 3600 === 0) {
             this.checkAutoBalance();
         }
 
-        // Achievement tracking - ogni 10 secondi
-        if (Math.floor(this.gameTime / 10) % 10 === 0) {
+        // Achievement tracking - ogni 10 secondi (600 frame a 60fps)
+        if (this.gameTime > 0 && this.gameTime % 600 === 0) {
             if (this.achievementSystem) {
                 // Controlla achievement basati sul tempo
                 this.achievementSystem.checkTimeBasedAchievements(this.gameTime, this);
