@@ -27,15 +27,18 @@ export class InputManager {
         gameContainer.addEventListener('pointermove', (e) => this.handlePointerMove(e), { passive: false });
         gameContainer.addEventListener('pointerup', (e) => this.handlePointerEnd(e));
         gameContainer.addEventListener('pointercancel', (e) => this.handlePointerEnd(e));
-        // Prevent default touch behaviors
+        // Prevent default touch only on game area; allow scroll and tap in popups/menus
+        const isInsidePopupOrScrollable = (el) => el && (
+            el.closest('.popup-menu') ||
+            el.closest('.menu-content') ||
+            el.closest('.scrollable') ||
+            ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'A'].includes(el.tagName)
+        );
         gameContainer.addEventListener('touchstart', (e) => {
-            // Only prevent default on non-UI elements to allow scrolling in lists if needed
-            if (e.target.tagName !== 'BUTTON' && !e.target.closest('.scrollable')) {
-                if (e.cancelable) e.preventDefault();
-            }
+            if (!isInsidePopupOrScrollable(e.target) && e.cancelable) e.preventDefault();
         }, { passive: false });
         gameContainer.addEventListener('touchmove', (e) => {
-            if (e.cancelable) e.preventDefault();
+            if (!isInsidePopupOrScrollable(e.target) && e.cancelable) e.preventDefault();
         }, { passive: false });
     }
 
@@ -63,7 +66,7 @@ export class InputManager {
     }
 
     handlePointerMove(e) {
-        if (e.cancelable) e.preventDefault();
+        if (!e.target.closest?.('.popup-menu') && !e.target.closest?.('.menu-content') && e.cancelable) e.preventDefault();
         this.game.handlePointerMove(e);
     }
 

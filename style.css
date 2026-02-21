@@ -228,6 +228,7 @@ html {
     scrollbar-color: var(--primary-color) rgba(0, 0, 0, 0.3);
     overscroll-behavior: contain;
     touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 #pauseStatsContainer {
@@ -275,6 +276,8 @@ html {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     text-align: left;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .upgrade-option {
