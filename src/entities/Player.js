@@ -314,6 +314,15 @@ export class Player extends Entity {
         game?.audio?.playLevelUp();
     }
 
+    /**
+     * Heals the player by a specified amount, not exceeding max HP.
+     * @param {number} amount - The amount to heal.
+     */
+    heal(amount) {
+        if (amount <= 0 || !Number.isFinite(amount)) return;
+        this.hp = Math.min(this.stats.maxHp, this.hp + amount);
+    }
+
     takeDamage(amount, game, sourceEnemy = null) {
         const shieldSpell = game?.spells?.shield;
         // Scudo base/orbitale: blocca solo il PRIMO colpo, poi si consuma (evita immortalità)
