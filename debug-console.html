@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball Survival - Console Debug</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        #console-output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #000;
+            padding: 15px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .error { color: #ff0000; }
+        .warn { color: #ffaa00; }
+        .info { color: #00aaff; }
+        .log { color: #00ff00; }
+        h1 { color: #00ffff; }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #00ff00;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball Survival - Console Debug Monitor</h1>
+    <div id="console-output"></div>
+    <h2 style="color: #00ffff; margin-top: 30px;">Game Preview:</h2>
+    <iframe id="game-frame" src="http://localhost:3000/"></iframe>
+
+    <script>
+        const consoleOutput = document.getElementById('console-output');
+        const gameFrame = document.getElementById('game-frame');
+        
+        function addLog(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg, null, 2);
+                    } catch (e) {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }).join(' ');
+            
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        // Intercept console methods
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        console.log = function(...args) {
+            originalConsole.log.apply(console, args);
+            addLog('log', ...args);
+        };
+
+        console.error = function(...args) {
+            originalConsole.error.apply(console, args);
+            addLog('error', ...args);
+        };
+
+        console.warn = function(...args) {
+            originalConsole.warn.apply(console, args);
+            addLog('warn', ...args);
+        };
+
+        console.info = function(...args) {
+            originalConsole.info.apply(console, args);
+            addLog('info', ...args);
+        };
+
+        // Listen for iframe console messages
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'console') {
+                addLog(event.data.level, event.data.message);
+            }
+        });
+
+        // Monitor iframe load
+        gameFrame.addEventListener('load', () => {
+            console.log('Game iframe loaded');
+            
+            // Try to access iframe console (may be blocked by CORS)
+            try {
+                const iframeWindow = gameFrame.contentWindow;
+                const iframeConsole = iframeWindow.console;
+                
+                ['log', 'error', 'warn', 'info'].forEach(method => {
+                    const original = iframeConsole[method];
+                    iframeConsole[method] = function(...args) {
+                        original.apply(iframeConsole, args);
+                        addLog(method, ...args);
+                    };
+                });
+                
+                console.log('Successfully hooked into iframe console');
+            } catch (e) {
+                console.warn('Could not hook into iframe console (CORS):', e.message);
+                console.info('Please check the browser console (F12) for game logs');
+            }
+        });
+
+        console.log('Debug monitor initialized');
+        console.log('Waiting for game to load...');
+    </script>
+</body>
+</html>

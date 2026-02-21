@@ -34,7 +34,10 @@ export class Projectile extends Entity {
         this.x += this.vx;
         this.y += this.vy;
         this.life--;
-        if (this.life <= 0) this.toRemove = true;
+        if (this.life <= 0) {
+            this.triggerDeathEffect(game);
+            this.toRemove = true;
+        }
 
         if (this.leavesTrail && this.life % 4 === 0) {
             const { FireTrail } = game._entityClasses;
@@ -59,15 +62,21 @@ export class Projectile extends Entity {
                 }
                 this.penetrated++;
                 if (this.penetrated >= (this.penetration ?? 1)) {
-                    if (this.onDeathEffect === 'explosion' && game.createExplosion) {
-                        game.createExplosion(this.x, this.y, this.explosionRadius, this.damage / 2);
-                    }
+                    this.triggerDeathEffect(game);
                     if (this.type !== 'great_fireball' && this.type !== 'lightning_spear') {
                         this.toRemove = true;
                     }
                     break;
                 }
             }
+        }
+    }
+
+    triggerDeathEffect(game) {
+        if (this.onDeathEffect === 'explosion' && game.createExplosion) {
+            game.createExplosion(this.x, this.y, this.explosionRadius, this.damage / 2);
+        } else if (this.onDeathEffect === 'custom' && typeof this.customEffect === 'function') {
+            this.customEffect(this, game);
         }
     }
 

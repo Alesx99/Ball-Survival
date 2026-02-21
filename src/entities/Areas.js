@@ -32,8 +32,10 @@ export class Aura extends Entity {
                 if (enemyData.tick === 0) {
                     target.takeDamage(this.dps, game);
                 }
-                target.slowAmount = this.slowAmount;
-                target.slowTimer = Math.max(target.slowTimer, 2);
+                if (this.slowAmount !== undefined) {
+                    target.slowAmount = this.slowAmount;
+                    target.slowTimer = Math.max(target.slowTimer, 2);
+                }
             }
         }
     }

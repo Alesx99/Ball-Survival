@@ -90,8 +90,15 @@ export const SpellSystem = {
 
         const isStellarRain = s.fusionId === 'stellar_rain';
         const projectileProps = {
-            angle, damage, type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, burnDamage,
-            drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 1.5); g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2); ctx.fill(); }
+            angle, damage, type: 'fireball', life: 100, speed: s.speed, size: s.size * (this.player.modifiers?.area ?? 1), penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * (this.player.modifiers?.area ?? 1), burnDamage,
+            drawFunc: (ctx, p) => {
+                const x = Number(p.x), y = Number(p.y), size = Math.max(0.01, Number(p.size));
+                if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size)) return;
+                const r0 = size / 2, r1 = size * 1.5;
+                const g = ctx.createRadialGradient(x, y, r0, x, y, r1);
+                g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)');
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r1, 0, Math.PI * 2); ctx.fill();
+            }
         };
 
         if (isStellarRain) {
@@ -114,7 +121,18 @@ export const SpellSystem = {
         this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, projectileProps));
         return true;
     },
-    castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses()); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; },
+    castGiant(now) {
+        const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses()); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
+            angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * (this.player.modifiers?.area ?? 1), penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => {
+                const x = Number(p.x), y = Number(p.y), size = Math.max(0.01, Number(p.size));
+                if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size)) return;
+                const r0 = size / 4, r1 = size;
+                const g = ctx.createRadialGradient(x, y, r0, x, y, r1);
+                g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)');
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r1, 0, Math.PI * 2); ctx.fill();
+            }
+        })); return true;
+    },
     castMeteor(now) { const s = this.spells.fireball; const visibleEnemies = this.getEnemiesAndBosses().filter(e => e.x > this.camera.x && e.x < this.camera.x + this.camera.width && e.y > this.camera.y && e.y < this.camera.y + this.camera.height); for (let i = 0; i < s.meteorCount; i++) { let target = visibleEnemies.length > 0 ? visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)] : { x: this.player.x + (Math.random() - 0.5) * 400, y: this.player.y + (Math.random() - 0.5) * 400 }; let explosionRadius = s.explosionRadius * this.player.modifiers.area; this.addEntity('effects', new Effect(target.x, target.y, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 })); setTimeout(() => { this.createExplosion(target.x, target.y, explosionRadius, this.getDamage(s.damage * 2.5)); for (let k = 0; k < 15; k++) this.addEntity('particles', new Particle(target.x, target.y, { vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 40, color: '#ffaa00' })); }, 750); } return true; },
     castLightning(now) {
         const s = this.spells.lightning;
@@ -479,15 +497,17 @@ export const SpellSystem = {
                 };
                 aura.draw = (ctx, game) => {
                     if (isBlackHole) {
+                        const ax = Number(aura.x), ay = Number(aura.y), ar = Math.max(1, Number(aura.radius));
+                        if (!Number.isFinite(ax) || !Number.isFinite(ay) || !Number.isFinite(ar)) return;
                         ctx.save();
                         const opacity = aura.life > 30 ? 1 : aura.life / 30;
-                        const g = ctx.createRadialGradient(aura.x, aura.y, 10, aura.x, aura.y, aura.radius);
+                        const g = ctx.createRadialGradient(ax, ay, 10, ax, ay, ar);
                         g.addColorStop(0, '#000');
                         g.addColorStop(0.5, `rgba(75, 0, 130, ${opacity})`);
                         g.addColorStop(1, 'rgba(0, 0, 0, 0)');
                         ctx.fillStyle = g;
                         ctx.beginPath();
-                        ctx.arc(aura.x, aura.y, aura.radius, 0, Math.PI * 2);
+                        ctx.arc(ax, ay, ar, 0, Math.PI * 2);
                         ctx.fill();
 
                         // Event horizon effect
@@ -495,7 +515,7 @@ export const SpellSystem = {
                         ctx.lineWidth = 2;
                         ctx.setLineDash([5, 10]);
                         ctx.beginPath();
-                        ctx.arc(aura.x, aura.y, aura.radius * 0.8, Date.now() / 100, Date.now() / 100 + Math.PI * 2);
+                        ctx.arc(ax, ay, ar * 0.8, Date.now() / 100, Date.now() / 100 + Math.PI * 2);
                         ctx.stroke();
                         ctx.restore();
                     } else {
@@ -506,14 +526,17 @@ export const SpellSystem = {
                 this.addEntity('auras', aura);
             },
             drawFunc: (ctx, p) => {
+                const x = Number(p.x), y = Number(p.y), size = Math.max(0.01, Number(p.size));
+                if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size)) return;
                 ctx.save();
-                const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 2);
+                const r0 = size / 2, r1 = size * 2;
+                const g = ctx.createRadialGradient(x, y, r0, x, y, r1);
                 g.addColorStop(0, '#ffffff');
                 g.addColorStop(0.3, '#9370db');
                 g.addColorStop(1, 'rgba(75,0,130,0)');
                 ctx.fillStyle = g;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                ctx.arc(x, y, r1, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             }
@@ -523,7 +546,7 @@ export const SpellSystem = {
 
     castStellarAura(now) {
         const s = this.spells.stellarAura;
-        const radius = s.radius * (this.player.modifiers.area || 1);
+        const radius = s.radius * (this.player.modifiers?.area ?? 1);
         const duration = s.duration;
 
         this.addEntity('auras', new Aura(this.player.x, this.player.y, {
@@ -531,18 +554,24 @@ export const SpellSystem = {
             dps: this.getDamage(s.damage),
             color: 'rgba(173, 216, 230, 0.2)',
             draw: (ctx, game) => {
+                const cx = Number(game.player.x);
+                const cy = Number(game.player.y);
+                const r = Math.max(1, Number(radius));
+                if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(r)) return;
                 ctx.save();
-                ctx.translate(game.player.x, game.player.y);
-                ctx.rotate(Date.now() / 1000);
+                ctx.translate(cx, cy);
+                // Evitiamo numeri giganti nel rotate che bloccano il rendering del canvas in alcuni browser
+                ctx.rotate((Date.now() / 500) % (Math.PI * 2));
                 for (let i = 0; i < 4; i++) {
                     ctx.rotate(Math.PI / 2);
                     ctx.fillStyle = '#fff';
                     ctx.beginPath();
-                    ctx.arc(radius, 0, 5, 0, Math.PI * 2);
+                    ctx.arc(r, 0, 5, 0, Math.PI * 2);
                     ctx.fill();
                     // Glow
                     ctx.shadowBlur = 15;
                     ctx.shadowColor = '#00ffff';
+                    ctx.strokeStyle = '#00ffff';
                     ctx.stroke();
                 }
                 ctx.restore();
