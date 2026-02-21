@@ -895,12 +895,37 @@ export class BallSurvivalGame {
     }
 
     spawnBossRushBoss() {
-        const bossType = CONFIG.bossRush?.bossSequence[this.bossesKilled % CONFIG.bossRush.bossSequence.length];
-        const x = this.player.x + (Math.random() - 0.5) * 100;
-        const y = this.player.y - 400;
-        const stats = { ...CONFIG.boss?.base, hp: 1000 + this.bossesKilled * 500 };
-        this.addEntity('bosses', new Boss(x, y, stats));
-        this.notifications.push({ text: `BOSS RUSH: ${bossType} APPARSO!`, life: 200 });
+        const cfg = CONFIG.bossRush || {};
+        const base = CONFIG.boss?.base || { hp: 1500, speed: 1.8, radius: 45, damage: 35 };
+        const k = this.bossesKilled;
+        const hpPerKill = cfg.hpPerKill ?? 600;
+        const damagePerKill = cfg.damagePerKill ?? 10;
+        const speedFactor = cfg.speedFactorPerKill ?? 0.05;
+        const drPerKill = cfg.drPerKill ?? 0.03;
+        const drCap = cfg.drCap ?? 0.55;
+
+        const stats = {
+            ...base,
+            hp: base.hp + k * hpPerKill,
+            damage: (base.damage || 35) + k * damagePerKill,
+            speed: (base.speed || 1.8) * (1 + k * speedFactor),
+            dr: Math.min(drCap, k * drPerKill)
+        };
+        stats.maxHp = stats.hp;
+
+        const spawnOne = (offsetX = 0, offsetY = 0) => {
+            const bossType = cfg.bossSequence?.[(this.bossesKilled) % (cfg.bossSequence?.length || 4)] || 'boss';
+            const x = this.player.x + (Math.random() - 0.5) * 100 + offsetX;
+            const y = this.player.y - 400 + offsetY;
+            this.addEntity('bosses', new Boss(x, y, { ...stats }));
+            this.notifications.push({ text: `BOSS RUSH: ${bossType} APPARSO!`, life: 200 });
+        };
+
+        spawnOne();
+        const doubleFrom = (cfg.doubleBossFromWave ?? 5) - 1;
+        if (k >= doubleFrom) {
+            spawnOne(200, 80);
+        }
     }
 
     checkBossRushVictory() {

@@ -563,7 +563,14 @@ export const CONFIG = {
     },
     bossRush: {
         bossSequence: ['orc_boss', 'slime_boss', 'golem_boss', 'shadow_boss'],
-        spawnInterval: 5, // Seconds between boss spawns after death
-        victoryCount: 10
+        spawnInterval: 3, // Seconds between boss spawns after death
+        victoryCount: 15,
+        // Scaling per onda (i primi boss usano HP base, poi crescono)
+        hpPerKill: 600,
+        damagePerKill: 10,
+        speedFactorPerKill: 0.05,
+        drPerKill: 0.03,
+        drCap: 0.55,
+        doubleBossFromWave: 5 // Da onda 5 (1-based) spawnano 2 boss per volta
     }
 };

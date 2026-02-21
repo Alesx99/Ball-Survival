@@ -55,7 +55,8 @@ export class Boss extends Enemy {
         game.bossesKilledThisStage++;
         game.bestiarySystem?.registerKill(this.type || 'boss');
         if (game.stats) game.stats.bossKills++;
-        game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * 0.5);
+        const healRatio = game.gameMode === 'bossRush' ? 0.25 : 0.5;
+        game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + game.player.stats.maxHp * healRatio);
         game.gemsThisRun += 100;
 
         // Golden boss reward
