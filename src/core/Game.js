@@ -61,7 +61,10 @@ export class BallSurvivalGame {
         };
 
         // Sistemi versione 5.3
-        this.retentionMonitor = new RetentionMonitor();
+        const retentionInstance = new RetentionMonitor();
+        this.retentionMonitor = typeof retentionInstance?.trackSession === 'function'
+            ? retentionInstance
+            : { trackSession: () => {}, getSessionDuration: () => 0, calculateRetention: () => 0, getOptimizationSuggestions: () => [], metricsData: [] };
         this.quickFeedback = new QuickFeedback();
         this.progressionOptimizer = new ProgressionOptimizer();
         this.achievementSystem = new AchievementSystem();

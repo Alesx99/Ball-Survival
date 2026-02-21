@@ -15,14 +15,16 @@ export const BalanceSystem = {
         // Calcola enemy scaling
         const enemyScaling = this.calculateEnemyScaling();
 
-        // Traccia metriche
-        this.retentionMonitor.trackSession({
-            sessionTime: sessionTime,
-            retention: retention,
-            satisfaction: satisfaction,
-            playerLevel: playerLevel,
-            enemyScaling: enemyCount // Usa enemyCount invece di enemyScaling per tracciare numero nemici
-        });
+        // Traccia metriche (guard: retentionMonitor può non essere inizializzato in alcuni bundle)
+        if (this.retentionMonitor && typeof this.retentionMonitor.trackSession === 'function') {
+            this.retentionMonitor.trackSession({
+                sessionTime: sessionTime,
+                retention: retention,
+                satisfaction: satisfaction,
+                playerLevel: playerLevel,
+                enemyScaling: enemyCount // Usa enemyCount invece di enemyScaling per tracciare numero nemici
+            });
+        }
 
         // Controlla milestone
         this.progressionOptimizer.checkMilestone(playerLevel);
