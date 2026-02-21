@@ -813,9 +813,19 @@ export const UISystem = {
             }
             let levelText = s && s.level > 0 ? `(Liv. ${s.level + 1})` : `(Nuovo!)`;
             if (upgrade.type === 'evolution' || upgrade.id === 'magicMissile' || upgrade.type === 'mastery') levelText = '';
+
+            const affix = upgrade.affix;
+            const displayName = affix ? `${CONFIG.affixes[affix].name} ${upgrade.name}` : upgrade.name;
+            const titleColor = affix ? CONFIG.affixes[affix].color : 'inherit';
+
             const icon = getUpgradeIcon(upgrade.id, upgrade);
-            div.innerHTML = `<div class="upgrade-option-icon">${icon}</div><div class="upgrade-option-text"><div class="upgrade-title">${upgrade.name} ${levelText}</div><div class="upgrade-desc">${upgrade.details || upgrade.desc}</div></div>`;
-            div.onclick = () => { this.applyBossUpgrade(upgrade.id); this.hideAllPopups(); };
+            div.innerHTML = `
+                <div class="upgrade-option-icon">${icon}</div>
+                <div class="upgrade-option-text">
+                    <div class="upgrade-title" style="color:${titleColor}">${displayName} ${levelText}</div>
+                    <div class="upgrade-desc">${upgrade.details || upgrade.desc}</div>
+                </div>`;
+            div.onclick = () => { this.applyBossUpgrade(upgrade.id, affix); this.hideAllPopups(); };
             container.appendChild(div);
         });
     },
@@ -826,10 +836,17 @@ export const UISystem = {
         const passives = Object.values(upgradeTree).filter(u => u.type === 'passive');
         // Scegli 3 a caso
         const shuffled = passives.sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 3);
+        const selected = shuffled.slice(0, 3);
+
+        // Aggiungi un affisso casuale ad ogni scelta
+        const affixKeys = Object.keys(CONFIG.affixes);
+        return selected.map(choice => {
+            const randomAffix = affixKeys[Math.floor(Math.random() * affixKeys.length)];
+            return { ...choice, affix: randomAffix };
+        });
     },
 
-    applyBossUpgrade(upgradeId) {
+    applyBossUpgrade(upgradeId, affixId) {
         const upgrade = CONFIG.upgradeTree[upgradeId];
         if (!upgrade) return;
         let target;
@@ -840,8 +857,34 @@ export const UISystem = {
             target = this.spells[baseId];
         }
         if (!target) return;
+
         target.level++;
-        this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
+
+        // Applica i bonus dell'affisso
+        if (affixId && CONFIG.affixes[affixId]) {
+            const affix = CONFIG.affixes[affixId];
+            for (const [stat, val] of Object.entries(affix.stats)) {
+                if (stat === 'hp') {
+                    this.player.stats.maxHp += val;
+                    this.player.hp += val;
+                } else if (this.player.stats[stat] !== undefined) {
+                    this.player.stats[stat] += val;
+                } else if (this.player.modifiers[stat] !== undefined) {
+                    // Se è un modificatore basato su 1.0 (es: power), attenzione a non stackare male
+                    if (stat === 'power' || stat === 'area' || stat === 'xpGain') {
+                        this.player.modifiers[stat] += val;
+                    } else if (stat === 'frequency') {
+                        // Frequency riduce il cooldown (0.9 = -10%), quindi sottraiamo
+                        this.player.modifiers[stat] += val;
+                    } else {
+                        this.player.modifiers[stat] += val;
+                    }
+                }
+            }
+            this.notifications.push({ text: `Loot ${affix.name}: ${upgrade.name}!`, life: 220, color: affix.color });
+        } else {
+            this.notifications.push({ text: `Upgrade boss: ${upgrade.name}!`, life: 180 });
+        }
     },
 
     // --- BESTIARY & HISTORY ---

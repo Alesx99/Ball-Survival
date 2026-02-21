@@ -164,10 +164,28 @@ export class DroppedItem extends Entity {
     update(game) {
         this.life--;
         if (this.life <= 0) this.toRemove = true;
+
         const dist = Utils.getDistance(game.player, this);
         if (dist < game.player.stats.radius + 10) {
-            game.applyItemEffect(this);
-            this.toRemove = true;
+            const itemInfo = CONFIG.itemTypes[this.type];
+            if (itemInfo && itemInfo.isActive) {
+                // Tenta di aggiungere l'oggetto attivo alla hotbar
+                const added = game.player.addItemToHotbar(this.type);
+                if (added) {
+                    game.notifications.push({ text: itemInfo.name + " (Premi 1, 2 o 3)", life: 300, color: '#f1c40f' });
+                    game.audio?.playPickup?.();
+                    this.toRemove = true; // Rimosso solo se aggiunto
+                } else if (!this._fullInventoryNotified) {
+                    game.notifications.push({ text: "Inventario Pieno!", life: 180, color: '#e74c3c' });
+                    this._fullInventoryNotified = true; // Evita spam di notifiche ad ogni frame di contatto
+                }
+            } else {
+                // Oggetto passivo immediato
+                game.applyItemEffect(this);
+                this.toRemove = true;
+            }
+        } else {
+            this._fullInventoryNotified = false; // Reset notifica quando esce dal raggio
         }
     }
 

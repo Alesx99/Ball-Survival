@@ -14,6 +14,9 @@ export const ICONS = {
     shockwave: '💥',
     heal: '💚',
     shield: '🛡️',
+    singularity: '🌌',
+    stellarAura: '✨',
+    pulsarRay: '🌠',
 
     // Evoluzioni (prefisso base + evolve)
     fireball_evolve_giant: '🔥',
@@ -51,6 +54,10 @@ export const ICONS = {
     fireball_lightning: '⚡🔥',
     frostbolt_shield: '❄️🛡️',
     shotgun_heal: '💨💚',
+    black_hole: '🕳️',
+    spectral_veil: '👻❄️',
+    stellar_rain: '🌠🔥',
+    paradox: '⏳',
 
     // Passivi
     health: '❤️',

@@ -81,6 +81,7 @@ export const RenderSystem = {
         }
         this.drawOffscreenIndicators();
         this.drawMinimap();
+        this.drawHotbar();
         if (this.gameMode === 'bossRush') this.drawBossRushHUD();
         this.drawNotifications();
     },
@@ -133,18 +134,16 @@ export const RenderSystem = {
         const stageInfo = CONFIG.stages[this.currentStage];
         if (!stageInfo) return;
 
-        // Culling: disegna solo l'area visibile (ottimizzazione mobile)
-        const pad = CONFIG.world.gridSize * 2;
-        const vx0 = Math.max(0, Math.floor((this.camera.x - pad) / CONFIG.world.gridSize) * CONFIG.world.gridSize);
-        const vy0 = Math.max(0, Math.floor((this.camera.y - pad) / CONFIG.world.gridSize) * CONFIG.world.gridSize);
-        const vx1 = Math.min(CONFIG.world.width, this.camera.x + this.camera.width + pad);
-        const vy1 = Math.min(CONFIG.world.height, this.camera.y + this.camera.height + pad);
+        // Init parallax cache se non esiste per questo stage
+        if (!this._parallaxCache || this._parallaxCache.stage !== this.currentStage) {
+            this._initParallaxCache(stageInfo);
+        }
 
-        // Sfondo base
+        // Sfondo base solido
         this.ctx.fillStyle = stageInfo.background.color;
         this.ctx.fillRect(0, 0, CONFIG.world.width, CONFIG.world.height);
 
-        // Overlay gradient per profondità (glow centrale)
+        // Overlay gradient per profondità (glow centrale) fisso al world
         const accent = stageInfo.background.accentColor || '#00f5ff';
         const cx = this.camera.x + this.camera.width / 2;
         const cy = this.camera.y + this.camera.height / 2;
@@ -157,141 +156,211 @@ export const RenderSystem = {
         this.ctx.fillStyle = grad;
         this.ctx.fillRect(this.camera.x - 100, this.camera.y - 100, this.camera.width + 200, this.camera.height + 200);
 
-        // Griglia o pattern specifico dello stage (solo area visibile)
-        this.ctx.strokeStyle = stageInfo.background.gridColor;
-        this.ctx.lineWidth = 1;
+        // Disegna layer pre-renderizzati
+        const layers = this._parallaxCache.layers;
+        if (!layers) return;
 
-        switch (stageInfo.background.pattern) {
-            case 'grid':
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
-                    this.ctx.beginPath(); this.ctx.moveTo(x, vy0); this.ctx.lineTo(x, vy1); this.ctx.stroke();
-                }
-                for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
-                    this.ctx.beginPath(); this.ctx.moveTo(vx0, y); this.ctx.lineTo(vx1, y); this.ctx.stroke();
-                }
-                break;
-            case 'forest':
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize * 2) {
-                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize * 2) {
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(x, y + 20);
-                        this.ctx.lineTo(x - 10, y);
-                        this.ctx.lineTo(x + 10, y);
-                        this.ctx.closePath();
-                        this.ctx.stroke();
+        const tileSize = this._parallaxCache.tileSize;
+
+        for (let i = 0; i < layers.length; i++) {
+            const layer = layers[i];
+            const canvas = layer.canvas;
+            if (!canvas) continue;
+
+            // Calcola offset basato sulla camera e sul fattore parallasse
+            const parallaxX = this.camera.x * layer.speed;
+            const parallaxY = this.camera.y * layer.speed;
+
+            // Disegna il pattern coprendo solo la view camera
+            // Troviamo il tile top-left della camera
+            const startX = Math.floor((this.camera.x - parallaxX) / tileSize) * tileSize + parallaxX;
+            const startY = Math.floor((this.camera.y - parallaxY) / tileSize) * tileSize + parallaxY;
+
+            for (let x = startX - tileSize; x < this.camera.x + this.camera.width + tileSize; x += tileSize) {
+                for (let y = startY - Math.floor(this.camera.y / 100); y < this.camera.y + this.camera.height + tileSize; y += tileSize) {
+                    // Culling check approssimato
+                    if (x + tileSize > this.camera.x && x < this.camera.x + this.camera.width &&
+                        y + tileSize > this.camera.y && y < this.camera.y + this.camera.height) {
+                        this.ctx.drawImage(canvas, x, y);
                     }
                 }
-                break;
-            case 'desert':
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x, CONFIG.world.height);
-                    this.ctx.quadraticCurveTo(x + 50, CONFIG.world.height - 30, x + 100, CONFIG.world.height);
-                    this.ctx.stroke();
-                }
-                break;
-            case 'ice':
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
-                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(x, y);
-                        this.ctx.lineTo(x + 5, y - 10);
-                        this.ctx.lineTo(x + 10, y);
-                        this.ctx.lineTo(x + 5, y + 10);
-                        this.ctx.closePath();
-                        this.ctx.stroke();
-                    }
-                }
-                break;
-            case 'cosmic':
-                // Stelle deterministiche neon (no Math.random in draw - causa jank su mobile)
-                const starColor = stageInfo.background.accentColor || '#ff00ff';
-                const sr = starColor.startsWith('#') ? parseInt(starColor.slice(1, 3), 16) : 255;
-                const sg = starColor.startsWith('#') ? parseInt(starColor.slice(3, 5), 16) : 0;
-                const sb = starColor.startsWith('#') ? parseInt(starColor.slice(5, 7), 16) : 255;
-                this.ctx.fillStyle = `rgba(${sr},${sg},${sb},0.85)`;
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
-                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
-                        const h = (x * 31 + y * 7) % 100;
-                        if (h < 30) {
-                            const sx = x + (h * 17 % 20);
-                            const sy = y + ((h * 13 + 7) % 20);
-                            this.ctx.beginPath();
-                            this.ctx.arc(sx, sy, 1, 0, Math.PI * 2);
-                            this.ctx.fill();
-                        }
-                    }
-                }
-                break;
-            case 'infernal': {
-                // Fiamme che salgono dal basso
-                this.ctx.fillStyle = stageInfo.background.gridColor;
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize * 1.5) {
-                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize * 2) {
-                        const h = (x * 13 + y * 29) % 100;
-                        if (h < 25) {
-                            const flameHeight = 15 + (h % 15);
-                            const fx = x + (h * 7 % 30);
-                            const fy = y + ((h * 11 + 3) % 30);
-                            this.ctx.beginPath();
-                            this.ctx.moveTo(fx - 5, fy);
-                            this.ctx.quadraticCurveTo(fx, fy - flameHeight, fx + 5, fy);
-                            this.ctx.closePath();
-                            this.ctx.fill();
-                        }
-                    }
-                }
-                break;
             }
-            case 'celestial': {
-                // Raggi di luce dorata
-                const lc = stageInfo.background.accentColor || '#ffd700';
-                const lr = parseInt(lc.slice(1, 3), 16);
-                const lg = parseInt(lc.slice(3, 5), 16);
-                const lb = parseInt(lc.slice(5, 7), 16);
-                this.ctx.strokeStyle = `rgba(${lr},${lg},${lb},0.08)`;
-                this.ctx.lineWidth = 2;
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize * 3) {
-                    const h = (x * 17) % 100;
-                    if (h < 40) {
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(x, vy0);
-                        this.ctx.lineTo(x + 30, vy1);
-                        this.ctx.stroke();
-                    }
-                }
-                // Stella brillante sparsa
-                this.ctx.fillStyle = `rgba(${lr},${lg},${lb},0.5)`;
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize * 2) {
-                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize * 2) {
-                        const h = (x * 23 + y * 11) % 100;
-                        if (h < 12) {
-                            this.ctx.beginPath();
-                            this.ctx.arc(x + (h * 7 % 40), y + (h * 3 % 40), 1.5, 0, Math.PI * 2);
-                            this.ctx.fill();
-                        }
-                    }
-                }
-                break;
+        }
+    },
+
+    _initParallaxCache(stageInfo) {
+        this._parallaxCache = {
+            stage: this.currentStage,
+            tileSize: CONFIG.world.gridSize * 4, // 400x400 tile
+            layers: []
+        };
+
+        const ts = this._parallaxCache.tileSize;
+
+        // Layer 0: Background distante (lento)
+        const canvas0 = document.createElement('canvas');
+        canvas0.width = ts; canvas0.height = ts;
+        const ctx0 = canvas0.getContext('2d');
+
+        // Layer 1: Foreground (1:1 o quasi, la vecchia griglia)
+        const canvas1 = document.createElement('canvas');
+        canvas1.width = ts; canvas1.height = ts;
+        const ctx1 = canvas1.getContext('2d');
+
+        // Renderizza nei canvas in base al pattern
+        ctx1.strokeStyle = stageInfo.background.gridColor;
+        ctx1.lineWidth = 1;
+
+        const pattern = stageInfo.background.pattern;
+
+        if (pattern === 'grid') {
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize) {
+                ctx1.beginPath(); ctx1.moveTo(cx, 0); ctx1.lineTo(cx, ts); ctx1.stroke();
             }
-            case 'void': {
-                // Vuoto: punti bianchi sparsi, nessuna griglia
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                for (let x = vx0; x < vx1; x += CONFIG.world.gridSize) {
-                    for (let y = vy0; y < vy1; y += CONFIG.world.gridSize) {
-                        const h = (x * 41 + y * 19) % 100;
-                        if (h < 15) {
-                            const sx = x + (h * 13 % 50);
-                            const sy = y + ((h * 7 + 11) % 50);
-                            const sz = 0.5 + (h % 3) * 0.5;
-                            this.ctx.beginPath();
-                            this.ctx.arc(sx, sy, sz, 0, Math.PI * 2);
-                            this.ctx.fill();
-                        }
+            for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize) {
+                ctx1.beginPath(); ctx1.moveTo(0, cy); ctx1.lineTo(ts, cy); ctx1.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 1.0 });
+
+        } else if (pattern === 'forest') {
+            // Alberi distanti nel layer 0
+            ctx0.strokeStyle = 'rgba(20, 100, 20, 0.1)';
+            ctx0.lineWidth = 1.5;
+            for (let i = 0; i < 5; i++) {
+                const tx = Math.random() * ts; const ty = Math.random() * ts;
+                ctx0.beginPath(); ctx0.moveTo(tx, ty + 15); ctx0.lineTo(tx - 8, ty); ctx0.lineTo(tx + 8, ty); ctx0.closePath(); ctx0.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.5 });
+
+            // Prato/viti vicine layer 1
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize * 1.5) {
+                for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize * 1.5) {
+                    ctx1.beginPath(); ctx1.moveTo(cx, cy + 20); ctx1.lineTo(cx - 10, cy); ctx1.lineTo(cx + 10, cy); ctx1.closePath(); ctx1.stroke();
+                }
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 1.0 });
+
+        } else if (pattern === 'desert') {
+            // Dune distanti
+            ctx0.strokeStyle = 'rgba(200, 100, 0, 0.1)';
+            ctx0.lineWidth = 2;
+            for (let i = 0; i < 3; i++) {
+                ctx0.beginPath(); ctx0.moveTo(0, ts / 2 + i * 50); ctx0.quadraticCurveTo(ts / 2, ts / 2 - 40 + i * 50, ts, ts / 2 + i * 50); ctx0.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.3 });
+
+            // Crepe / dune vicine
+            for (let cx = 0; cx <= ts; cx += CONFIG.world.gridSize) {
+                const cy = (cx * 1.5) % ts;
+                ctx1.beginPath(); ctx1.moveTo(cx, cy); ctx1.quadraticCurveTo(cx + 50, cy - 30, cx + 100, cy); ctx1.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 1.0 });
+
+        } else if (pattern === 'cosmic') {
+            // Stelle lontane
+            ctx0.fillStyle = 'rgba(255,255,255,0.3)';
+            for (let i = 0; i < 20; i++) {
+                ctx0.beginPath(); ctx0.arc(Math.random() * ts, Math.random() * ts, 0.5 + Math.random(), 0, Math.PI * 2); ctx0.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.1 });
+
+            // Costellazioni vicine
+            const starColor = stageInfo.background.accentColor || '#ff00ff';
+            ctx1.fillStyle = 'rgba(255, 0, 255, 0.6)';
+            for (let i = 0; i < 15; i++) {
+                ctx1.beginPath(); ctx1.arc(Math.random() * ts, Math.random() * ts, 1.5 + Math.random() * 1.5, 0, Math.PI * 2); ctx1.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 0.8 });
+        } else if (pattern === 'ice') {
+            // Cristalli di ghiaccio sfocati lontani
+            ctx0.strokeStyle = 'rgba(200, 240, 255, 0.2)';
+            ctx0.lineWidth = 1;
+            for (let i = 0; i < 8; i++) {
+                const tx = Math.random() * ts; const ty = Math.random() * ts;
+                ctx0.beginPath(); ctx0.moveTo(tx, ty); ctx0.lineTo(tx + 5, ty - 10); ctx0.lineTo(tx + 10, ty); ctx0.lineTo(tx + 5, ty + 10); ctx0.closePath(); ctx0.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.4 });
+
+            // Ghiaccio nitido vicino
+            ctx1.strokeStyle = stageInfo.background.gridColor;
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize) {
+                for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize) {
+                    ctx1.beginPath(); ctx1.moveTo(cx, cy); ctx1.lineTo(cx + 5, cy - 10); ctx1.lineTo(cx + 10, cy); ctx1.lineTo(cx + 5, cy + 10); ctx1.closePath(); ctx1.stroke();
+                }
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 1.0 });
+
+        } else if (pattern === 'infernal') {
+            // Braci fluttuanti
+            ctx0.fillStyle = 'rgba(255, 100, 0, 0.4)';
+            for (let i = 0; i < 15; i++) {
+                ctx0.beginPath(); ctx0.arc(Math.random() * ts, Math.random() * ts, 1 + Math.random(), 0, Math.PI * 2); ctx0.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.6 });
+
+            // Onde infuocate (griglia deformata)
+            ctx1.fillStyle = stageInfo.background.gridColor;
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize * 1.5) {
+                for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize * 2) {
+                    const h = (cx * 13 + cy * 29) % 100;
+                    if (h < 25) {
+                        const flameHeight = 15 + (h % 15);
+                        const fx = cx + (h * 7 % 30);
+                        const fy = cy + ((h * 11 + 3) % 30);
+                        ctx1.beginPath(); ctx1.moveTo(fx - 5, fy); ctx1.quadraticCurveTo(fx, fy - flameHeight, fx + 5, fy); ctx1.closePath(); ctx1.fill();
                     }
                 }
-                break;
             }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 1.0 });
+
+        } else if (pattern === 'celestial') {
+            // Raggi di luce lenti
+            const lc = stageInfo.background.accentColor || '#ffd700';
+            const lr = parseInt(lc.slice(1, 3), 16) || 255; const lg = parseInt(lc.slice(3, 5), 16) || 215; const lb = parseInt(lc.slice(5, 7), 16) || 0;
+            ctx0.strokeStyle = `rgba(${lr},${lg},${lb},0.15)`;
+            ctx0.lineWidth = 4;
+            for (let i = 0; i < 3; i++) {
+                const rx = Math.random() * ts;
+                ctx0.beginPath(); ctx0.moveTo(rx, 0); ctx0.lineTo(rx + 30, ts); ctx0.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.2 });
+
+            // Stelle dorate vicine
+            ctx1.fillStyle = `rgba(${lr},${lg},${lb},0.5)`;
+            for (let i = 0; i < 25; i++) {
+                ctx1.beginPath(); ctx1.arc(Math.random() * ts, Math.random() * ts, 1.5, 0, Math.PI * 2); ctx1.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 0.9 });
+
+        } else if (pattern === 'void') {
+            // Stelle lentissime
+            ctx0.fillStyle = 'rgba(200, 200, 255, 0.4)';
+            for (let i = 0; i < 15; i++) {
+                ctx0.beginPath(); ctx0.arc(Math.random() * ts, Math.random() * ts, 0.5, 0, Math.PI * 2); ctx0.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.05 });
+
+            // Punti bianchi radi
+            ctx1.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize) {
+                for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize) {
+                    const h = (cx * 41 + cy * 19) % 100;
+                    if (h < 15) {
+                        ctx1.beginPath(); ctx1.arc(cx + (h * 13 % 50), cy + (h * 7 + 11) % 50, 0.5 + (h % 3) * 0.5, 0, Math.PI * 2); ctx1.fill();
+                    }
+                }
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 0.7 });
+
+        } else {
+            // Fallback (render basic grid)
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize) {
+                ctx1.beginPath(); ctx1.moveTo(cx, 0); ctx1.lineTo(cx, ts); ctx1.stroke();
+            }
+            for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize) {
+                ctx1.beginPath(); ctx1.moveTo(0, cy); ctx1.lineTo(ts, cy); ctx1.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas1, speed: 1.0 });
         }
     },
 
@@ -619,6 +688,57 @@ export const RenderSystem = {
         this.ctx.font = 'bold 16px "Cinzel"';
         this.ctx.textAlign = 'left';
         this.ctx.fillText(`BOSS SCONFITTI: ${this.bossesKilled}`, x + 15, y + 25);
+    },
+
+    drawHotbar() {
+        if (!this.ctx || !this.player || !this.player.hotbar || this.gameMode === 'tutorial') return;
+
+        const slotSize = 40;
+        const gap = 10;
+        const totalW = (slotSize * 3) + (gap * 2);
+
+        // Posizione: Centro basso
+        const startX = (this.canvas.width / 2) - (totalW / 2);
+        const startY = this.canvas.height - slotSize - 20; // 20px padding bottom
+
+        this.ctx.save();
+        this.ctx.textAlign = 'center';
+
+        for (let i = 0; i < 3; i++) {
+            const x = startX + (i * (slotSize + gap));
+            const y = startY;
+            const itemType = this.player.hotbar[i];
+
+            // Slot Background
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            this.ctx.strokeStyle = itemType ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 255, 255, 0.2)';
+            this.ctx.lineWidth = 2;
+            Utils.drawRoundedRect(this.ctx, x, y, slotSize, slotSize, 6, true, true);
+
+            // Item Icon (Cerchio colorato)
+            if (itemType) {
+                const itemInfo = CONFIG.itemTypes[itemType];
+                if (itemInfo) {
+                    this.ctx.fillStyle = itemInfo.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x + slotSize / 2, y + slotSize / 2, slotSize * 0.35, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // Lieve glow se ha un oggetto
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = itemInfo.color;
+                    this.ctx.stroke();
+                    this.ctx.shadowBlur = 0;
+                }
+            }
+
+            // Keybind text (1, 2, 3)
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 12px "Courier New", monospace';
+            this.ctx.fillText(`${i + 1}`, x + 10, y + 15);
+        }
+
+        this.ctx.restore();
     },
 
     drawMinimap() {

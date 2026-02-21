@@ -34,6 +34,8 @@ export class Player extends Entity {
         this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false, hpRegen: 0, pickupRadius: 1, iframeTimer: 0, curse: 0 };
         this.hp = this.stats.maxHp;
         this.archetype = CONFIG.characterArchetypes.standard;
+        this.hotbar = [null, null, null]; // Consumabili attivi (es: BOMB_ACTIVE)
+        this._spectralVeilTimer = 0;
     }
 
     resetForNewRun(permUpgrades, archetypeId, game) {
@@ -286,6 +288,82 @@ export class Player extends Entity {
         }
     }
 
+    /**
+     * Aggiunge un oggetto consumabile allo slot vuoto della hotbar
+     * @param {string} type Tipo di oggetto (es: 'BOMB_ACTIVE')
+     * @returns {boolean} Se c'era spazio ed è stato aggiunto
+     */
+    addItemToHotbar(type) {
+        for (let i = 0; i < this.hotbar.length; i++) {
+            if (!this.hotbar[i]) {
+                this.hotbar[i] = type;
+                return true;
+            }
+        }
+        return false; // Inventario pieno
+    }
+
+    /**
+     * Consuma un oggetto nello slot specificato e ne applica gli effetti.
+     * @param {number} index L'indice dello slot (0, 1, 2)
+     * @param {object} game Oggetto Game
+     */
+    consumeItem(index, game) {
+        if (!game || game.state !== 'running') return;
+        const itemType = this.hotbar[index];
+        if (!itemType) return; // Slot vuoto
+
+        this.hotbar[index] = null; // Rimuovi l'oggetto dall'inventario
+
+        const itemInfo = CONFIG.itemTypes[itemType];
+        if (!itemInfo) return;
+
+        // Esegui logica dell'oggetto attivo
+        if (itemType === 'BOMB_ACTIVE') {
+            const radius = 250;
+            const damage = 200 * this.modifiers.power;
+            const enemies = [...(game.entities?.enemies || []), ...(game.entities?.bosses || [])];
+            enemies.forEach(enemy => {
+                if (Utils.getDistance(this, enemy) <= radius) {
+                    enemy.takeDamage(damage, game);
+                }
+            });
+            const EffectClass = game._entityClasses?.Effect;
+            if (EffectClass) {
+                game.addEntity('effects', new EffectClass(this.x, this.y, { type: 'level_up_burst', maxRadius: radius, life: 30, initialLife: 30, color: '#e74c3c' }));
+            }
+            game.notifications?.push({ text: "Bombs Away!", color: "#e74c3c", life: 120 });
+            game.addScreenShake?.(15);
+        } else if (itemType === 'TURRET_ACTIVE') {
+            const OrbitalClass = game._entityClasses?.Orbital;
+            if (OrbitalClass) {
+                // Sfruttiamo Orbital come Turret stazionaria. 
+                // Creiamo un'entità statica temporanea che spara ai nemici vicini
+                const turret = new OrbitalClass(this.x, this.y, {
+                    distance: 0, speed: 0, damage: 30, isMelee: false, isTurret: true,
+                    color: '#3498db', maxLife: 900 // 15 secondi (60fps * 15)
+                }, this);
+                game.addEntity('orbitals', turret);
+                game.notifications?.push({ text: "Torretta Attiva!", color: "#3498db", life: 120 });
+            }
+        } else if (itemType === 'HEAL_ACTIVE') {
+            this.heal(this.stats.maxHp);
+            const ParticleClass = game._entityClasses?.Particle;
+            if (ParticleClass) {
+                for (let i = 0; i < 30; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5;
+                    game.addEntity('particles', new ParticleClass(this.x, this.y, {
+                        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                        life: 40, color: '#2ecc71', size: 3
+                    }));
+                }
+            }
+            game.notifications?.push({ text: "Salute Ripristinata!", color: "#2ecc71", life: 120 });
+            game.audio?.playLevelUp();
+        }
+    }
+
     gainXP(amount) {
         const gain = amount * this.modifiers.xpGain;
         if (!Number.isFinite(gain)) return; // Protegge da NaN/Infinity
@@ -346,7 +424,10 @@ export class Player extends Entity {
             maxDR = 0.90;
         }
 
-        let damageReduction = Math.min(maxDR, this.stats.dr);
+        // Apply Diminishing Returns: Formula DR_effettivo = maxDR * (1 - e^(-1.5 * DR_raw))
+        // Se dr è piccolo, cresce quasi linearmente, se cresce rallenta asintoticamente fino al gap massimo.
+        let rawDR = this.stats.dr;
+        let damageReduction = maxDR * (1 - Math.exp(-2.0 * rawDR));
 
         if (sourceEnemy && sourceEnemy.stats?.isElite) {
             damageReduction = Math.max(0, damageReduction - 0.10);
@@ -361,6 +442,9 @@ export class Player extends Entity {
                 sourceEnemy.takeDamage(amount * shieldSpell.reflectDamage, game);
             }
         }
+
+        // Cap finale di sicurezza dopo le modifiche.
+        damageReduction = Math.min(maxDR, Math.max(0, damageReduction));
 
         const finalDamage = amount * (1 - damageReduction);
         this.hp -= finalDamage;
@@ -439,11 +523,19 @@ export class Player extends Entity {
                 ctx.restore();
             }
         }
+        ctx.save();
+        if (this.powerUpTimers?.invincibility > 0) {
+            ctx.globalAlpha = 0.5;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ffffff';
+        }
+
         if (this.archetype && this.archetype.draw) {
             this.archetype.draw(ctx, this);
         } else {
             CONFIG.characterArchetypes.standard.draw(ctx, this);
         }
+        ctx.restore();
 
         // Apply skin-specific effect layer (Aura, Matrix, etc.)
         if (game?.skinSystem) {

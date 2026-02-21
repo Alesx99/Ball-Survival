@@ -55,6 +55,11 @@ export class InputManager {
         if (e.code === 'KeyJ') {
             this.game.logLevelSystem?.discoverLog('test_log');
         }
+
+        // Hotkeys for Consumable Items
+        if (e.code === 'Digit1' || e.code === 'Numpad1') this.game.player.consumeItem(0, this.game);
+        if (e.code === 'Digit2' || e.code === 'Numpad2') this.game.player.consumeItem(1, this.game);
+        if (e.code === 'Digit3' || e.code === 'Numpad3') this.game.player.consumeItem(2, this.game);
     }
 
     handleKeyUp(e) {

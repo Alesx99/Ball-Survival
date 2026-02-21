@@ -385,6 +385,9 @@ export class BallSurvivalGame {
         this.elitesKilledThisStage = 0; // Elite uccisi nello stage corrente
         this.screenShakeIntensity = 0;
         this.hitFlashTimer = 0;
+        this._timeStopActive = false;
+        this._timeStopTimer = 0;
+        if (this.player) this.player._spectralVeilTimer = 0;
 
         // Stats tracking per achievement
         this.stats = {
@@ -518,6 +521,14 @@ export class BallSurvivalGame {
         this.player.update(this, this.joystick);
         this.metaProgressionSystem?.update(deltaTime * 1000); // Passa millisecondi
 
+        // Spectral Veil Fusion
+        if (this.player._spectralVeilTimer > 0) {
+            this.player._spectralVeilTimer--;
+            if (this.player._spectralVeilTimer % 12 === 0) {
+                this.castFrostbolt(Date.now(), Math.random() * Math.PI * 2);
+            }
+        }
+
         if (this.gameMode === 'tutorial') {
             this.tutorialSystem?.update();
         }
@@ -532,7 +543,21 @@ export class BallSurvivalGame {
 
         this.updateCamera();
         this.checkStage();
+
+        if (this._timeStopActive) {
+            this._timeStopTimer--;
+            if (this._timeStopTimer <= 0) {
+                this._timeStopActive = false;
+                this.notifications.push({ text: "Il tempo riprende a scorrere...", life: 120 });
+            }
+        }
+
         for (const type in this.entities) {
+            // Se il tempo è fermo, salta l'update per nemici e proiettili nemici
+            if (this._timeStopActive && (type === 'enemies' || type === 'bosses' || type === 'enemyProjectiles')) {
+                continue;
+            }
+
             for (let i = this.entities[type].length - 1; i >= 0; i--) {
                 const entity = this.entities[type][i];
                 entity.update(this);
@@ -549,11 +574,14 @@ export class BallSurvivalGame {
             this.notifications[i].life--;
             if (this.notifications[i].life <= 0) this.notifications.splice(i, 1);
         }
-        this.spawnEnemies();
-        this.spawnBoss();
-        this.spawnChests();
-        this.spawnMapXpOrbs();
-        this.spawnDynamicEvents();
+
+        if (!this._timeStopActive) {
+            this.spawnEnemies();
+            this.spawnBoss();
+            this.spawnChests();
+            this.spawnMapXpOrbs();
+            this.spawnDynamicEvents();
+        }
         this.castSpells();
 
         const inBattle = this.getEnemiesAndBosses().length > 0;
@@ -891,7 +919,32 @@ export class BallSurvivalGame {
         }
     }
 
-    applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
+    applyItemEffect(item) {
+        const itemInfo = CONFIG.itemTypes[item.type];
+
+        if (itemInfo.isActive) {
+            // È un oggetto Hotbar
+            const added = this.player.addItemToHotbar(item.type);
+            if (added) {
+                this.notifications.push({ text: itemInfo.name + " (Premi 1, 2 o 3)", life: 300, color: '#f1c40f' });
+                this.audio?.playPickup?.();
+            } else {
+                this.notifications.push({ text: "Inventario Pieno!", life: 180, color: '#e74c3c' });
+                // Volendo si potrebbe rimettere a terra, ma per ora lo scartiamo
+            }
+            return;
+        }
+
+        // Oggetti immediati passivi
+        this.notifications.push({ text: itemInfo.desc, life: 300 });
+        switch (item.type) {
+            case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break;
+            case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break;
+            case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break;
+            case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break;
+            case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break;
+        }
+    }
 
     // Funzione di test per il negozio
     showDailyChallengePopup() {

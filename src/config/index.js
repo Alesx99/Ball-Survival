@@ -354,7 +354,12 @@ export const CONFIG = {
         // Advanced Fusions
         { id: 'tri_elemental', primary: 'fireball', secondary: 'frostbolt', tertiary: 'lightning', name: 'Triade Elementale', desc: 'Fuoco + Gelo + Fulmine MASSIMI: Il caos puro. Danni massicci e status.', bonus: { damage: 1.0, burnDamage: 25, auraDps: 15, auraSlow: 0.3, chains: 5 }, advanced: true },
         { id: 'radiant_aegis', primary: 'shield', secondary: 'heal', requiredPassive: 'armor', name: 'Egida Radiante', desc: 'Scudo + Cura + Armatura MAX: Invulnerabilità e guarigione passiva.', bonus: { reflectDamage: 2.0, healAmount: 1.0 }, advanced: true },
-        { id: 'cataclysm', primary: 'shockwave', secondary: 'shotgun', tertiary: 'lightning', name: 'Cataclisma', desc: 'Nova + Fucile + Fulmine MASSIMI: Distruzione a schermo intero.', bonus: { damage: 1.5, area: 1.0, knockback: 1.0, count: 6 }, advanced: true }
+        { id: 'cataclysm', primary: 'shockwave', secondary: 'shotgun', tertiary: 'lightning', name: 'Cataclisma', desc: 'Nova + Fucile + Fulmine MASSIMI: Distruzione a schermo intero.', bonus: { damage: 1.5, area: 1.0, knockback: 1.0, count: 6 }, advanced: true },
+        // New Cosmic Fusions
+        { id: 'black_hole', primary: 'singularity', secondary: 'cyclone', name: 'Buco Nero', desc: 'Attrazione massiccia e danni periodici enormi.', bonus: { damage: 2.0, pullForce: 5, radius: 100 } },
+        { id: 'spectral_veil', primary: 'cloaking', secondary: 'frostbolt', name: 'Velo Spettrale', desc: 'Invisibilità che rilascia dardi di ghiaccio durante il movimento.', bonus: { penetration: 5, damage: 0.5 } },
+        { id: 'stellar_rain', primary: 'fireball', secondary: 'singularity', name: 'Pioggia Stellare', desc: 'Le fireball vengono attratte verso la Singularity creando mini-meteore.', bonus: { count: 4, damage: 0.3 } },
+        { id: 'paradox', primary: 'armageddon', secondary: 'cloaking', name: 'Paradox', desc: 'L\'Armageddon ferma il tempo per 10 secondi invece di fare danni.', bonus: { timeStop: 10000 } }
     ],
     upgradeTree: {
         'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 10, type: 'passive' },
@@ -370,6 +375,10 @@ export const CONFIG = {
         'cyclone': { id: 'cyclone', name: 'Ciclone Vuoto', desc: 'Vortice statico che attrae debolmente i nemici prima di esplodere.', maxLevel: 4, type: 'active' },
         'armageddon': { id: 'armageddon', name: 'Armageddon', desc: 'Danno planetario enorme a schermo intero ogni minuto.', maxLevel: 1, type: 'active' },
         'cloaking': { id: 'cloaking', name: 'Velo D\'Ombra', desc: 'Diventi intangibile temporaneamente.', maxLevel: 4, type: 'active' },
+        // Cosmic Spells
+        'singularity': { id: 'singularity', name: 'Singolarità', desc: 'Lancia un proiettile gravitazionale che attrae i nemici.', maxLevel: 4, type: 'active' },
+        'stellarAura': { id: 'stellarAura', name: 'Aura Stellare', desc: 'Crea un campo di stelle rotanti che danneggiano i nemici vicini.', maxLevel: 4, type: 'active' },
+        'pulsarRay': { id: 'pulsarRay', name: 'Raggio Pulsar', desc: 'Spara un raggio di energia pura altamente perforante.', maxLevel: 4, type: 'active' },
         'fireball': { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', details: "+8 Danni, +8 Raggio Esplosione", maxLevel: 4 },
         'fireball_evolve_giant': { id: 'fireball_evolve_giant', name: 'EVO: Palla di Fuoco Gigante', desc: 'Palla di fuoco lenta ma devastante.', type: 'evolution' },
         'fireball_evolve_meteor': { id: 'fireball_evolve_meteor', name: 'EVO: Pioggia di Meteore', desc: 'Fa piovere meteore dal cielo.', type: 'evolution' },
@@ -442,7 +451,12 @@ export const CONFIG = {
         'XP_BOMB': { name: "Bomba di XP", color: '#ffff00', desc: "Fornisce un'enorme quantità di esperienza." },
         'INVINCIBILITY': { name: "Scudo Divino", color: '#ffffff', desc: "Immunità dai danni per 10 secondi." },
         'DAMAGE_BOOST': { name: "Gemma del Potere", color: '#ff4500', desc: "Aumenta i danni del 25% per 20 secondi." },
-        'LEGENDARY_ORB': { name: "Frammento Divino", color: '#ff00ff', desc: "Invincibilità e danni aumentati per 60 secondi!" }
+        'LEGENDARY_ORB': { name: "Frammento Divino", color: '#ff00ff', desc: "Invincibilità e danni aumentati per 60 secondi!" },
+
+        // Nuovi oggetti consumabili attivi (Hotbar)
+        'BOMB_ACTIVE': { name: "Bomba a Frammentazione", color: '#e74c3c', desc: "Consumabile: Esplode infliggendo ingenti danni ad area", isActive: true },
+        'TURRET_ACTIVE': { name: "Torretta Portatile", color: '#3498db', desc: "Consumabile: Piazza una torretta che spara ai nemici per 15s", isActive: true },
+        'HEAL_ACTIVE': { name: "Fiala Vitale", color: '#2ecc71', desc: "Consumabile: Ripristina subito il 100% HP (Uso manuale)", isActive: true }
     },
     statIcons: {
         health: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
@@ -472,5 +486,14 @@ export const CONFIG = {
         drPerKill: 0.03,
         drCap: 0.65,
         doubleBossFromWave: 4 // Da onda 4 (1-based) spawnano 2 boss per volta
+    },
+    // Affissi per Loot dei Boss
+    affixes: {
+        'sharp': { name: "Affilato", color: '#ff4444', stats: { 'power': 0.15 } },
+        'hardened': { name: "Indurito", color: '#aaaaaa', stats: { 'dr': 0.05, 'hp': 25 } },
+        'swift': { name: "Rapido", color: '#44ff44', stats: { 'speed': 0.4, 'frequency': -0.10 } },
+        'arcane': { name: "Arcano", color: '#aa44ff', stats: { 'area': 0.20, 'power': 0.05 } },
+        'lucky': { name: "Fortunato", color: '#ffff44', stats: { 'luck': 0.15, 'xpGain': 0.10 } },
+        'divine': { name: "Divino", color: '#ffffff', stats: { 'power': 0.25, 'dr': 0.10, 'area': 0.15 } }
     }
 };

@@ -68,6 +68,9 @@ export class Effect extends Entity {
     constructor(x, y, props) {
         super(x, y);
         Object.assign(this, props);
+        if (typeof this.onStart === 'function') {
+            this.onStart();
+        }
     }
 
     update(game) {
@@ -98,6 +101,31 @@ export class Effect extends Entity {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
             ctx.stroke();
+        } else if (this.type === 'armageddon_flash') {
+            const w = game.canvas.width;
+            const h = game.canvas.height;
+            ctx.fillStyle = `rgba(255, 50, 50, ${opacity * 0.8})`;
+            // Fill based on camera offset to cover entire screen relative to world
+            ctx.fillRect(game.camera.x - w / 2, game.camera.y - h / 2, w * 2, h * 2);
+        } else if (this.type === 'pulsar_ray') {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle);
+
+            // Outer glow
+            const g = ctx.createLinearGradient(0, -this.width / 2, 0, this.width / 2);
+            g.addColorStop(0, 'rgba(0, 255, 255, 0)');
+            g.addColorStop(0.5, `rgba(0, 191, 255, ${opacity * 0.6})`);
+            g.addColorStop(1, 'rgba(0, 255, 255, 0)');
+
+            ctx.fillStyle = g;
+            ctx.fillRect(0, -this.width / 2, this.range, this.width);
+
+            // Inner core
+            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.fillRect(0, -this.width / 4, this.range, this.width / 2);
+
+            ctx.restore();
         }
     }
 }

@@ -177,6 +177,11 @@ export const ProgressionSystem = {
             if (f.bonus?.knockback) this.spells[f.primary].knockback = (this.spells[f.primary].knockback || 10) * (1 + f.bonus.knockback);
             if (f.bonus?.chains) this.spells[f.primary].chains = (this.spells[f.primary].chains || 2) + f.bonus.chains;
             if (f.bonus?.reflectDamage) this.spells[f.primary].reflectDamage = (this.spells[f.primary].reflectDamage || 1.0) * f.bonus.reflectDamage;
+            if (f.bonus?.timeStop) {
+                this._timeStopActive = true;
+                this._timeStopTimer = f.bonus.timeStop / 16.6; // Convert ms to frames approx
+                this.notifications?.push({ text: "TEMPO FERMO!", life: 120, color: '#00ffff' });
+            }
             if (f.bonus?.healAmount && f.primary === 'shield') {
                 this.spells[f.primary].healAmount = f.bonus.healAmount; // Adding a custom property handled elsewhere or just as a flag
                 this.spells[f.primary].autoHealInterval = setInterval(() => {
@@ -236,6 +241,9 @@ export const ProgressionSystem = {
         else if (upgrade.id === 'cloaking') { target.duration += 1000; target.cooldown = Math.max(6000, target.cooldown - 1000); }
         else if (upgrade.id === 'heal') { target.amount += 10; target.cooldown = Math.max(4000, target.cooldown - 1000); }
         else if (upgrade.id === 'shield') { target.duration += 300; target.cooldown = Math.max(12000, target.cooldown - 800); }
+        else if (upgrade.id === 'singularity') { target.damage += 5; target.radius += 20; target.pullForce += 0.5; }
+        else if (upgrade.id === 'stellarAura') { target.damage += 3; target.radius += 10; target.duration += 60; }
+        else if (upgrade.id === 'pulsarRay') { target.damage += 15; target.width += 5; target.cooldown = Math.max(4000, target.cooldown - 1000); }
         else if (upgrade.id === 'health') { this.player.stats.maxHp += 60; this.player.hp += 60; }
         else if (upgrade.id === 'speed') { this.player.stats.speed += 0.4; }
         else if (upgrade.id === 'armor') { this.player.stats.dr = Math.min(this.player.stats.dr + 0.03, 1.0); }

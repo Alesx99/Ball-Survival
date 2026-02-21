@@ -27,30 +27,26 @@ export const SpawnSystem = {
          * Session time target: 15-25 min (media), 30+ min (esperti)
          */
         const timeInMinutes = this.totalElapsedTime / 60;
-        let dynamicSpawnInterval = CONFIG.enemies.spawnInterval;
 
-        // Spawn interval dinamico — accelera gradualmente (più aggressivo)
-        if (timeInMinutes < 2) {
-            dynamicSpawnInterval = 1.2;
-        } else if (timeInMinutes < 5) {
-            dynamicSpawnInterval = 1.2;
-        } else if (timeInMinutes < 10) {
-            dynamicSpawnInterval = 0.85;
-        } else if (timeInMinutes < 15) {
-            dynamicSpawnInterval = 0.65;
-        } else if (timeInMinutes < 20) {
-            dynamicSpawnInterval = 0.5;
-        } else if (timeInMinutes < 25) {
-            dynamicSpawnInterval = 0.4;
-        } else if (timeInMinutes < 30) {
-            dynamicSpawnInterval = 0.32;
-        } else {
-            dynamicSpawnInterval = 0.25; // Apocalisse
-        }
+        // === NUOVO: WAVE-BASED SCALING ===
+        // Calcoliamo la fase dell'onda (ciclo di 3 minuti, allineato col BalanceSystem)
+        const wavePeriod = 180;
+        const phase = (this.totalElapsedTime % wavePeriod) / wavePeriod;
+        // La sinusoide da -1 a 1, dove > 0 è l'assalto (spike), < 0 è il respiro (valley)
+        const waveSine = Math.sin(phase * Math.PI * 2);
+
+        // Intensità base: decresce col tempo per spammare di più
+        let baseSpawnInterval = 1.2 * Math.exp(-0.06 * timeInMinutes);
+        baseSpawnInterval = Math.max(0.25, baseSpawnInterval); // Minimo 0.25s di base
+
+        // L'intervallo devia fino a +/- 40% in base all'ondata
+        // Se c'è uno spike (waveSine positivo), intervallo è MINORE (spawn rapido)
+        let dynamicSpawnInterval = baseSpawnInterval * (1 - waveSine * 0.40);
 
         // ENDLESS MODE SCALING
         if (this.gameMode === 'endless' && timeInMinutes >= 30) {
             dynamicSpawnInterval = Math.max(0.08, 0.25 - (timeInMinutes - 30) * 0.012);
+            dynamicSpawnInterval *= (1 - waveSine * 0.3); // Le onde continuano nell'endless
         }
 
         // Curse scaling
@@ -74,8 +70,11 @@ export const SpawnSystem = {
         if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < dynamicSpawnInterval)) return;
         this.lastEnemySpawnTime = this.totalElapsedTime;
 
-        // Max enemies — scala fino a 300 (base più alta)
-        let maxEnemies = Math.min(300, 26 + Math.floor(timeInMinutes * 9));
+        // Max enemies — scala col tempo E con le ondate
+        let baseMaxEnemies = 26 + Math.floor(timeInMinutes * 12);
+        // Durante lo spike, i max nemici a schermo superano il limite normale (+50%)
+        let waveMaxEnemiesMod = 1 + Math.max(0, waveSine * 0.50);
+        let maxEnemies = Math.min(350, Math.floor(baseMaxEnemies * waveMaxEnemiesMod));
         maxEnemies = Math.floor(maxEnemies * (1 + curse));
 
         // Endless mode: cap increases +12 per minute after 30m
@@ -84,25 +83,11 @@ export const SpawnSystem = {
         }
         if (this.entities.enemies.length >= maxEnemies) return;
 
-        // Batch size dinamico (più nemici per onda)
-        let batchSize;
-        if (timeInMinutes < 2) {
-            batchSize = 3 + Math.floor(Math.random() * 2);     // 3-4
-        } else if (timeInMinutes < 5) {
-            batchSize = 3 + Math.floor(Math.random() * 2);     // 3-4
-        } else if (timeInMinutes < 10) {
-            batchSize = 3 + Math.floor(Math.random() * 3);     // 3-5
-        } else if (timeInMinutes < 15) {
-            batchSize = 4 + Math.floor(Math.random() * 3);     // 4-6
-        } else if (timeInMinutes < 20) {
-            batchSize = 4 + Math.floor(Math.random() * 4);     // 4-7
-        } else if (timeInMinutes < 25) {
-            batchSize = 5 + Math.floor(Math.random() * 4);     // 5-8
-        } else if (timeInMinutes < 30) {
-            batchSize = 6 + Math.floor(Math.random() * 4);     // 6-9
-        } else {
-            batchSize = 7 + Math.floor(this.rng.next() * 5);     // 7-11
-        }
+        // Batch size dinamico (più nemici per spawn durante le ondate)
+        let batchSize = 3 + Math.floor(timeInMinutes / 4) + Math.floor(this.rng.next() * 3);
+        // Durante uno spike spamma molti nemici insieme
+        if (waveSine > 0.5) batchSize = Math.floor(batchSize * 1.8);
+        else if (waveSine < -0.5) batchSize = Math.max(1, Math.floor(batchSize * 0.5)); // Respiro
 
         // Endless mode batch size scaling
         if (this.gameMode === 'endless' && timeInMinutes > 30) {

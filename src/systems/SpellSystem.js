@@ -19,7 +19,10 @@ export const SpellSystem = {
             shield: { id: 'shield', name: "Scudo Magico", level: 0, evolution: 'none', mastered: false, duration: 1500, cooldown: 18000, lastCast: 0, active: false, dr: 0.7, reflectDamage: 0.5, orbitalCount: 1, orbitalRadius: 10, orbitalDistance: 60 },
             cyclone: { id: 'cyclone', name: "Ciclone Vuoto", level: 0, evolution: 'none', mastered: false, damage: 12, cooldown: 6000, lastCast: 0, radius: 100, duration: 180, pullForce: 2 },
             armageddon: { id: 'armageddon', name: "Armageddon", level: 0, evolution: 'none', mastered: false, damage: 99999, cooldown: 60000, lastCast: 0 },
-            cloaking: { id: 'cloaking', name: "Velo D'Ombra", level: 0, evolution: 'none', mastered: false, duration: 3000, cooldown: 12000, lastCast: 0 }
+            cloaking: { id: 'cloaking', name: "Velo D'Ombra", level: 0, evolution: 'none', mastered: false, duration: 3000, cooldown: 12000, lastCast: 0 },
+            singularity: { id: 'singularity', name: "Singolarità", level: 0, evolution: 'none', mastered: false, damage: 10, cooldown: 5000, lastCast: 0, radius: 150, pullForce: 3 },
+            stellarAura: { id: 'stellarAura', name: "Aura Stellare", level: 0, evolution: 'none', mastered: false, damage: 12, cooldown: 8000, lastCast: 0, radius: 120, duration: 300 },
+            pulsarRay: { id: 'pulsarRay', name: "Raggio Pulsar", level: 0, evolution: 'none', mastered: false, damage: 45, cooldown: 10000, lastCast: 0, width: 30, range: 800 }
         };
         Object.values(this.spells).forEach(s => s.level = 0);
         this.passives = {};
@@ -84,10 +87,31 @@ export const SpellSystem = {
         const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
         if (!nearest) return false;
         const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
-        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
+
+        const isStellarRain = s.fusionId === 'stellar_rain';
+        const projectileProps = {
             angle, damage, type: 'fireball', life: 100, speed: s.speed, size: s.size * this.player.modifiers.area, penetration: 1, onDeathEffect: 'explosion', explosionRadius: s.explosionRadius * this.player.modifiers.area, burnDamage,
             drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 1.5); g.addColorStop(0, 'rgba(255,200,0,1)'); g.addColorStop(0.5, 'rgba(255,100,0,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2); ctx.fill(); }
-        }));
+        };
+
+        if (isStellarRain) {
+            projectileProps.update = (game, p) => {
+                // Attratto verso l'eventuale Singolarità o Buco Nero
+                const singularities = game.entities.auras.filter(a => a.isSingularity);
+                if (singularities.length > 0) {
+                    const target = singularities[0];
+                    const pullAngle = Math.atan2(target.y - p.y, target.x - p.x);
+                    p.vx += Math.cos(pullAngle) * 0.5;
+                    p.vy += Math.sin(pullAngle) * 0.5;
+                }
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) p.toRemove = true;
+            };
+        }
+
+        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, projectileProps));
         return true;
     },
     castGiant(now) { const s = this.spells.fireball; const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses()); if (!nearest) return false; const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x); this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, { angle, damage: this.getDamage(s.damage * 6), type: 'great_fireball', life: 250, speed: s.speed * 0.4, size: s.size * 4 * this.player.modifiers.area, penetration: 999, leavesTrail: true, burnDamage: this.getDamage(s.burnDamage * 2), drawFunc: (ctx, p) => { const g = ctx.createRadialGradient(p.x, p.y, p.size / 4, p.x, p.y, p.size); g.addColorStop(0, 'rgba(255, 255, 255, 1)'); g.addColorStop(0.2, 'rgba(255, 220, 150, 1)'); g.addColorStop(0.6, 'rgba(255, 100, 0, 0.9)'); g.addColorStop(1, 'rgba(150, 0, 0, 0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); } })); return true; },
@@ -139,7 +163,7 @@ export const SpellSystem = {
         }));
         return true;
     },
-    castFrostbolt(now) {
+    castFrostbolt(now, angleOverride = null) {
         const s = this.spells.frostbolt;
         let slow = s.slow, damage = this.getDamage(s.damage), penetration = s.penetration;
         const bonuses = this.player.archetype.weaponBonuses && this.player.archetype.weaponBonuses.frostbolt;
@@ -148,9 +172,14 @@ export const SpellSystem = {
             if (bonuses.damage) damage *= bonuses.damage;
             if (bonuses.penetration) penetration *= bonuses.penetration;
         }
-        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
-        if (!nearest) return false;
-        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+
+        let angle = angleOverride;
+        if (angle === null) {
+            const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
+            if (!nearest) return false;
+            angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        }
+
         this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
             angle, damage, speed: s.speed, life: 100, size: s.size * this.player.modifiers.area, penetration, slow, slowDuration: s.slowDuration,
             drawFunc: (ctx, p) => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Date.now() / 100); ctx.fillStyle = '#add8e6'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; const spikes = 6, outerR = p.size, innerR = p.size / 2; ctx.beginPath(); for (let i = 0; i < spikes * 2; i++) { const r = i % 2 === 0 ? outerR : innerR; const a = (i * Math.PI) / spikes; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
@@ -385,6 +414,14 @@ export const SpellSystem = {
         this.addScreenShake(30);
         this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'armageddon_flash', life: 60, initialLife: 60 }));
         if (this.notifications) this.notifications.push({ text: "ARMAGEDDON!", life: 180, color: '#ff0000' });
+
+        if (s.fusionId === 'paradox') {
+            this._timeStopActive = true;
+            this._timeStopTimer = (s.fusionBonus?.timeStop || 10000) / 16.6;
+            this.notifications.push({ text: "TEMPO FERMO!", life: 120, color: '#00ffff' });
+            return true;
+        }
+
         const targets = this.getEnemiesAndBosses();
         for (let enemy of targets) {
             enemy.takeDamage(s.damage, this);
@@ -398,6 +435,151 @@ export const SpellSystem = {
         this.player.iFramesTimer = Math.max(this.player.iFramesTimer || 0, frames);
         this.player.powerUpTimers.invincibility = Math.max(this.player.powerUpTimers.invincibility || 0, frames);
         if (this.notifications) this.notifications.push({ text: "Velo D'Ombra", life: 60, color: '#555555' });
+
+        if (s.fusionId === 'spectral_veil') {
+            this.player._spectralVeilTimer = frames;
+        }
+        return true;
+    },
+
+    castSingularity(now) {
+        const s = this.spells.singularity;
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
+        if (!nearest) return false;
+
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        const isBlackHole = s.fusionId === 'black_hole';
+        const radius = (s.radius * (this.player.modifiers.area || 1)) * (isBlackHole ? 2 : 1);
+        const pullForce = (s.pullForce + (s.fusionBonus?.pullForce || 0)) * (isBlackHole ? 3 : 1);
+
+        this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
+            angle, damage: this.getDamage(s.damage) * (isBlackHole ? 2 : 1), speed: 5, life: 120,
+            size: isBlackHole ? 30 : 15, penetration: 5, type: 'singularity',
+            onDeathEffect: 'custom',
+            customEffect: (p) => {
+                // Crea un effetto di attrazione alla fine del proiettile
+                const aura = new Aura(p.x, p.y, {
+                    life: isBlackHole ? 300 : 180, radius: radius, tickRate: 1,
+                    color: isBlackHole ? 'rgba(0, 0, 0, 0.8)' : 'rgba(75, 0, 130, 0.4)',
+                    isSingularity: true
+                });
+                aura.update = (game) => {
+                    const enemies = game.getEnemiesAndBosses();
+                    enemies.forEach(e => {
+                        const dist = Utils.getDistance(aura, e);
+                        if (dist < aura.radius) {
+                            const pullAngle = Math.atan2(aura.y - e.y, aura.x - e.x);
+                            e.x += Math.cos(pullAngle) * pullForce;
+                            e.y += Math.sin(pullAngle) * pullForce;
+                            if (dist < (isBlackHole ? 40 : 20)) e.takeDamage(this.getDamage(s.damage) / (isBlackHole ? 5 : 10), game);
+                        }
+                    });
+                    aura.life--;
+                    if (aura.life <= 0) aura.toRemove = true;
+                };
+                aura.draw = (ctx, game) => {
+                    if (isBlackHole) {
+                        ctx.save();
+                        const opacity = aura.life > 30 ? 1 : aura.life / 30;
+                        const g = ctx.createRadialGradient(aura.x, aura.y, 10, aura.x, aura.y, aura.radius);
+                        g.addColorStop(0, '#000');
+                        g.addColorStop(0.5, `rgba(75, 0, 130, ${opacity})`);
+                        g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = g;
+                        ctx.beginPath();
+                        ctx.arc(aura.x, aura.y, aura.radius, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Event horizon effect
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.5})`;
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([5, 10]);
+                        ctx.beginPath();
+                        ctx.arc(aura.x, aura.y, aura.radius * 0.8, Date.now() / 100, Date.now() / 100 + Math.PI * 2);
+                        ctx.stroke();
+                        ctx.restore();
+                    } else {
+                        // Default aura draw logic would be here if not overridden, but we use the base draw if we don't define one.
+                        // However, Aura often has its own draw.
+                    }
+                };
+                this.addEntity('auras', aura);
+            },
+            drawFunc: (ctx, p) => {
+                ctx.save();
+                const g = ctx.createRadialGradient(p.x, p.y, p.size / 2, p.x, p.y, p.size * 2);
+                g.addColorStop(0, '#ffffff');
+                g.addColorStop(0.3, '#9370db');
+                g.addColorStop(1, 'rgba(75,0,130,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }));
+        return true;
+    },
+
+    castStellarAura(now) {
+        const s = this.spells.stellarAura;
+        const radius = s.radius * (this.player.modifiers.area || 1);
+        const duration = s.duration;
+
+        this.addEntity('auras', new Aura(this.player.x, this.player.y, {
+            life: duration, radius: radius, tickRate: 10,
+            dps: this.getDamage(s.damage),
+            color: 'rgba(173, 216, 230, 0.2)',
+            draw: (ctx, game) => {
+                ctx.save();
+                ctx.translate(game.player.x, game.player.y);
+                ctx.rotate(Date.now() / 1000);
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(radius, 0, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Glow
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00ffff';
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }));
+        return true;
+    },
+
+    castPulsarRay(now) {
+        const s = this.spells.pulsarRay;
+        const nearest = Utils.findNearest(this.player, this.getEnemiesAndBosses());
+        if (!nearest) return false;
+
+        const angle = Math.atan2(nearest.y - this.player.y, nearest.x - this.player.x);
+        const range = s.range;
+        const width = s.width * (this.player.modifiers.area || 1);
+
+        this.addEntity('effects', new Effect(this.player.x, this.player.y, {
+            type: 'pulsar_ray',
+            angle,
+            range,
+            width,
+            life: 20,
+            initialLife: 20,
+            onStart: () => {
+                const enemies = this.getEnemiesAndBosses();
+                enemies.forEach(e => {
+                    // Controllo collisione segmento (laser)
+                    const endX = this.player.x + Math.cos(angle) * range;
+                    const endY = this.player.y + Math.sin(angle) * range;
+                    const d = Utils.getDistanceToSegment(e, this.player, { x: endX, y: endY });
+                    if (d < width / 2 + (e.stats?.radius || 20)) {
+                        e.takeDamage(this.getDamage(s.damage), this);
+                    }
+                });
+            }
+        }));
         return true;
     }
 };

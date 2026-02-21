@@ -59,10 +59,22 @@ export const BalanceSystem = {
     },
 
     calculateEnemyScaling() {
-        // Calcola scaling nemici basato su tempo
+        // Calcola scaling nemici basato su tempo: base progressiva + andamento a ondate (spikes)
         const timeFactor = this.gameTime / (CONFIG.enemies.scaling.timeFactor * 60);
         const levelFactor = this.player.level * CONFIG.enemies.scaling.levelFactorMultiplier;
-        return timeFactor + levelFactor;
+
+        // Fase dell'onda: un ciclo completo ogni 3 minuti (180s)
+        const wavePeriod = 180;
+        const phase = (this.gameTime % wavePeriod) / wavePeriod;
+
+        // Funzione asimmetrica: lenta salita (tensione), picco in top 20% del ciclo, veloce discesa (sollievo)
+        // Usiamo un seno modificato: picco pronunciato positivo e valle più dolce
+        const waveOffset = Math.sin(phase * Math.PI * 2);
+
+        // Intensità dell'onda scala nel tempo (all'inizio le ondate sono lievi, poi diventano enormi)
+        const waveIntensity = 0.5 + (timeFactor * 0.3);
+
+        return Math.max(0, timeFactor + levelFactor + (waveOffset * waveIntensity));
     },
 
     checkAutoBalance() {
