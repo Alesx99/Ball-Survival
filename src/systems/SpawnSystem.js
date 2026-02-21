@@ -60,10 +60,12 @@ export const SpawnSystem = {
             dynamicSpawnInterval /= activeTier.spawnMultiplier;
         }
 
-        // Daily challenge modifiers: spawn rate
-        const dailyModId = this.dailyChallengeSystem?.config?.modifier?.id;
-        if (dailyModId === 'horde' || dailyModId === 'tiny_trouble') {
-            dynamicSpawnInterval *= 0.67; // +50% spawn rate
+        // Daily challenge modifiers: spawn rate (SOLO se in modalità daily)
+        if (this.gameMode === 'daily') {
+            const dailyModId = this.dailyChallengeSystem?.config?.modifier?.id;
+            if (dailyModId === 'horde' || dailyModId === 'tiny_trouble') {
+                dynamicSpawnInterval *= 0.67; // +50% spawn rate
+            }
         }
 
         if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < dynamicSpawnInterval)) return;
@@ -178,20 +180,22 @@ export const SpawnSystem = {
                 finalStats.radius *= 1.5; finalStats.xp *= 5; finalStats.isElite = true;
             }
 
-            finalStats.maxHp = finalStats.hp;
-
-            // Daily challenge modifiers: nemici HP/size/XP
-            if (dailyModId === 'horde') {
-                finalStats.hp *= 0.8;
-                finalStats.maxHp = finalStats.hp;
-            } else if (dailyModId === 'giant_slayer') {
-                finalStats.hp *= 1.5;
-                finalStats.radius *= 1.5;
-                finalStats.xp *= 1.5;
-                finalStats.maxHp = finalStats.hp;
-            } else if (dailyModId === 'tiny_trouble') {
-                finalStats.radius *= 0.5;
+            // Applica modificatori giornalieri su stats nemici (SOLO in modalità daily)
+            if (this.gameMode === 'daily' && dailyModId) {
+                if (dailyModId === 'horde') {
+                    finalStats.hp = Math.max(1, Math.floor(finalStats.hp * 0.8)); // -20% HP
+                    finalStats.maxHp = finalStats.hp;
+                } else if (dailyModId === 'giant_slayer') {
+                    finalStats.hp = Math.floor(finalStats.hp * 1.5);
+                    finalStats.radius *= 1.5;
+                    finalStats.xp = Math.floor(finalStats.xp * 1.5);
+                    finalStats.maxHp = finalStats.hp;
+                } else if (dailyModId === 'tiny_trouble') {
+                    finalStats.radius *= 0.5;
+                }
             }
+
+            finalStats.maxHp = finalStats.hp;
 
             // Sanitize: previeni NaN che corromperebbe il sistema XP
             for (const key of ['hp', 'speed', 'damage', 'xp', 'dr', 'maxHp', 'radius']) {

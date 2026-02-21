@@ -55,13 +55,21 @@ export class DailyChallengeSystem {
         ];
         const modifier = this.rng.pick(modifiers);
 
+        const objectives = [
+            { id: 'survive_5m', name: 'Sopravvivenza Pura', desc: 'Sopravvivi esattamene 5 minuti.', type: 'survival', target: 300, timeLimit: 300 },
+            { id: 'kill_2000', name: 'Sterminatore', desc: 'Uccidi 2000 nemici entro 5 minuti.', type: 'kills', target: 2000, timeLimit: 300 },
+            { id: 'reach_lv15', name: 'Crescita Rapida', desc: 'Raggiungi il Livello 15 entro 5 minuti.', type: 'level', target: 15, timeLimit: 300 }
+        ];
+        const objective = this.rng.pick(objectives);
+
         return {
             date: new Date().toLocaleDateString(),
             seed: this.currentSeed,
             archetype: archetypeId,
             archetypeName: archetype.name,
             weapon: weaponId,
-            modifier: modifier
+            modifier: modifier,
+            objective: objective
         };
     }
 

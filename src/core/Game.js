@@ -217,6 +217,9 @@ export class BallSurvivalGame {
         this.gameMode = mode;
         this.rng = new SeededRNG(mode === 'daily' ? this.dailyChallengeSystem.currentSeed : Date.now());
 
+        const gameOverTitle = document.querySelector('#gameOver h2');
+        if (gameOverTitle) gameOverTitle.textContent = "Game Over!";
+
         if (mode === 'daily') {
             this.dailyChallengeSystem.applyConfiguration();
         } else {
@@ -434,6 +437,52 @@ export class BallSurvivalGame {
         const max = CONFIG.effects?.screenShakeMax ?? 25;
         this.screenShakeIntensity = Math.min(max, (this.screenShakeIntensity || 0) + amount);
     }
+
+    checkDailyObjective() {
+        if (this.gameMode !== 'daily' || !this.dailyChallengeSystem?.config?.objective) return;
+
+        const obj = this.dailyChallengeSystem.config.objective;
+        const timeElapsed = this.totalElapsedTime;
+
+        // Controlla se il tempo limite è scaduto
+        if (obj.timeLimit && timeElapsed >= obj.timeLimit) {
+            if (obj.type === 'survival') {
+                this.triggerDailyVictory();
+            } else {
+                this.triggerDailyDefeat();
+            }
+            return;
+        }
+
+        // Condizioni di vittoria anticipate
+        if (obj.type === 'kills' && this.enemiesKilled >= obj.target) {
+            this.triggerDailyVictory();
+        } else if (obj.type === 'level' && this.player.level >= obj.target) {
+            this.triggerDailyVictory();
+        }
+    }
+
+    triggerDailyVictory() {
+        if (this.state === 'gameOver') return;
+        this.score += 5000;
+        this.gemsThisRun += 1000;
+        this.notifications.push({ text: '🏆 SFIDA GIORNALIERA COMPLETATA! +1000 Gemme', life: 300, color: '#FFD700' });
+
+        const gameOverTitle = this.dom.popups.gameOver.querySelector('h2');
+        if (gameOverTitle) gameOverTitle.textContent = "🏆 Sfida Completata!";
+
+        this.gameOver();
+    }
+
+    triggerDailyDefeat() {
+        if (this.state === 'gameOver') return;
+
+        const gameOverTitle = this.dom.popups.gameOver.querySelector('h2');
+        if (gameOverTitle) gameOverTitle.textContent = "❌ Sfida Fallita: Tempo Scaduto";
+
+        this.gameOver();
+    }
+
     update(deltaTime) {
         this.gameTime = this.totalElapsedTime; // Alias per BalanceSystem / AchievementSystem
         this.player.update(this, this.joystick);
@@ -446,6 +495,11 @@ export class BallSurvivalGame {
         if (this.gameMode === 'bossRush') {
             this.checkBossRushVictory();
         }
+
+        if (this.gameMode === 'daily') {
+            this.checkDailyObjective();
+        }
+
         this.updateCamera();
         this.checkStage();
         for (const type in this.entities) {
@@ -783,6 +837,19 @@ export class BallSurvivalGame {
                 modName.innerText = "Nessun Modificatore";
                 modDesc.innerText = "Goditi una run standard!";
                 modName.style.color = '#888';
+            }
+        }
+
+        const objName = document.getElementById('dailyObjectiveName');
+        const objDesc = document.getElementById('dailyObjectiveDesc');
+
+        if (objName && objDesc) {
+            if (info.objective) {
+                objName.innerText = info.objective.name;
+                objDesc.innerText = info.objective.desc;
+            } else {
+                objName.innerText = "Nessun Obiettivo Speciale";
+                objDesc.innerText = "Completa una run standard!";
             }
         }
 
