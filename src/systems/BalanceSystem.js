@@ -74,7 +74,8 @@ export const BalanceSystem = {
         const currentScore = scores[currentArchetype] || 0.5;
 
         // Calcola la media degli score
-        const avgScore = Object.values(scores).reduce((a, b) => a + b) / Object.values(scores).length;
+        const scoreValues = Object.values(scores);
+        const avgScore = scoreValues.length > 0 ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length : 0.5;
         const scoreDiff = currentScore - avgScore;
 
         // Se lo score è troppo alto (>20% sopra la media), applica nerf temporaneo
