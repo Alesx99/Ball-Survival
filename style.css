@@ -80,7 +80,6 @@ html {
     overflow: hidden;
 }
 
-/* Container full-display: occupa sempre l'intero viewport */
 #gameContainer {
     position: fixed;
     top: 0;
@@ -91,7 +90,6 @@ html {
     min-height: 100%;
     background: var(--dark-bg);
     overflow: hidden;
-    touch-action: none;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -100,6 +98,7 @@ html {
 /* Canvas: dimensioni impostate via JS (resizeCanvas) per riempire il viewport */
 #gameCanvas {
     display: block;
+    touch-action: none;
 }
 
 #menuOverlay {
@@ -227,6 +226,8 @@ html {
     max-height: 60vh;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) rgba(0, 0, 0, 0.3);
+    overscroll-behavior: contain;
+    touch-action: pan-y;
 }
 
 #pauseStatsContainer {
