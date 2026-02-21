@@ -267,21 +267,21 @@ export const CONFIG = {
         }
     },
     enemies: {
-        spawnInterval: 0.8,
+        spawnInterval: 0.7,
         spawnImmunity: 60,
         /** Cooldown (secondi) tra un hit da contatto e il successivo per ogni nemico. Limita DPS da swarm. */
-        contactDamageCooldown: 0.8,
+        contactDamageCooldown: 0.75,
         scaling: {
-            timeFactor: 15,
-            hpPerFactor: 5,
-            speedPerFactor: 0.02,
-            damagePerFactor: 0.58,
+            timeFactor: 12,
+            hpPerFactor: 6,
+            speedPerFactor: 0.025,
+            damagePerFactor: 0.65,
             xpPerFactor: 1.25,
             xpPowerFactor: 1.05,
-            levelFactorMultiplier: 0.7,
-            drPerFactor: 0.0006
+            levelFactorMultiplier: 0.75,
+            drPerFactor: 0.0008
         },
-        base: { hp: 25, speed: 1.2, radius: 12, damage: 10, xp: 4, dr: 0 }
+        base: { hp: 28, speed: 1.3, radius: 12, damage: 12, xp: 4, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" },
@@ -377,10 +377,10 @@ export const CONFIG = {
         }
     },
     boss: {
-        spawnThreshold: 150,
-        base: { hp: 1500, speed: 1.8, radius: 45, damage: 35 },
-        scaling: { timeFactor: 60, hpPerFactor: 800 },
-        attack: { cooldown: 1800, projectileSpeed: 5, projectileRadius: 10 }
+        spawnThreshold: 120,
+        base: { hp: 1800, speed: 2.0, radius: 45, damage: 40 },
+        scaling: { timeFactor: 50, hpPerFactor: 950 },
+        attack: { cooldown: 1650, projectileSpeed: 5.5, projectileRadius: 10 }
     },
     chest: { spawnTime: 20, respawnTime: 30, size: 25, gemDrop: { min: 5, random: 6 } },
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
@@ -563,14 +563,14 @@ export const CONFIG = {
     },
     bossRush: {
         bossSequence: ['orc_boss', 'slime_boss', 'golem_boss', 'shadow_boss'],
-        spawnInterval: 3, // Seconds between boss spawns after death
-        victoryCount: 15,
+        spawnInterval: 2, // Seconds between boss spawns after death
+        victoryCount: 20,
         // Scaling per onda (i primi boss usano HP base, poi crescono)
-        hpPerKill: 600,
-        damagePerKill: 10,
-        speedFactorPerKill: 0.05,
-        drPerKill: 0.03,
-        drCap: 0.55,
-        doubleBossFromWave: 5 // Da onda 5 (1-based) spawnano 2 boss per volta
+        hpPerKill: 700,
+        damagePerKill: 12,
+        speedFactorPerKill: 0.07,
+        drPerKill: 0.04,
+        drCap: 0.6,
+        doubleBossFromWave: 4 // Da onda 4 (1-based) spawnano 2 boss per volta
     }
 };

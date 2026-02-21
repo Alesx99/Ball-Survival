@@ -405,7 +405,7 @@ export class CheatCodeSystem {
     }
 
     onKeyInStartScreen(key) {
-        if (key.toLowerCase() === 's') {
+        if (key != null && String(key).toLowerCase() === 's') {
             this._fireShakeEgg();
         }
     }

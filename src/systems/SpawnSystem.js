@@ -29,29 +29,28 @@ export const SpawnSystem = {
         const timeInMinutes = this.totalElapsedTime / 60;
         let dynamicSpawnInterval = CONFIG.enemies.spawnInterval;
 
-        // Spawn interval dinamico — accelera gradualmente
+        // Spawn interval dinamico — accelera gradualmente (più aggressivo)
         if (timeInMinutes < 2) {
-            dynamicSpawnInterval = 1.4;
+            dynamicSpawnInterval = 1.2;
         } else if (timeInMinutes < 5) {
-            dynamicSpawnInterval = 1.5;
+            dynamicSpawnInterval = 1.2;
         } else if (timeInMinutes < 10) {
-            dynamicSpawnInterval = 1.0;
+            dynamicSpawnInterval = 0.85;
         } else if (timeInMinutes < 15) {
-            dynamicSpawnInterval = 0.8;
+            dynamicSpawnInterval = 0.65;
         } else if (timeInMinutes < 20) {
-            dynamicSpawnInterval = 0.6;
-        } else if (timeInMinutes < 25) {
             dynamicSpawnInterval = 0.5;
-        } else if (timeInMinutes < 30) {
+        } else if (timeInMinutes < 25) {
             dynamicSpawnInterval = 0.4;
+        } else if (timeInMinutes < 30) {
+            dynamicSpawnInterval = 0.32;
         } else {
-            dynamicSpawnInterval = 0.3; // Apocalisse
+            dynamicSpawnInterval = 0.25; // Apocalisse
         }
 
         // ENDLESS MODE SCALING
         if (this.gameMode === 'endless' && timeInMinutes >= 30) {
-            // Cap minimum interval but keep increasing spawn count via batch size
-            dynamicSpawnInterval = Math.max(0.1, 0.3 - (timeInMinutes - 30) * 0.01);
+            dynamicSpawnInterval = Math.max(0.08, 0.25 - (timeInMinutes - 30) * 0.012);
         }
 
         // Applica spawnMultiplier da difficulty tier attivo
@@ -71,39 +70,38 @@ export const SpawnSystem = {
         if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < dynamicSpawnInterval)) return;
         this.lastEnemySpawnTime = this.totalElapsedTime;
 
-        // Max enemies — scala fino a 300
-        // Max enemies — scala fino a 300
-        let maxEnemies = Math.min(300, 20 + Math.floor(timeInMinutes * 8));
+        // Max enemies — scala fino a 300 (base più alta)
+        let maxEnemies = Math.min(300, 26 + Math.floor(timeInMinutes * 9));
 
-        // Endless mode: cap increases +10 per minute after 30m
+        // Endless mode: cap increases +12 per minute after 30m
         if (this.gameMode === 'endless' && timeInMinutes > 30) {
-            maxEnemies = 300 + Math.floor((timeInMinutes - 30) * 10);
+            maxEnemies = 300 + Math.floor((timeInMinutes - 30) * 12);
         }
         if (this.entities.enemies.length >= maxEnemies) return;
 
-        // Batch size dinamico
+        // Batch size dinamico (più nemici per onda)
         let batchSize;
         if (timeInMinutes < 2) {
-            batchSize = 2 + Math.floor(Math.random() * 2);     // 2-3
+            batchSize = 3 + Math.floor(Math.random() * 2);     // 3-4
         } else if (timeInMinutes < 5) {
-            batchSize = 2 + Math.floor(Math.random() * 2);     // 2-3
+            batchSize = 3 + Math.floor(Math.random() * 2);     // 3-4
         } else if (timeInMinutes < 10) {
-            batchSize = 2 + Math.floor(Math.random() * 3);     // 2-4
-        } else if (timeInMinutes < 15) {
             batchSize = 3 + Math.floor(Math.random() * 3);     // 3-5
+        } else if (timeInMinutes < 15) {
+            batchSize = 4 + Math.floor(Math.random() * 3);     // 4-6
         } else if (timeInMinutes < 20) {
-            batchSize = 3 + Math.floor(Math.random() * 4);     // 3-6
-        } else if (timeInMinutes < 25) {
             batchSize = 4 + Math.floor(Math.random() * 4);     // 4-7
-        } else if (timeInMinutes < 30) {
+        } else if (timeInMinutes < 25) {
             batchSize = 5 + Math.floor(Math.random() * 4);     // 5-8
+        } else if (timeInMinutes < 30) {
+            batchSize = 6 + Math.floor(Math.random() * 4);     // 6-9
         } else {
-            batchSize = 6 + Math.floor(this.rng.next() * 5);     // 6-10
+            batchSize = 7 + Math.floor(this.rng.next() * 5);     // 7-11
         }
 
         // Endless mode batch size scaling
         if (this.gameMode === 'endless' && timeInMinutes > 30) {
-            batchSize += Math.floor((timeInMinutes - 30) / 2);
+            batchSize += Math.floor((timeInMinutes - 30) / 1.8);
         }
 
         for (let i = 0; i < batchSize; i++) {
@@ -128,8 +126,7 @@ export const SpawnSystem = {
             // Endless mode exponential scaling after 30 mins
             if (this.gameMode === 'endless' && timeInMinutes > 30) {
                 const overload = timeInMinutes - 30;
-                // Exponential growth: 1.05^overload
-                combinedFactor *= Math.pow(1.05, overload);
+                combinedFactor *= Math.pow(1.06, overload);
             }
             const scaling = CONFIG.enemies.scaling;
 
