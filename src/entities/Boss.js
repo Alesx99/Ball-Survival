@@ -63,6 +63,7 @@ export class Boss extends Enemy {
         game.addScreenShake?.(12);
         super.onDeath(game);
         game.bossesKilledThisStage++;
+        game.bossesKilled++;
         game.bestiarySystem?.registerKill(this.type || 'boss');
         if (game.stats) game.stats.bossKills++;
         const healRatio = game.gameMode === 'bossRush' ? 0.15 : 0.5;

@@ -340,6 +340,12 @@ export const UISystem = {
     },
 
     returnToStartScreen() {
+        // Se esci da una partita in corso (pausa o running), salva i diamanti della run
+        if (this.state === 'running' || this.state === 'paused') {
+            this.totalGems = (this.totalGems || 0) + (this.gemsThisRun || 0);
+            this.saveGameData?.();
+        }
+
         this.audio?.stopBackgroundMusic();
         this.hideAllPopups(true);
         this.dom.inGameUI.container.style.display = 'none';

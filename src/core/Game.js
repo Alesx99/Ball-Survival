@@ -380,6 +380,7 @@ export class BallSurvivalGame {
         this.currentStage = 1;
         this.stageStartTime = 0; // Tempo di inizio dello stage corrente
         this.bossesKilledThisStage = 0; // Boss uccisi nello stage corrente
+        this.bossesKilled = 0; // Boss uccisi totali nella run (usato per scaling Boss Rush)
         this.elitesKilledThisStage = 0; // Elite uccisi nello stage corrente
         this.screenShakeIntensity = 0;
         this.hitFlashTimer = 0;
@@ -481,6 +482,13 @@ export class BallSurvivalGame {
         const gameOverTitle = this.dom.popups.gameOver.querySelector('h2');
         if (gameOverTitle) gameOverTitle.textContent = "❌ Sfida Fallita: Tempo Scaduto";
 
+        this.gameOver();
+    }
+
+    triggerVictory() {
+        if (this.state === 'gameOver') return;
+        const gameOverTitle = this.dom.popups.gameOver?.querySelector('h2');
+        if (gameOverTitle) gameOverTitle.textContent = "🏆 Vittoria!";
         this.gameOver();
     }
 
@@ -907,7 +915,7 @@ export class BallSurvivalGame {
 
         const stats = {
             ...base,
-            hp: base.hp + k * hpPerKill,
+            hp: (base.hp + k * hpPerKill) * 2.5, // Base HP buff specifica per Boss Rush
             damage: (base.damage || 35) + k * damagePerKill,
             speed: (base.speed || 1.8) * (1 + k * speedFactor),
             dr: Math.min(drCap, k * drPerKill)

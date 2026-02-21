@@ -139,9 +139,29 @@ export class CloudSyncManager {
             this._status = 'syncing';
             this.isSyncing = true;
             await this.waitForRateLimit();
+
+            let payloadAccounts = accountsData;
+            if (accountsData) {
+                const current = await this.download();
+                const cloudMap = (current?.accounts?.accounts != null && typeof current.accounts.accounts === 'object')
+                    ? current.accounts.accounts
+                    : (current?.accounts != null && typeof current.accounts === 'object' && !('accounts' in current.accounts)
+                        ? current.accounts
+                        : {});
+                const localMap = (accountsData.accounts != null && typeof accountsData.accounts === 'object')
+                    ? accountsData.accounts
+                    : (typeof accountsData === 'object' && accountsData !== null ? accountsData : {});
+                const mergedMap = { ...cloudMap, ...localMap };
+                payloadAccounts = {
+                    lastSync: Date.now(),
+                    totalAccounts: Object.keys(mergedMap).length,
+                    accounts: mergedMap
+                };
+            }
+
             const files = {};
             if (analyticsData) files['analytics.json'] = { content: JSON.stringify(analyticsData, null, 2) };
-            if (accountsData) files['accounts.json'] = { content: JSON.stringify(accountsData, null, 2) };
+            if (payloadAccounts) files['accounts.json'] = { content: JSON.stringify(payloadAccounts, null, 2) };
             if (saveData) files['save_data.json'] = { content: JSON.stringify(saveData, null, 2) };
             if (Object.keys(files).length === 0) { this.isSyncing = false; return false; }
             const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {

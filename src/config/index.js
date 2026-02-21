@@ -449,11 +449,11 @@ export const CONFIG = {
         spawnInterval: 2, // Seconds between boss spawns after death
         victoryCount: 20,
         // Scaling per onda (i primi boss usano HP base, poi crescono)
-        hpPerKill: 700,
-        damagePerKill: 12,
-        speedFactorPerKill: 0.07,
-        drPerKill: 0.04,
-        drCap: 0.6,
+        hpPerKill: 2800,
+        damagePerKill: 15,
+        speedFactorPerKill: 0.08,
+        drPerKill: 0.05,
+        drCap: 0.75,
         doubleBossFromWave: 4 // Da onda 4 (1-based) spawnano 2 boss per volta
     }
 };
