@@ -192,6 +192,13 @@ class QuickFeedback {
  * ProgressionOptimizer - Monitors progression balance
  */
 class ProgressionOptimizer {
+    checkMilestone(playerLevel) {
+        // Metodo per tracciare i milestone della progressione (attualmente placeholder)
+        if (playerLevel % 5 === 0) {
+            // Placeholder per logica futura legata ai milestone
+        }
+    }
+
     analyzeProgression(playerLevel, gameTime) {
         const issues = [];
         if (playerLevel < 5 && gameTime > 120) {

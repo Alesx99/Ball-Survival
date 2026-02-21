@@ -1053,8 +1053,9 @@ button:disabled {
 
 
 
-/* Contenuto del negozio */
-.shop-content {
+/* Contenuto del negozio / Skill Tree */
+.shop-content,
+.skill-tree-content {
     flex: 1;
     max-height: 50vh;
     overflow-y: auto;
@@ -1065,7 +1066,13 @@ button:disabled {
     border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
-
+.skill-tree-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+}
 
 #permanentUpgradeOptions {
     max-height: 50vh;
@@ -1075,6 +1082,124 @@ button:disabled {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 10px;
     border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+/* Stili per Nodi Skill Tree */
+.skill-node {
+    width: 200px;
+    background: rgba(18, 18, 28, 0.8);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skill-node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 245, 255, 0.3);
+    border-color: var(--highlight-color);
+}
+
+.skill-node.locked {
+    filter: grayscale(1) brightness(0.6);
+    border-color: #555;
+}
+
+.skill-node.locked:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #777;
+    filter: grayscale(1) brightness(0.8);
+}
+
+.skill-node-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.skill-node-icon {
+    font-size: 24px;
+    background: rgba(0, 245, 255, 0.1);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border: 1px solid var(--primary-color);
+}
+
+.skill-node-level {
+    font-size: 12px;
+    color: var(--highlight-color);
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.skill-node-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+    margin: 0;
+    text-shadow: 0 0 5px rgba(0, 245, 255, 0.5);
+}
+
+.skill-node-desc {
+    font-size: 12px;
+    color: var(--text-muted-color);
+    line-height: 1.3;
+    flex: 1;
+}
+
+.skill-node-cost {
+    font-size: 14px;
+    color: var(--highlight-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: auto;
+}
+
+.skill-node-btn {
+    background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+    color: #000;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+.skill-node-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+}
+
+.skill-node-btn:disabled {
+    background: #555;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.skill-node.max-level .skill-node-btn {
+    background: #27ae60;
+    color: white;
 }
 
 #permanentUpgradeOptions::-webkit-scrollbar {

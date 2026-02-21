@@ -15,6 +15,7 @@ import {
     Particle, FireTrail, Effect
 } from '../entities/index.js';
 import { AnalyticsManager, RetentionMonitor, QuickFeedback, ProgressionOptimizer, AchievementSystem } from '../systems/index.js';
+import { MetaProgressionSystem } from '../systems/MetaProgressionSystem.js';
 
 // System mixins
 import { SpellSystem } from '../systems/SpellSystem.js';
@@ -64,10 +65,11 @@ export class BallSurvivalGame {
         const retentionInstance = new RetentionMonitor();
         this.retentionMonitor = typeof retentionInstance?.trackSession === 'function'
             ? retentionInstance
-            : { trackSession: () => {}, getSessionDuration: () => 0, calculateRetention: () => 0, getOptimizationSuggestions: () => [], metricsData: [] };
+            : { trackSession: () => { }, getSessionDuration: () => 0, calculateRetention: () => 0, getOptimizationSuggestions: () => [], metricsData: [] };
         this.quickFeedback = new QuickFeedback();
         this.progressionOptimizer = new ProgressionOptimizer();
         this.achievementSystem = new AchievementSystem();
+        this.metaProgressionSystem = new MetaProgressionSystem(this);
 
         this.analyticsManager = new AnalyticsManager();
         this.audio = new AudioManager();
@@ -226,6 +228,7 @@ export class BallSurvivalGame {
             this.resetRunState();
             this.currentStage = this.selectedStage; // Inizia con lo stage selezionato
             this.player.resetForNewRun(this.permanentUpgrades, this.selectedArchetype);
+            this.metaProgressionSystem?.applyModifiersToPlayer(this.player);
 
             const archetype = CONFIG.characterArchetypes[this.selectedArchetype];
             if (archetype && archetype.startingWeapon && this.spells[archetype.startingWeapon]) {
@@ -432,9 +435,9 @@ export class BallSurvivalGame {
         this.screenShakeIntensity = Math.min(max, (this.screenShakeIntensity || 0) + amount);
     }
     update(deltaTime) {
-        if (this.state !== 'running') return; // Non aggiornare nulla se non in gioco
         this.gameTime = this.totalElapsedTime; // Alias per BalanceSystem / AchievementSystem
         this.player.update(this, this.joystick);
+        this.metaProgressionSystem?.update(deltaTime * 1000); // Passa millisecondi
 
         if (this.gameMode === 'tutorial') {
             this.tutorialSystem?.update();
@@ -751,7 +754,7 @@ export class BallSurvivalGame {
             this.joystick.dy = 0;
         }
     }
-    buyPermanentUpgrade(key) { const upg = this.permanentUpgrades[key]; const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level)); if (upg.level < upg.maxLevel && this.totalGems >= cost) { this.totalGems -= cost; upg.level++; this.saveGameData(); this.player.applyPermanentUpgrades(this.permanentUpgrades); this.populateShop(); } }
+
     applyItemEffect(item) { const itemInfo = CONFIG.itemTypes[item.type]; this.notifications.push({ text: itemInfo.desc, life: 300 }); switch (item.type) { case 'HEAL_POTION': this.player.hp = Math.min(this.player.stats.maxHp, this.player.hp + this.player.stats.maxHp * 0.5); break; case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break; case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break; case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break; case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break; } }
 
     // Funzione di test per il negozio

@@ -222,6 +222,9 @@ export class Enemy extends Entity {
             }
             game.stats._lastKillTime = now;
         }
+
+        // Meta Progression System hook
+        game.metaProgressionSystem?.onEnemyKilled?.(this);
     }
 
     draw(ctx, game) {

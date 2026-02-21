@@ -572,55 +572,61 @@ export const UISystem = {
         const container = this.dom.containers.permanentUpgradeOptions;
         if (!container) return;
 
-        // Inizializza il pulsante di chiusura se non è già stato fatto
         this.initShopCloseButton();
-
         container.innerHTML = '';
 
-        // Aggiungi messaggio se non ci sono cristalli
-        if (this.totalGems === 0) {
-            container.innerHTML = `<div class="zero-gems-message">
-                💎 Non hai ancora cristalli! Completa partite per guadagnarne.
-            </div>`;
+        if (!this.metaProgressionSystem) {
+            console.error("MetaProgressionSystem non trovato!");
             return;
         }
 
-        let availableUpgrades = 0;
+        const skillTree = CONFIG.skillTree;
 
-        for (const key in this.permanentUpgrades) {
-            const upg = this.permanentUpgrades[key];
-            const cost = Math.floor(upg.baseCost * Math.pow(upg.costGrowth, upg.level));
-
-            // Conta upgrade disponibili
-            if (upg.level < upg.maxLevel) {
-                availableUpgrades++;
-            }
+        for (const [nodeId, nodeData] of Object.entries(skillTree)) {
+            const currentLevel = this.metaProgressionSystem.getUnlockedLevel(nodeId);
+            const isMax = currentLevel >= nodeData.maxLevel;
+            const canUnlock = this.metaProgressionSystem.canUnlockNode(nodeId);
+            const cost = this.metaProgressionSystem.getNodeCost(nodeId);
+            const isLocked = !canUnlock && currentLevel === 0;
 
             let costColor = this.totalGems < cost ? '#e74c3c' : '#fff';
-            const permIcon = getUpgradeIcon(key) || (key === 'defense' ? '🛡️' : '✨');
-            let optionHTML = `<div class="permanent-upgrade-option">
-                <div class="upgrade-option-icon">${permIcon}</div>
-                <div>
-                    <div class="upgrade-title">${upg.name}</div>
-                    <div class="perm-upgrade-level">Livello: ${upg.level} / ${upg.maxLevel}</div>
-                    <div class="upgrade-desc">Effetto attuale: ${upg.effect(upg.level)}</div>
-                </div>`;
-            if (upg.level < upg.maxLevel) {
-                optionHTML += `<div>
-                    <div class="perm-upgrade-cost" style="color:${costColor}">Costo: ${cost} 💎</div>
-                    <button class="buy-button" data-key="${key}" ${this.totalGems < cost ? 'disabled' : ''}>
-                        ${this.totalGems < cost ? 'Cristalli Insufficienti' : 'Compra'}
-                    </button>
-                </div>`;
+            let btnHTML = '';
+
+            if (isMax) {
+                btnHTML = `<button class="skill-node-btn max-level" disabled>Assimilato</button>`;
+            } else if (isLocked) {
+                btnHTML = `<button class="skill-node-btn locked" disabled>Bloccato</button>`;
             } else {
-                optionHTML += `<div class="max-level-indicator">MAX</div>`;
+                btnHTML = `<div class="skill-node-cost" style="color:${costColor}">${cost} 💎</div>
+                           <button class="skill-node-btn buy-button" data-key="${nodeId}" ${this.totalGems < cost ? 'disabled' : ''}>
+                               ${this.totalGems < cost ? 'Cristalli Insuff.' : 'Sblocca'}
+                           </button>`;
             }
-            optionHTML += `</div>`;
-            container.innerHTML += optionHTML;
+
+            const nodeHTML = `
+                <div class="skill-node ${isLocked ? 'locked' : ''} ${isMax ? 'max-level' : ''}">
+                    <div class="skill-node-header">
+                        <div class="skill-node-icon">${nodeData.icon || '✨'}</div>
+                        <div class="skill-node-level">${currentLevel}/${nodeData.maxLevel}</div>
+                    </div>
+                    <div class="skill-node-title">${nodeData.name}</div>
+                    <div class="skill-node-desc">${nodeData.desc}</div>
+                    ${btnHTML}
+                </div>
+            `;
+            container.innerHTML += nodeHTML;
         }
 
         container.querySelectorAll('.buy-button').forEach(btn => {
-            btn.onclick = () => this.buyPermanentUpgrade(btn.dataset.key);
+            btn.onclick = () => {
+                const nodeId = btn.dataset.key;
+                if (this.metaProgressionSystem.unlockNode(nodeId)) {
+                    this.totalGems = this.game.totalGems; // Sync totalGems back
+                    this.saveGameData();
+                    if (this.game.audio) this.game.audio.playLevelUp(); // Suono generico per lo sblocco
+                    this.populateShop(); // Aggiorna UI
+                }
+            };
         });
     },
 

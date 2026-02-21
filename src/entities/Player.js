@@ -356,7 +356,13 @@ export class Player extends Entity {
         game?.addScreenShake?.(10);
         if (!CONFIG.accessibility?.reduceMotion) game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;
         this.iFramesTimer = Math.ceil((CONFIG.player.iFramesDuration ?? 0.8) * 60);
-        if (this.hp <= 0 && game) game.gameOver?.();
+        if (this.hp <= 0 && game) {
+            if (game.metaProgressionSystem?.onPlayerDeath(this)) {
+                // Il sistema ha annullato la morte (es. revive)
+                return;
+            }
+            game.gameOver?.();
+        }
     }
 
     draw(ctx, game) {

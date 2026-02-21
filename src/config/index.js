@@ -506,6 +506,27 @@ export const CONFIG = {
         'shield_mastery_reflect': { id: 'shield_mastery_reflect', name: 'Maestria: Riflesso', desc: 'Aumenta danni riflessi.', type: 'mastery' },
         'shield_mastery_orbital': { id: 'shield_mastery_orbital', name: 'Maestria: Singolarità', desc: 'Aggiunge secondo globo.', type: 'mastery' }
     },
+    skillTree: {
+        // Base Node
+        'base_health': { name: 'Vitalità Base', desc: '+20 HP Max per livello', baseCost: 10, maxLevel: 5, requires: [], icon: '❤️', effect: { type: 'stat', stat: 'maxHp', value: 20 } },
+
+        // Tier 1 (Requires Base Health)
+        'tier1_speed': { name: 'Agilità', desc: '+0.2 Velocità per livello', baseCost: 15, maxLevel: 5, requires: ['base_health'], icon: '⚡', effect: { type: 'stat', stat: 'speed', value: 0.2 } },
+        'tier1_regen': { name: 'Rigenerazione P.', desc: 'Rigenera 1 HP ogni 5s', baseCost: 20, maxLevel: 3, requires: ['base_health'], icon: '✨', effect: { type: 'passive', id: 'passive_regen', value: 1 } },
+
+        // Tier 2 (Requires Agility or Regen)
+        'tier2_defense': { name: 'Pelle Ferrea', desc: '+2% Riduzione Danno', baseCost: 25, maxLevel: 5, requires: ['tier1_speed', 'tier1_regen'], requireType: 'any', icon: '🛡️', effect: { type: 'stat', stat: 'dr', value: 0.02 } },
+        'tier2_power': { name: 'Forza Bruta', desc: '+5% Danno', baseCost: 30, maxLevel: 5, requires: ['tier1_speed', 'tier1_regen'], requireType: 'any', icon: '⚔️', effect: { type: 'stat', stat: 'power', value: 0.05 } },
+
+        // Tier 3 (Requires Defense or Power)
+        'tier3_frequency': { name: 'Reattività', desc: '-3% Tempo di Ricarica', baseCost: 40, maxLevel: 5, requires: ['tier2_defense', 'tier2_power'], requireType: 'any', icon: '⏱️', effect: { type: 'stat', stat: 'frequency', value: -0.03 } },
+        'tier3_area': { name: 'Espansione', desc: '+5% Area', baseCost: 40, maxLevel: 5, requires: ['tier2_defense', 'tier2_power'], requireType: 'any', icon: '🌟', effect: { type: 'stat', stat: 'area', value: 0.05 } },
+
+        // Special Nodes (Leaf nodes)
+        'special_meteor': { name: 'Dono Astrale', desc: 'Evoca un meteorite ogni 100 uccisioni', baseCost: 100, maxLevel: 1, requires: ['tier3_area'], requireType: 'all', icon: '☄️', special: 'meteor_on_kills' },
+        'special_second_chance': { name: 'Anima Persistente', desc: 'Una resurrezione a partita (50% HP)', baseCost: 150, maxLevel: 1, requires: ['tier3_frequency'], requireType: 'all', icon: '👼', special: 'revive' },
+        'special_greed': { name: 'Avarizia', desc: '+10% XP e Fortuna', baseCost: 80, maxLevel: 3, requires: ['tier3_frequency', 'tier3_area'], requireType: 'all', icon: '💰', effect: { type: 'stat', stat: 'luck_and_xp', value: 0.1 } }
+    },
     permanentUpgrades: {
         health: { name: 'Salute', baseCost: 10, costGrowth: 1.25, maxLevel: 10, effect: (level) => `+${level * 20} HP massimi` },
         speed: { name: 'Velocità', baseCost: 10, costGrowth: 1.3, maxLevel: 5, effect: (level) => `+${level * 0.2} Velocità` },

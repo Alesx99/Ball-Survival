@@ -3,9 +3,10 @@ import { CONFIG } from '../config/index.js';
 export const SaveSystem = {
     generateSaveCode(isDebug = false) {
         const saveData = {
-            v: "4.7-menus", 
+            v: "4.7-menus",
             gems: this.totalGems,
             perm_upgrades: this.permanentUpgrades,
+            skillTreeNodes: this.metaProgressionSystem?.unlockedNodes || {},
             unlocked_archetypes: Array.from(this.unlockedArchetypes)
         };
 
@@ -31,7 +32,7 @@ export const SaveSystem = {
                 weapons: this.weapons
             };
         }
-        
+
         try {
             const jsonString = JSON.stringify(saveData);
             return btoa(jsonString);
@@ -44,19 +45,19 @@ export const SaveSystem = {
     loadFromSaveCode() {
         const code = this.dom.inputs.loadCode ? this.dom.inputs.loadCode.value.trim() : '';
         const notification = this.dom.loadNotification;
-        if (!code) { 
+        if (!code) {
             if (notification) {
-                notification.textContent = "Inserisci un codice."; 
-                notification.style.color = '#e74c3c'; 
+                notification.textContent = "Inserisci un codice.";
+                notification.style.color = '#e74c3c';
                 setTimeout(() => notification.textContent = "", 3000);
             }
-            return; 
+            return;
         }
 
         try {
             const jsonString = atob(code);
             const loadedData = JSON.parse(jsonString);
-            
+
             if (loadedData.gems !== undefined) this.totalGems = loadedData.gems;
             if (loadedData.perm_upgrades) {
                 Object.keys(this.permanentUpgrades).forEach(key => {
@@ -65,23 +66,26 @@ export const SaveSystem = {
                     }
                 });
             }
-            this.saveGameData(); 
+            if (loadedData.skillTreeNodes && this.metaProgressionSystem) {
+                this.metaProgressionSystem.unlockedNodes = loadedData.skillTreeNodes;
+            }
+            this.saveGameData();
 
-            if(loadedData.run_state) {
+            if (loadedData.run_state) {
                 const run = loadedData.run_state;
-                this.resetRunState(); 
+                this.resetRunState();
                 this.totalElapsedTime = run.time || 0;
                 this.score = run.score || 0;
                 this.difficultyTier = run.difficultyTier || 0;
 
-                this.player.resetForNewRun(this.permanentUpgrades, run.player.archetype || 'standard'); 
+                this.player.resetForNewRun(this.permanentUpgrades, run.player.archetype || 'standard');
                 this.player.level = run.player.level;
                 this.player.xp = run.player.xp;
                 this.player.xpNext = run.player.xpNext;
                 this.player.hp = run.player.hp;
                 this.player.x = run.player.x;
                 this.player.y = run.player.y;
-                
+
                 this.spells = run.spells;
                 this.passives = run.passives;
 
@@ -107,8 +111,8 @@ export const SaveSystem = {
                 }, 1000);
 
             } else {
-                 notification.textContent = "Dati caricati!";
-                 notification.style.color = '#2ecc71';
+                notification.textContent = "Dati caricati!";
+                notification.style.color = '#2ecc71';
             }
         } catch (e) {
             console.error("Errore durante il caricamento:", e);
@@ -117,27 +121,27 @@ export const SaveSystem = {
         }
         setTimeout(() => notification.textContent = "", 3000);
     },
-    
-    copySaveCode() { 
-        const saveCodeInput = this.dom.inputs.saveCode; 
-        if (saveCodeInput && saveCodeInput.value) { 
-            saveCodeInput.select(); 
-            saveCodeInput.setSelectionRange(0, 99999); 
-            try { 
-                document.execCommand('copy'); 
-                this.notifications.push({ text: "Codice copiato!", life: 120 }); 
-            } catch (err) { 
-                console.error("Copia fallita", err); 
-            } 
-        } 
+
+    copySaveCode() {
+        const saveCodeInput = this.dom.inputs.saveCode;
+        if (saveCodeInput && saveCodeInput.value) {
+            saveCodeInput.select();
+            saveCodeInput.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                this.notifications.push({ text: "Codice copiato!", life: 120 });
+            } catch (err) {
+                console.error("Copia fallita", err);
+            }
+        }
     },
 
-    loadGameData() { 
-        this.permanentUpgrades = {}; 
-        Object.keys(CONFIG.permanentUpgrades).forEach(key => { 
-            this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 }; 
-        }); 
-        
+    loadGameData() {
+        this.permanentUpgrades = {};
+        Object.keys(CONFIG.permanentUpgrades).forEach(key => {
+            this.permanentUpgrades[key] = { ...CONFIG.permanentUpgrades[key], level: 0 };
+        });
+
         // Inizializza materiali, core e armi
         this.materials = {};
         this.cores = {};
@@ -146,7 +150,7 @@ export const SaveSystem = {
             activeCore: null,
             activeWeapons: []
         };
-        
+
         let data = null;
         const LEGACY_KEY = 'ballSurvivalSaveData_v4.8';
 
@@ -165,40 +169,44 @@ export const SaveSystem = {
                 const savedData = localStorage.getItem(LEGACY_KEY);
                 if (savedData) data = JSON.parse(savedData);
             }
-            
-            if (data) { 
-                this.totalGems = data.totalGems ?? 0; 
-                if (data.upgrades) { 
-                    Object.keys(this.permanentUpgrades).forEach(key => { 
-                        if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level ?? 0; 
-                    }); 
+
+            if (data) {
+                this.totalGems = data.totalGems ?? 0;
+                if (data.upgrades) {
+                    Object.keys(this.permanentUpgrades).forEach(key => {
+                        if (data.upgrades[key]) this.permanentUpgrades[key].level = data.upgrades[key].level ?? 0;
+                    });
+                }
+                if (data.skillTreeNodes && this.metaProgressionSystem) {
+                    this.metaProgressionSystem.unlockedNodes = data.skillTreeNodes;
                 }
                 if (data.materials) this.materials = data.materials;
                 if (data.cores) this.cores = data.cores;
                 if (data.weapons) this.weapons = data.weapons;
                 if (data.arsenal) this.arsenal = data.arsenal;
-            } else { 
-                this.totalGems = 0; 
-            } 
-        } catch (e) { 
-            console.error("Impossibile caricare:", e); 
-            this.totalGems = 0; 
-        } 
+            } else {
+                this.totalGems = 0;
+            }
+        } catch (e) {
+            console.error("Impossibile caricare:", e);
+            this.totalGems = 0;
+        }
     },
 
-    saveGameData() { 
+    saveGameData() {
         const LEGACY_KEY = 'ballSurvivalSaveData_v4.8';
-        const saveData = { 
-            totalGems: this.totalGems, 
+        const saveData = {
+            totalGems: this.totalGems,
             upgrades: this.permanentUpgrades,
+            skillTreeNodes: this.metaProgressionSystem?.unlockedNodes || {},
             materials: this.materials,
             cores: this.cores,
             weapons: this.weapons,
             arsenal: this.arsenal,
             saveDataUpdatedAt: Date.now()
-        }; 
-        try { 
-            localStorage.setItem(LEGACY_KEY, JSON.stringify(saveData)); 
+        };
+        try {
+            localStorage.setItem(LEGACY_KEY, JSON.stringify(saveData));
             // Salva anche nel player loggato (per sync cloud)
             const player = this.playerAuth?.auth?.currentPlayer;
             if (player && !player.isGuest && player.username) {
@@ -208,8 +216,8 @@ export const SaveSystem = {
                     localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
                 }
             }
-        } catch (e) { 
-            console.error("Impossibile salvare:", e); 
-        } 
+        } catch (e) {
+            console.error("Impossibile salvare:", e);
+        }
     }
 };
