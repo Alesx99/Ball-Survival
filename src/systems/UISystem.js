@@ -621,9 +621,8 @@ export const UISystem = {
             btn.onclick = () => {
                 const nodeId = btn.dataset.key;
                 if (this.metaProgressionSystem.unlockNode(nodeId)) {
-                    this.totalGems = this.game.totalGems; // Sync totalGems back
                     this.saveGameData();
-                    if (this.game.audio) this.game.audio.playLevelUp(); // Suono generico per lo sblocco
+                    if (this.audio) this.audio.playLevelUp(); // Suono generico per lo sblocco
                     this.populateShop(); // Aggiorna UI
                 }
             };
