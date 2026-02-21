@@ -21,6 +21,29 @@ export const Utils = {
         return nearest;
     },
 
+    /** Distance from a point to a line segment. point, segStart, segEnd are { x, y }. */
+    getDistanceToSegment: (point, segStart, segEnd) => {
+        const ax = segStart.x;
+        const ay = segStart.y;
+        const bx = segEnd.x;
+        const by = segEnd.y;
+        const px = point.x;
+        const py = point.y;
+        const abx = bx - ax;
+        const aby = by - ay;
+        const apx = px - ax;
+        const apy = py - ay;
+        const ab2 = abx * abx + aby * aby;
+        if (ab2 === 0) return Math.sqrt(apx * apx + apy * apy);
+        let t = (apx * abx + apy * aby) / ab2;
+        t = Math.max(0, Math.min(1, t));
+        const qx = ax + t * abx;
+        const qy = ay + t * aby;
+        const dx = px - qx;
+        const dy = py - qy;
+        return Math.sqrt(dx * dx + dy * dy);
+    },
+
     drawJaggedLine: (ctx, x1, y1, x2, y2, segments) => {
         ctx.beginPath();
         ctx.moveTo(x1, y1);
