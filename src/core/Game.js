@@ -26,6 +26,8 @@ import { CraftingSystem } from '../systems/CraftingSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { BalanceSystem } from '../systems/BalanceSystem.js';
+import { ModeManager } from './ModeManager.js';
+import { StorageManager } from './StorageManager.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { UISystem } from '../systems/UISystem.js';
 import { InputManager } from './InputManager.js';
@@ -74,6 +76,20 @@ export class BallSurvivalGame {
         this.analyticsManager = new AnalyticsManager();
         this.audio = new AudioManager();
         this.audio.init();
+        this.craftingSystem = new CraftingSystem(this);
+        this.saveSystem = new SaveSystem(this);
+        this.metaProgressionSystem = new MetaProgressionSystem(this);
+        this.balanceSystem = new BalanceSystem(this);
+        this.menuController = new MenuController(this);
+        this.inputManager = new InputManager(this);
+        this.modeManager = new ModeManager(this);
+
+        this.storageManager = StorageManager;
+
+        // Inizializza eventi controller
+        this.menuController.init();
+        this.inputManager.init();
+
         this.skinSystem = new SkinSystem(this);
         this.cheatCodeSystem = new CheatCodeSystem(this);
         this.dailyChallengeSystem = new DailyChallengeSystem(this);
@@ -464,51 +480,6 @@ export class BallSurvivalGame {
         this.screenShakeIntensity = Math.min(max, (this.screenShakeIntensity || 0) + scaled);
     }
 
-    checkDailyObjective() {
-        if (this.gameMode !== 'daily' || !this.dailyChallengeSystem?.config?.objective) return;
-
-        const obj = this.dailyChallengeSystem.config.objective;
-        const timeElapsed = this.totalElapsedTime;
-
-        // Controlla se il tempo limite è scaduto
-        if (obj.timeLimit && timeElapsed >= obj.timeLimit) {
-            if (obj.type === 'survival') {
-                this.triggerDailyVictory();
-            } else {
-                this.triggerDailyDefeat();
-            }
-            return;
-        }
-
-        // Condizioni di vittoria anticipate
-        if (obj.type === 'kills' && this.enemiesKilled >= obj.target) {
-            this.triggerDailyVictory();
-        } else if (obj.type === 'level' && this.player.level >= obj.target) {
-            this.triggerDailyVictory();
-        }
-    }
-
-    triggerDailyVictory() {
-        if (this.state === 'gameOver') return;
-        this.score += 5000;
-        this.gemsThisRun += 1000;
-        this.notifications.push({ text: '🏆 SFIDA GIORNALIERA COMPLETATA! +1000 Gemme', life: 300, color: '#FFD700' });
-
-        const gameOverTitle = this.dom.popups.gameOver.querySelector('h2');
-        if (gameOverTitle) gameOverTitle.textContent = "🏆 Sfida Completata!";
-
-        this.gameOver();
-    }
-
-    triggerDailyDefeat() {
-        if (this.state === 'gameOver') return;
-
-        const gameOverTitle = this.dom.popups.gameOver.querySelector('h2');
-        if (gameOverTitle) gameOverTitle.textContent = "❌ Sfida Fallita: Tempo Scaduto";
-
-        this.gameOver();
-    }
-
     triggerVictory() {
         if (this.state === 'gameOver') return;
         const gameOverTitle = this.dom.popups.gameOver?.querySelector('h2');
@@ -533,13 +504,7 @@ export class BallSurvivalGame {
             this.tutorialSystem?.update();
         }
 
-        if (this.gameMode === 'bossRush') {
-            this.checkBossRushVictory();
-        }
-
-        if (this.gameMode === 'daily') {
-            this.checkDailyObjective();
-        }
+        this.modeManager.update();
 
         this.updateCamera();
         this.checkStage();
@@ -633,13 +598,13 @@ export class BallSurvivalGame {
             };
         }
 
-        // Monitoraggio versione 5.3 - ogni 30 secondi (1800 frame a 60fps)
-        if (this.gameTime > 0 && this.gameTime % 1800 === 0) {
+        // Monitoraggio versione 5.3 - ogni 30 secondi (30 * CONFIG.FPS)
+        if (this.gameTime > 0 && this.gameTime % (30 * CONFIG.FPS) === 0) {
             this.trackRetentionMetrics();
         }
 
-        // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi (3600 frame a 60fps)
-        if (this.gameTime > 0 && this.gameTime % 3600 === 0) {
+        // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi (60 * CONFIG.FPS)
+        if (this.gameTime > 0 && this.gameTime % (60 * CONFIG.FPS) === 0) {
             this.checkAutoBalance();
         }
 
@@ -766,158 +731,7 @@ export class BallSurvivalGame {
 
     getEnemiesAndBosses() { return [...(this.entities?.enemies || []), ...(this.entities?.bosses || [])]; }
 
-    handleEscapeKey() {
-        const anyPopupOpen = Object.values(this.dom.popups).some(p => p && p.style.display === 'flex');
 
-        // Se il popup dei personaggi è aperto, torna al menù principale
-        if (this.dom.popups.characterSelection && this.dom.popups.characterSelection.style.display === 'flex') {
-            this.hideCharacterPopup();
-            return;
-        }
-        // Su start screen: chiudi glossario/achievements e torna al menu
-        if (this.state === 'startScreen') {
-            if (this.dom.popups.glossary?.style.display === 'flex') { this.hideGlossary(); return; }
-            if (this.dom.popups.achievements?.style.display === 'flex') { this.hideAllPopups(); this.showPopup('start'); return; }
-        }
-
-        if (anyPopupOpen && this.state !== 'startScreen' && this.state !== 'gameOver') {
-            this.hideAllPopups();
-        } else {
-            this.togglePause();
-        }
-    }
-    handleInteractionKey() {
-        if (this.menuCooldown > 0 || this.state !== 'running') {
-            return;
-        }
-
-        const distance = Utils.getDistance(this.player, CONFIG.merchant);
-        if (distance < CONFIG.merchant.interactionRadius) {
-            this.showPopup('shop');
-        }
-
-        if (this._secretMerchantActive && this._secretMerchantPos) {
-            const secretDistance = Utils.getDistance(this.player, this._secretMerchantPos);
-            if (secretDistance < this._secretMerchantPos.interactionRadius) {
-                this.showPopup('secretShop');
-            }
-        }
-    }
-    handlePointerDown(e) {
-        this.audio?.unlock();
-        if (this.state === 'gameOver' || this.state === 'startScreen') return;
-        if (!this.canvas) return;
-
-        const rect = this.canvas.getBoundingClientRect();
-        const clientX = e.clientX;
-        const clientY = e.clientY;
-        const worldX = (clientX - rect.left) * (this.camera.width / rect.width) + this.camera.x;
-        const worldY = (clientY - rect.top) * (this.camera.height / rect.height) + this.camera.y;
-        if (this.state === 'running') {
-            const playerWorldPos = { x: worldX, y: worldY };
-            if (Utils.getDistance(playerWorldPos, CONFIG.merchant) < CONFIG.merchant.interactionRadius) {
-                this.showPopup('shop');
-                return;
-            }
-            if (this._secretMerchantActive && this._secretMerchantPos) {
-                if (Utils.getDistance(playerWorldPos, this._secretMerchantPos) < this._secretMerchantPos.interactionRadius) {
-                    this.showPopup('secretShop');
-                    return;
-                }
-            }
-        }
-        if (e.pointerType === 'touch' && !this.joystick.active) {
-            e.preventDefault();
-            this.joystick.touchId = e.pointerId;
-            this.joystick.active = true;
-            this.joystick.startX = clientX;
-            this.joystick.startY = clientY;
-            if (this.dom.joystick && this.dom.joystick.container) {
-                this.dom.joystick.container.style.display = 'block';
-                this.dom.joystick.container.style.left = `${clientX - this.dom.joystick.radius}px`;
-                this.dom.joystick.container.style.top = `${clientY - this.dom.joystick.radius}px`;
-            }
-        }
-    }
-    handlePointerMove(e) {
-        if (!this.joystick.active || e.pointerId !== this.joystick.touchId) return;
-        e.preventDefault();
-        let deltaX = e.clientX - this.joystick.startX;
-        let deltaY = e.clientY - this.joystick.startY;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const maxDistance = this.dom.joystick.radius;
-        if (distance > maxDistance) {
-            deltaX = (deltaX / distance) * maxDistance;
-            deltaY = (deltaY / distance) * maxDistance;
-        }
-        const dxNorm = deltaX / maxDistance;
-        const dyNorm = deltaY / maxDistance;
-        this.joystick.dx = dxNorm;
-        this.joystick.dy = dyNorm;
-
-        // Balletto easter egg: track joystick spin (5 full rotations in 3s)
-        if (distance > maxDistance * 0.5) {
-            const angle = Math.atan2(dyNorm, dxNorm);
-            if (this._ballettoLastAngle !== undefined) {
-                let delta = angle - this._ballettoLastAngle;
-                if (delta > Math.PI) delta -= 2 * Math.PI;
-                if (delta < -Math.PI) delta += 2 * Math.PI;
-                this._ballettoTotalSpin = (this._ballettoTotalSpin || 0) + Math.abs(delta);
-            }
-            this._ballettoLastAngle = angle;
-            if (!this._ballettoStartTime) this._ballettoStartTime = Date.now();
-            if (Date.now() - this._ballettoStartTime > 3000) {
-                this._ballettoTotalSpin = 0;
-                this._ballettoStartTime = Date.now();
-            }
-            if (this._ballettoTotalSpin >= Math.PI * 10) { // 5 full spins
-                this._ballettoTotalSpin = 0;
-                this._ballettoStartTime = 0;
-                this.cheatCodeSystem?.discoverEgg('balletto');
-                // Confetti explosion
-                if (this.state === 'running' && this.player && this._entityClasses?.Particle) {
-                    for (let i = 0; i < 40; i++) {
-                        const a = Math.random() * Math.PI * 2;
-                        const s = 2 + Math.random() * 6;
-                        const colors = ['#ffd700', '#ff6347', '#00ff88', '#ff69b4', '#87ceeb', '#ff4500'];
-                        this.addEntity('particles', new this._entityClasses.Particle(this.player.x, this.player.y, {
-                            vx: Math.cos(a) * s, vy: Math.sin(a) * s,
-                            life: 30 + Math.floor(Math.random() * 40),
-                            color: colors[Math.floor(Math.random() * colors.length)]
-                        }));
-                    }
-                    this.notifications?.push?.({ text: '💃 BALLETTO! 🎉', life: 200, color: '#ff69b4' });
-                }
-            }
-        } else {
-            this._ballettoLastAngle = undefined;
-        }
-        this._joystickPending.dx = deltaX;
-        this._joystickPending.dy = deltaY;
-        if (!this._joystickRAF) {
-            this._joystickRAF = requestAnimationFrame(() => {
-                this._joystickRAF = null;
-                if (this.dom.joystick && this.dom.joystick.stick) {
-                    this.dom.joystick.stick.style.transform =
-                        `translate(${this._joystickPending.dx}px, ${this._joystickPending.dy}px)`;
-                }
-            });
-        }
-    }
-    handlePointerEnd(e) {
-        if (this.joystick.active && e.pointerId === this.joystick.touchId) {
-            this.joystick.active = false;
-            this.joystick.touchId = null;
-            if (this.dom.joystick && this.dom.joystick.stick) {
-                this.dom.joystick.stick.style.transform = 'translate(0px, 0px)';
-            }
-            if (this.dom.joystick && this.dom.joystick.container) {
-                this.dom.joystick.container.style.display = 'none';
-            }
-            this.joystick.dx = 0;
-            this.joystick.dy = 0;
-        }
-    }
 
     applyItemEffect(item) {
         const itemInfo = CONFIG.itemTypes[item.type];
@@ -942,11 +756,28 @@ export class BallSurvivalGame {
             case 'XP_BOMB': this.player.gainXP(this.player.xpNext); break;
             case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break;
             case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break;
-            case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 3600; this.player.powerUpTimers.invincibility = 3600; break;
+            case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 60 * CONFIG.FPS; this.player.powerUpTimers.invincibility = 60 * CONFIG.FPS; break;
         }
     }
 
-    // Funzione di test per il negozio
+    testShop() {
+        console.log('=== TEST NEGOZIO ===');
+        console.log('DOM elements:');
+        console.log('- totalGemsShop:', this.dom.totalGemsShop);
+        console.log('- permanentUpgradeOptions:', this.dom.containers.permanentUpgradeOptions);
+        console.log('- shop popup:', this.dom.popups.shop);
+
+        console.log('Dati:');
+        console.log('- totalGems:', this.totalGems);
+        console.log('- permanentUpgrades:', this.permanentUpgrades);
+
+        // Test diretto del populateShop
+        console.log('Testando populateShop...');
+        this.populateShop();
+
+        console.log('=== FINE TEST ===');
+    }
+
     showDailyChallengePopup() {
         const info = this.dailyChallengeSystem.getDailyInfo();
 
@@ -996,77 +827,24 @@ export class BallSurvivalGame {
     testShop() {
         console.log('=== TEST NEGOZIO ===');
         console.log('DOM elements:');
-        console.log('- totalGemsShop:', this.dom.totalGemsShop);
-        console.log('- permanentUpgradeOptions:', this.dom.containers.permanentUpgradeOptions);
-        console.log('- shop popup:', this.dom.popups.shop);
+        console.log('- Shop popup:', document.getElementById('permanentUpgradeShop'));
+        console.log('- Close button:', document.getElementById('closeShopBtn'));
+        console.log('- Options container:', document.getElementById('permanentUpgradeOptions'));
+        console.log('- Total gems display:', document.getElementById('totalGemsShop'));
 
-        console.log('Dati:');
-        console.log('- totalGems:', this.totalGems);
-        console.log('- permanentUpgrades:', this.permanentUpgrades);
-
-        // Test diretto del populateShop
-        console.log('Testando populateShop...');
-        this.populateShop();
-
-        console.log('=== FINE TEST ===');
+        if (!document.getElementById('permanentUpgradeShop')) {
+            console.error('ERRORE: Elementi del negozio mancanti in index.html');
+        } else {
+            console.log('DOM OK. Chiamo showPopup()');
+            this.showPopup('shop');
+        }
     }
 
     spawnDummyEnemy() {
-        const stats = { ...CONFIG.enemies?.base, hp: 10, damage: 0, speed: 0.5, xp: 5, radius: 20 };
-        const x = this.player.x + 200;
-        const y = this.player.y;
-        this.addEntity('enemies', new Enemy(x, y, stats));
-    }
-
-    handleBossRushLogic() {
-        if (this.gameMode !== 'bossRush') return;
-        if (this.entities.bosses.length === 0 && !this._bossRushWaiting) {
-            this._bossRushWaiting = true;
-            setTimeout(() => {
-                this.spawnBossRushBoss();
-                this._bossRushWaiting = false;
-            }, (CONFIG.bossRush?.spawnInterval || 5) * 1000);
-        }
-    }
-
-    spawnBossRushBoss() {
-        const cfg = CONFIG.bossRush || {};
-        const base = CONFIG.boss?.base || { hp: 1500, speed: 1.8, radius: 45, damage: 35 };
-        const k = this.bossesKilled;
-        const hpPerKill = cfg.hpPerKill ?? 600;
-        const damagePerKill = cfg.damagePerKill ?? 10;
-        const speedFactor = cfg.speedFactorPerKill ?? 0.05;
-        const drPerKill = cfg.drPerKill ?? 0.03;
-        const drCap = cfg.drCap ?? 0.55;
-
-        const stats = {
-            ...base,
-            hp: (base.hp + k * hpPerKill) * 1.5, // Base HP buff ridotto per Boss Rush
-            damage: (base.damage || 35) + k * damagePerKill,
-            speed: (base.speed || 1.8) * (1 + k * speedFactor),
-            dr: Math.min(drCap, k * drPerKill)
-        };
-        stats.maxHp = stats.hp;
-
-        const spawnOne = (offsetX = 0, offsetY = 0) => {
-            const bossType = cfg.bossSequence?.[(this.bossesKilled) % (cfg.bossSequence?.length || 4)] || 'boss';
-            const x = this.player.x + (Math.random() - 0.5) * 100 + offsetX;
-            const y = this.player.y - 400 + offsetY;
-            this.addEntity('bosses', new Boss(x, y, { ...stats }));
-            this.notifications.push({ text: `BOSS RUSH: ${bossType} APPARSO!`, life: 200 });
-        };
-
-        spawnOne();
-        const doubleFrom = (cfg.doubleBossFromWave ?? 5) - 1;
-        if (k >= doubleFrom) {
-            spawnOne(200, 80);
-        }
-    }
-
-    checkBossRushVictory() {
-        if (this.gameMode === 'bossRush' && this.bossesKilled >= (CONFIG.bossRush?.victoryCount || 10)) {
-            this.triggerVictory();
-        }
+        const dummyStats = { hp: 50, speed: 0, damage: 0, color: '#777', size: 15 };
+        const e = new Enemy(this.player.x + 100, this.player.y + 100, dummyStats, this);
+        e.isDummy = true;
+        this.addEntity('enemies', e);
     }
 }
 

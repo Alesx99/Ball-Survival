@@ -1,4 +1,5 @@
 import { CONFIG } from '../config/index.js';
+import { poolManager } from '../utils/PoolManager.js';
 
 export class MetaProgressionSystem {
     constructor(game) {
@@ -123,10 +124,10 @@ export class MetaProgressionSystem {
     }
 
     spawnMeteor() {
-        if (!this.game.poolManager || !this.game.player) return;
+        if (!this.game.entities || !this.game.player) return;
 
         // Seleziona un bersaglio casuale (o zona attorno al player)
-        const enemies = this.game.enemies;
+        const enemies = this.game.enemies || [];
         let targetX = this.game.player.x;
         let targetY = this.game.player.y;
 
@@ -137,7 +138,7 @@ export class MetaProgressionSystem {
         }
 
         // Simula lo spawn di uno shockwave o meteorite
-        const meteor = this.game.poolManager.get('projectile');
+        const meteor = poolManager.get('Projectile');
         if (meteor) {
             // Proprietà di base per sfruttare le logiche esistenti
             meteor.x = targetX;
@@ -152,7 +153,8 @@ export class MetaProgressionSystem {
             meteor.duration = 500; // 0.5 sec explosion
             meteor.isExplosion = true; // Flag fittizia
             // Custom draw/update se possibile, oppure usiamo projectile base con duration bassa e size grande
-            this.game.projectiles.push(meteor);
+            if (!this.game.entities.projectiles) this.game.entities.projectiles = [];
+            this.game.entities.projectiles.push(meteor);
 
             this.game.addParticle(targetX, targetY, '#ff4500', 50);
         }

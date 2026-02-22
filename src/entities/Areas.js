@@ -164,7 +164,7 @@ export class AnomalousArea extends Entity {
     constructor(x, y, props) {
         super(x, y);
         this.radius = props.radius || 150;
-        this.life = props.duration || 3600; // 60s
+        this.life = props.duration || 60 * 60; // 60s * 60fps
         this.maxLife = this.life;
         this.eventType = props.eventType || 'survive'; // survive o kill
         this.progress = 0;

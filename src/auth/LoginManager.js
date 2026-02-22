@@ -6,6 +6,7 @@
 
 import { AuthService } from './AuthService.js';
 import { cloudSyncManager } from '../utils/cloudSync.js';
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 export class LoginManager {
     constructor() {
@@ -28,7 +29,7 @@ export class LoginManager {
         this.updateLoginUI();
 
         // Carica token salvato se presente (cloud sync opzionale)
-        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        const savedToken = StorageManager.getItem('ballSurvivalGithubToken');
         if (savedToken && savedToken !== 'ghp_your_token_here') {
             cloudSyncManager.configure(savedToken);
             if (this.analyticsManager) {
@@ -92,7 +93,7 @@ export class LoginManager {
         if (registerForm) registerForm.style.display = 'none';
         if (playerInfo) playerInfo.style.display = 'none';
 
-        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        const savedToken = StorageManager.getItem('ballSurvivalGithubToken');
         if (savedToken) {
             const githubToken = document.getElementById('githubToken');
             if (githubToken) githubToken.value = savedToken;
@@ -109,7 +110,7 @@ export class LoginManager {
         if (registerForm) registerForm.style.display = 'block';
         if (playerInfo) playerInfo.style.display = 'none';
 
-        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        const savedToken = StorageManager.getItem('ballSurvivalGithubToken');
         if (savedToken) {
             const regGithubToken = document.getElementById('regGithubToken');
             if (regGithubToken) regGithubToken.value = savedToken;
@@ -156,7 +157,7 @@ export class LoginManager {
         }
 
         try {
-            const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+            const savedToken = StorageManager.getItem('ballSurvivalGithubToken');
             const tokenToUse = githubToken && githubToken.trim() !== '' ? githubToken : savedToken;
 
             if (tokenToUse) {
@@ -218,7 +219,7 @@ export class LoginManager {
         }
 
         try {
-            const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+            const savedToken = StorageManager.getItem('ballSurvivalGithubToken');
             const tokenToUse = githubToken && githubToken.trim() !== '' ? githubToken : savedToken;
 
             if (tokenToUse) {
@@ -321,7 +322,7 @@ export class LoginManager {
     }
 
     showCloudSyncConfig() {
-        const savedToken = localStorage.getItem('ballSurvivalGithubToken');
+        const savedToken = StorageManager.getItem('ballSurvivalGithubToken');
 
         if (savedToken) {
             const useSaved = confirm(`🔧 Token GitHub già configurato!\n\nVuoi usare il token salvato o inserirne uno nuovo?\n\n✅ OK = Usa token salvato\n❌ Annulla = Inserisci nuovo token`);
@@ -353,7 +354,7 @@ export class LoginManager {
             }
             // Salva lo stato attuale nel player prima di sincronizzare
             this.game?.saveGameData?.();
-            const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+            const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
             if (Object.keys(players).length === 0) {
                 console.log('📝 Nessun account da sincronizzare');
                 return true;
@@ -401,7 +402,7 @@ export class LoginManager {
             }
 
             const accountsData = cloudData.accounts;
-            const localPlayers = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+            const localPlayers = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
             let accountsLoaded = 0;
 
             for (const [username, account] of Object.entries(accountsData.accounts || {})) {
@@ -420,7 +421,7 @@ export class LoginManager {
                 }
             }
 
-            localStorage.setItem('ballSurvivalPlayers', JSON.stringify(localPlayers));
+            StorageManager.setItem('ballSurvivalPlayers', JSON.stringify(localPlayers));
             console.log(`✅ Account caricati: ${accountsLoaded}`);
             return true;
         } catch (error) {
@@ -431,7 +432,7 @@ export class LoginManager {
 
     async testAccountSync() {
         console.log('🧪 Test Sync Account...');
-        const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+        const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
         console.log('Account locali:', Object.keys(players));
 
         if (this.analyticsManager?.config?.enableCloudSync) {
@@ -439,7 +440,7 @@ export class LoginManager {
             const loadResult = await this.loadUserAccounts();
             console.log('Sync result:', syncResult);
             console.log('Load result:', loadResult);
-            const updatedPlayers = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+            const updatedPlayers = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
             console.log('Account dopo sync:', Object.keys(updatedPlayers));
         } else {
             console.log('⚠️ Cloud sync non configurato');
@@ -493,9 +494,9 @@ export class LoginManager {
             alert('Nessun utente loggato!');
             return;
         }
-        const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+        const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
         players[this.currentPlayer.username] = this.currentPlayer;
-        localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+        StorageManager.setItem('ballSurvivalPlayers', JSON.stringify(players));
 
         const result = await this.syncUserAccounts();
         if (result) {
@@ -546,7 +547,7 @@ export class LoginManager {
     /** Migrazione: normalizza tutti gli account in localStorage (struttura saveData). */
     _migrateLocalAccounts() {
         try {
-            const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+            const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
             let changed = false;
             for (const username in players) {
                 if (players[username].saveData === undefined) {
@@ -555,7 +556,7 @@ export class LoginManager {
                 }
             }
             if (changed) {
-                localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+                StorageManager.setItem('ballSurvivalPlayers', JSON.stringify(players));
                 console.log('📦 Migrazione account completata (saveData)');
             }
         } catch (e) {

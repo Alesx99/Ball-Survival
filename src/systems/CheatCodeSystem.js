@@ -102,7 +102,7 @@ export class CheatCodeSystem {
             case 'effect':
                 if (code.effect === 'matrix' && this.game) {
                     // Slow all enemies for 30 seconds
-                    this.game._matrixModeTimer = 1800; // 30s * 60fps
+                    this.game._matrixModeTimer = 30 * 60; // 30s * 60fps
                 }
                 break;
             case 'boss':

@@ -1,4 +1,5 @@
 import { CONFIG } from '../config/index.js';
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 export const SaveSystem = {
     generateSaveCode(isDebug = false) {
@@ -162,7 +163,7 @@ export const SaveSystem = {
             const player = this.playerAuth?.auth?.currentPlayer;
             // Giocatore loggato (non guest): carica dal suo account
             if (player && !player.isGuest && player.username) {
-                const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+                const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
                 const acc = players[player.username];
                 if (acc?.saveData) {
                     data = acc.saveData;
@@ -170,7 +171,7 @@ export const SaveSystem = {
                 // Nuovo account senza saveData: parte da zero (non usare legacy)
             } else {
                 // Guest o nessun login: usa storage legacy
-                const savedData = localStorage.getItem(LEGACY_KEY);
+                const savedData = StorageManager.getItem(LEGACY_KEY);
                 if (savedData) data = JSON.parse(savedData);
             }
 
@@ -210,14 +211,14 @@ export const SaveSystem = {
             saveDataUpdatedAt: Date.now()
         };
         try {
-            localStorage.setItem(LEGACY_KEY, JSON.stringify(saveData));
+            StorageManager.setItem(LEGACY_KEY, JSON.stringify(saveData));
             // Salva anche nel player loggato (per sync cloud)
             const player = this.playerAuth?.auth?.currentPlayer;
             if (player && !player.isGuest && player.username) {
-                const players = JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}');
+                const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
                 if (players[player.username]) {
                     players[player.username].saveData = saveData;
-                    localStorage.setItem('ballSurvivalPlayers', JSON.stringify(players));
+                    StorageManager.setItem('ballSurvivalPlayers', JSON.stringify(players));
                 }
             }
         } catch (e) {

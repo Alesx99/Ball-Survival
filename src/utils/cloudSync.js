@@ -3,11 +3,12 @@
  * v2.0: Debounced auto-sync, offline queue with exponential backoff, full save sync
  * @module cloudSync
  */
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 export class CloudSyncManager {
     constructor() {
         this.config = {
-            githubToken: localStorage.getItem('ballSurvivalGithubToken') || '',
+            githubToken: StorageManager.getItem('ballSurvivalGithubToken') || '',
             gistId: '1dc2b7cdfc87ca61cfaf7e2dc7e13cfd',
             enableCloudSync: false,
             minApiInterval: 1000
@@ -76,7 +77,7 @@ export class CloudSyncManager {
     configure(githubToken) {
         this.config.githubToken = githubToken;
         this.config.enableCloudSync = true;
-        localStorage.setItem('ballSurvivalGithubToken', githubToken);
+        StorageManager.setItem('ballSurvivalGithubToken', githubToken);
         this._retryCount = 0;
         this._status = 'idle';
     }
@@ -285,7 +286,7 @@ export class CloudSyncManager {
     }
 
     reset() {
-        localStorage.removeItem('ballSurvivalGithubToken');
+        StorageManager.removeItem('ballSurvivalGithubToken');
         this.config.githubToken = '';
         this.config.enableCloudSync = false;
         this.stopAutoSync();

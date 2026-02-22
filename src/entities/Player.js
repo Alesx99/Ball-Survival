@@ -80,7 +80,7 @@ export class Player extends Entity {
                     this.modifiers.power *= 1.40;
                     this.stats.maxHp = Math.floor(this.stats.maxHp * 0.70);
                     this._explosionTimer = 0;
-                    this._explosionInterval = 1800; // Ogni 30 secondi (1800 frame a 60fps)
+                    this._explosionInterval = 30 * 60; // Ogni 30 secondi (a 60fps)
                     this._selfDamageTimer = 0;
                     this._selfDamageInterval = 2700; // 5 danni ogni 45 secondi
                     this._selfDamageAmount = 5;
