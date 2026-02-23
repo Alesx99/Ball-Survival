@@ -1,5 +1,6 @@
 import { CONFIG } from '../config/index.js';
 import { poolManager } from '../utils/PoolManager.js';
+import { Particle } from '../entities/index.js';
 
 export class MetaProgressionSystem {
     constructor(game) {
@@ -148,7 +149,7 @@ export class MetaProgressionSystem {
             meteor.width = 100;
             meteor.height = 100;
             meteor.color = '#ff4500';
-            meteor.damage = 500 * this.game.player.modifiers.power; // Danno elevato
+            meteor.damage = 500 * (this.game.getEffectivePower?.() ?? this.game.player.modifiers.power); // Danno elevato (power linearizzato)
             meteor.piercing = 999;
             meteor.duration = 500; // 0.5 sec explosion
             meteor.isExplosion = true; // Flag fittizia
@@ -156,7 +157,7 @@ export class MetaProgressionSystem {
             if (!this.game.entities.projectiles) this.game.entities.projectiles = [];
             this.game.entities.projectiles.push(meteor);
 
-            this.game.addParticle(targetX, targetY, '#ff4500', 50);
+            this.game.addEntity('particles', new Particle(targetX, targetY, { color: '#ff4500', life: 50, vx: 0, vy: 0 }));
         }
     }
 

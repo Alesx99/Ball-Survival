@@ -264,7 +264,7 @@ export class Player extends Entity {
             if (this._explosionTimer >= this._explosionInterval && game) {
                 this._explosionTimer = 0;
                 const explosionRadius = 120;
-                const explosionDamage = 30 * this.modifiers.power;
+                const explosionDamage = 30 * (game.getEffectivePower?.() ?? this.modifiers.power);
                 const enemies = [...(game.entities?.enemies || []), ...(game.entities?.bosses || [])];
                 enemies.forEach(enemy => {
                     if (Utils.getDistance(this, enemy) < explosionRadius) {
@@ -346,7 +346,7 @@ export class Player extends Entity {
         // Esegui logica dell'oggetto attivo
         if (itemType === 'BOMB_ACTIVE') {
             const radius = 250;
-            const damage = 200 * this.modifiers.power;
+            const damage = 200 * (game.getEffectivePower?.() ?? this.modifiers.power);
             const enemies = [...(game.entities?.enemies || []), ...(game.entities?.bosses || [])];
             enemies.forEach(enemy => {
                 if (Utils.getDistance(this, enemy) <= radius) {

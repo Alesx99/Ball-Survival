@@ -64,7 +64,16 @@ export const SpellSystem = {
         }
     },
 
-    getDamage(baseDamage) { return baseDamage * (this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1) * this.player.modifiers.power; },
+    /** Moltiplicatore danno "linearizzato": riduce lo snowball del power (diminishing returns). */
+    getEffectivePower() {
+        const raw = this.player.modifiers.power ?? 1;
+        const factor = 0.5; // 1 = come prima (moltiplicativo), 0.5 = power 2→1.5x, 3→2x
+        return 1 + (raw - 1) * factor;
+    },
+    getDamage(baseDamage) {
+        const boost = this.player.powerUpTimers.damageBoost > 0 ? 1.25 : 1;
+        return baseDamage * boost * this.getEffectivePower();
+    },
 
     castMagicMissile(now) {
         const s = this.spells.magicMissile;
