@@ -20,7 +20,7 @@ export class AuthService {
         const savedPlayer = StorageManager.getItem(STORAGE_PLAYER);
         if (savedPlayer) {
             try {
-                this.currentPlayer = JSON.parse(savedPlayer);
+                this.currentPlayer = typeof savedPlayer === 'string' ? JSON.parse(savedPlayer) : savedPlayer;
                 this.isLoggedIn = true;
                 this.isGuest = this.currentPlayer.isGuest || false;
                 console.log(`✅ Giocatore caricato: ${this.currentPlayer.username}${this.isGuest ? ' (Guest)' : ''}`);

@@ -354,7 +354,7 @@ export class LoginManager {
             }
             // Salva lo stato attuale nel player prima di sincronizzare
             this.game?.saveGameData?.();
-            const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+            const _raw = StorageManager.getItem('ballSurvivalPlayers'); const players = (_raw && typeof _raw === 'object') ? _raw : (typeof _raw === 'string' ? JSON.parse(_raw || '{}') : {});
             if (Object.keys(players).length === 0) {
                 console.log('📝 Nessun account da sincronizzare');
                 return true;
@@ -402,7 +402,7 @@ export class LoginManager {
             }
 
             const accountsData = cloudData.accounts;
-            const localPlayers = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+            const _rawP = StorageManager.getItem('ballSurvivalPlayers'); const localPlayers = (_rawP && typeof _rawP === 'object') ? _rawP : (typeof _rawP === 'string' ? JSON.parse(_rawP || '{}') : {});
             let accountsLoaded = 0;
 
             for (const [username, account] of Object.entries(accountsData.accounts || {})) {
@@ -432,7 +432,7 @@ export class LoginManager {
 
     async testAccountSync() {
         console.log('🧪 Test Sync Account...');
-        const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+        const _raw = StorageManager.getItem('ballSurvivalPlayers'); const players = (_raw && typeof _raw === 'object') ? _raw : (typeof _raw === 'string' ? JSON.parse(_raw || '{}') : {});
         console.log('Account locali:', Object.keys(players));
 
         if (this.analyticsManager?.config?.enableCloudSync) {
@@ -440,7 +440,7 @@ export class LoginManager {
             const loadResult = await this.loadUserAccounts();
             console.log('Sync result:', syncResult);
             console.log('Load result:', loadResult);
-            const updatedPlayers = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+            const _rawU = StorageManager.getItem('ballSurvivalPlayers'); const updatedPlayers = (_rawU && typeof _rawU === 'object') ? _rawU : (typeof _rawU === 'string' ? JSON.parse(_rawU || '{}') : {});
             console.log('Account dopo sync:', Object.keys(updatedPlayers));
         } else {
             console.log('⚠️ Cloud sync non configurato');
@@ -494,7 +494,7 @@ export class LoginManager {
             alert('Nessun utente loggato!');
             return;
         }
-        const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+        const _raw = StorageManager.getItem('ballSurvivalPlayers'); const players = (_raw && typeof _raw === 'object') ? _raw : (typeof _raw === 'string' ? JSON.parse(_raw || '{}') : {});
         players[this.currentPlayer.username] = this.currentPlayer;
         StorageManager.setItem('ballSurvivalPlayers', JSON.stringify(players));
 
@@ -547,7 +547,7 @@ export class LoginManager {
     /** Migrazione: normalizza tutti gli account in localStorage (struttura saveData). */
     _migrateLocalAccounts() {
         try {
-            const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+            const _raw = StorageManager.getItem('ballSurvivalPlayers'); const players = (_raw && typeof _raw === 'object') ? _raw : (typeof _raw === 'string' ? JSON.parse(_raw || '{}') : {});
             let changed = false;
             for (const username in players) {
                 if (players[username].saveData === undefined) {

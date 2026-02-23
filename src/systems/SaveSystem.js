@@ -221,7 +221,8 @@ export const SaveSystem = {
             // Salva anche nel player loggato (per sync cloud)
             const player = this.playerAuth?.auth?.currentPlayer;
             if (player && !player.isGuest && player.username) {
-                const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+                const _raw = StorageManager.getItem('ballSurvivalPlayers');
+                const players = (_raw && typeof _raw === 'object') ? _raw : (typeof _raw === 'string' ? JSON.parse(_raw || '{}') : {});
                 if (players[player.username]) {
                     players[player.username].saveData = saveData;
                     StorageManager.setItem('ballSurvivalPlayers', JSON.stringify(players));
