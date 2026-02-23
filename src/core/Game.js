@@ -27,7 +27,7 @@ import { SaveSystem } from '../systems/SaveSystem.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { BalanceSystem } from '../systems/BalanceSystem.js';
 import { ModeManager } from './ModeManager.js';
-import { StorageManager } from './StorageManager.js';
+import { StorageManager, StorageKeys } from './StorageManager.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { UISystem } from '../systems/UISystem.js';
 import { InputManager } from './InputManager.js';

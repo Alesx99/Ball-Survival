@@ -112,12 +112,15 @@ export const StageSystem = {
         try {
             const savedProgress = StorageManager.getItem(StorageKeys.STAGE_PROGRESS);
             if (savedProgress) {
-                const stageProgress = JSON.parse(savedProgress);
-                Object.keys(stageProgress).forEach(stageId => {
-                    if (CONFIG.stages[stageId]) {
-                        CONFIG.stages[stageId].unlocked = stageProgress[stageId];
-                    }
-                });
+                // StorageManager.getItem restituisce già l'oggetto parsato
+                const stageProgress = typeof savedProgress === 'string' ? JSON.parse(savedProgress) : savedProgress;
+                if (stageProgress && typeof stageProgress === 'object') {
+                    Object.keys(stageProgress).forEach(stageId => {
+                        if (CONFIG.stages[stageId]) {
+                            CONFIG.stages[stageId].unlocked = stageProgress[stageId];
+                        }
+                    });
+                }
             }
         } catch (e) {
             console.error("Impossibile caricare la progressione degli stage:", e);
