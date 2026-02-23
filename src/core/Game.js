@@ -79,7 +79,8 @@ export class BallSurvivalGame {
         this.analyticsManager = new AnalyticsManager();
         this.audio = new AudioManager();
         this.audio.init();
-        this.craftingSystem = new CraftingSystem(this);
+        Object.assign(this, CraftingSystem);
+        this.craftingSystem = this;
         this.balanceSystem = new BalanceSystem(this);
         this.modeManager = new ModeManager(this);
 
