@@ -6,7 +6,7 @@ export const ENEMIES_CONFIG = {
         contactDamageCooldown: 0.75,
         scaling: {
             timeFactor: 12,
-            hpPerFactor: 10,
+            hpPerFactor: 7, // -30% vs originale (10) per vita nemici più bassa, scala col tempo
             speedPerFactor: 0.025,
             damagePerFactor: 1.0,
             xpPerFactor: 1.25,
@@ -14,7 +14,7 @@ export const ENEMIES_CONFIG = {
             levelFactorMultiplier: 0.75,
             drPerFactor: 0.0008
         },
-        base: { hp: 45, speed: 1.35, radius: 12, damage: 15, xp: 4, dr: 0 }
+        base: { hp: 31, speed: 1.35, radius: 12, damage: 15, xp: 4, dr: 0 } // hp -30% (era 45)
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" },
