@@ -37,10 +37,13 @@ export class AchievementSystem {
         const saved = StorageManager.getItem(StorageKeys.ACHIEVEMENTS);
         if (saved) {
             try {
-                const loaded = JSON.parse(saved);
-                for (const [id, data] of Object.entries(loaded)) {
-                    if (this.achievements[id]) {
-                        Object.assign(this.achievements[id], data);
+                // StorageManager.getItem restituisce già l'oggetto parsato
+                const loaded = typeof saved === 'string' ? JSON.parse(saved) : saved;
+                if (loaded && typeof loaded === 'object') {
+                    for (const [id, data] of Object.entries(loaded)) {
+                        if (this.achievements[id]) {
+                            Object.assign(this.achievements[id], data);
+                        }
                     }
                 }
             } catch (e) {

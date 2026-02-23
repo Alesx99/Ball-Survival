@@ -63,6 +63,9 @@ export class BallSurvivalGame {
             activeWeapons: [] // Max 2 armi attive
         };
 
+        // SaveSystem è un mixin (oggetto), non una classe: aggiungiamo i suoi metodi al game
+        Object.assign(this, SaveSystem);
+
         // Sistemi versione 5.3
         const retentionInstance = new RetentionMonitor();
         this.retentionMonitor = typeof retentionInstance?.trackSession === 'function'
@@ -77,11 +80,7 @@ export class BallSurvivalGame {
         this.audio = new AudioManager();
         this.audio.init();
         this.craftingSystem = new CraftingSystem(this);
-        this.saveSystem = new SaveSystem(this);
-        this.metaProgressionSystem = new MetaProgressionSystem(this);
         this.balanceSystem = new BalanceSystem(this);
-        this.menuController = new MenuController(this);
-        this.inputManager = new InputManager(this);
         this.modeManager = new ModeManager(this);
 
         this.storageManager = StorageManager;

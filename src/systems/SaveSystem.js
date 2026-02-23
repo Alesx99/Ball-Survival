@@ -167,7 +167,8 @@ export const SaveSystem = {
             const player = this.playerAuth?.auth?.currentPlayer;
             // Giocatore loggato (non guest): carica dal suo account
             if (player && !player.isGuest && player.username) {
-                const players = JSON.parse(StorageManager.getItem('ballSurvivalPlayers') || '{}');
+                const playersRaw = StorageManager.getItem('ballSurvivalPlayers');
+                const players = (playersRaw && typeof playersRaw === 'object') ? playersRaw : (typeof playersRaw === 'string' ? JSON.parse(playersRaw || '{}') : {});
                 const acc = players[player.username];
                 if (acc?.saveData) {
                     data = acc.saveData;
@@ -175,8 +176,9 @@ export const SaveSystem = {
                 // Nuovo account senza saveData: parte da zero (non usare legacy)
             } else {
                 // Guest o nessun login: usa storage legacy
+                // StorageManager.getItem già restituisce l'oggetto parsato, non fare JSON.parse di nuovo
                 const savedData = StorageManager.getItem(LEGACY_KEY);
-                if (savedData) data = JSON.parse(savedData);
+                if (savedData) data = typeof savedData === 'string' ? JSON.parse(savedData) : savedData;
             }
 
             if (data) {
