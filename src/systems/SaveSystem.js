@@ -99,6 +99,10 @@ export const SaveSystem = {
                 this.player.stats.dr = Math.min(this.player.stats.dr + ((this.passives.armor?.level || 0) * 0.02), 1.0);
                 this.player.modifiers.frequency *= Math.pow(0.92, this.passives.attack_speed?.level || 0);
 
+                if (typeof this.player.clampModifiers === 'function') {
+                    this.player.clampModifiers();
+                }
+
                 // Carica core e armi dal salvataggio
                 if (run.cores) {
                     this.cores = run.cores;

@@ -3,6 +3,7 @@
  * Cross-platform: works on both touch (mobile) and mouse/keyboard (PC)
  * @module systems/CheatCodeSystem
  */
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 const CHEAT_STORAGE_KEY = 'ballSurvival_cheatsUnlocked';
 const EASTER_STORAGE_KEY = 'ballSurvival_easterEggs';
@@ -179,7 +180,7 @@ export class CheatCodeSystem {
         const g = this.game;
         // Read persistent stats (written by _persistGlobalStats)
         let persistent = {};
-        try { persistent = JSON.parse(localStorage.getItem('ballSurvival_globalStats') || '{}'); } catch { }
+        try { persistent = ((StorageManager.getItem(StorageKeys.GLOBAL_STATS) || {})); } catch { }
         const achievementProgress = g?.achievementSystem?.getProgress?.() || { unlocked: 0, total: 0 };
         const skinCount = g?.skinSystem ? Object.keys(g.skinSystem.unlockedSkins).length : 0;
         const cloudStatus = g?.cloudSyncManager?.getStatus?.();
@@ -188,7 +189,7 @@ export class CheatCodeSystem {
             'Kills totali': persistent.totalKills || 0,
             'Tempo totale': this._formatTime(persistent.totalTime || 0),
             'Miglior livello': persistent.bestLevel || 0,
-            'Boss uccisi': localStorage.getItem('ballSurvivalTotalBossKills') || '0',
+            'Boss uccisi': StorageManager.getItem(StorageKeys.TOTAL_BOSS_KILLS) || '0',
             'Gemme attuali': g?.totalGems ?? 0,
             'Achievement': `${achievementProgress.unlocked}/${achievementProgress.total}`,
             'Skin sbloccate': skinCount,
@@ -208,14 +209,14 @@ export class CheatCodeSystem {
     persistGlobalStats() {
         if (!this.game) return;
         try {
-            const prev = JSON.parse(localStorage.getItem('ballSurvival_globalStats') || '{}');
+            const prev = ((StorageManager.getItem(StorageKeys.GLOBAL_STATS) || {}));
             const stats = {
                 totalRuns: (prev.totalRuns || 0) + 1,
                 totalKills: (prev.totalKills || 0) + (this.game.stats?.kills || 0),
                 totalTime: (prev.totalTime || 0) + (this.game.totalElapsedTime || 0),
                 bestLevel: Math.max(prev.bestLevel || 0, this.game.player?.level || 0)
             };
-            localStorage.setItem('ballSurvival_globalStats', JSON.stringify(stats));
+            StorageManager.setItem(StorageKeys.GLOBAL_STATS, stats);
         } catch { /* ignore */ }
     }
 
@@ -444,10 +445,10 @@ export class CheatCodeSystem {
 
     // ─── Persistence ─────────────────────────────────────
     _loadUnlocked(key) {
-        try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; }
+        try { return ((StorageManager.getItem(key) || {})); } catch { return {}; }
     }
 
     _saveUnlocked(key, data) {
-        try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* ignore */ }
+        StorageManager.setItem(key, data);
     }
 }

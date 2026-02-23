@@ -216,6 +216,14 @@ export const ProgressionSystem = {
                 if (upgradeId === 'lightning_mastery_spear') { this.spells.lightning.damage *= 1.5; this.spells.lightning.stunChance += 0.2; }
                 if (upgradeId === 'frostbolt_mastery_glacial') { this.spells.frostbolt.auraDps += 8; this.spells.frostbolt.auraSlow += 0.2; }
                 if (upgradeId === 'frostbolt_mastery_comet') { this.spells.frostbolt.leavesIcePatch = true; this.spells.frostbolt.icePatchDamage = 15; }
+                if (upgradeId === 'shotgun_mastery_explosive') { this.spells.shotgun.explosionRadius = (this.spells.shotgun.explosionRadius || 40) + 20; }
+                if (upgradeId === 'shotgun_mastery_cannon') { this.spells.shotgun.cannonCount = (this.spells.shotgun.cannonCount || 20) + 10; }
+                if (upgradeId === 'shockwave_mastery_resonant') { this.spells.shockwave.stunDuration = 60; }
+                if (upgradeId === 'shockwave_mastery_implosion') { this.spells.shockwave.executeDamage = true; }
+                if (upgradeId === 'heal_mastery_sanctuary') { this.spells.heal.sanctuaryAttackSpeed = 0.20; }
+                if (upgradeId === 'heal_mastery_lifesteal') { this.spells.heal.lifestealPercent += 0.05; this.spells.heal.lifestealDuration += 300; }
+                if (upgradeId === 'shield_mastery_reflect') { this.spells.shield.reflectDamage += 0.5; }
+                if (upgradeId === 'shield_mastery_orbital') { this.spells.shield.orbitalCount += 1; }
             }
             return;
         }
@@ -264,6 +272,11 @@ export const ProgressionSystem = {
                 this.player.modifiers.frequency *= 0.96;
                 this.player.stats.speed += 0.2;
             }
+        }
+
+        // Applica cap alle statistiche passive modificate per evitare scaling infiniti
+        if (this.player && typeof this.player.clampModifiers === 'function') {
+            this.player.clampModifiers();
         }
     }
 };

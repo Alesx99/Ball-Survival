@@ -4,9 +4,10 @@
  */
 
 import { securityManager } from '../utils/security.js';
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 const STORAGE_PLAYER = 'ballSurvivalPlayer';
-const STORAGE_PLAYERS = 'ballSurvivalPlayers';
+
 
 export class AuthService {
     constructor() {
@@ -16,7 +17,7 @@ export class AuthService {
     }
 
     loadPlayerData() {
-        const savedPlayer = localStorage.getItem(STORAGE_PLAYER);
+        const savedPlayer = StorageManager.getItem(STORAGE_PLAYER);
         if (savedPlayer) {
             try {
                 this.currentPlayer = JSON.parse(savedPlayer);
@@ -32,7 +33,7 @@ export class AuthService {
 
     savePlayerData() {
         if (this.currentPlayer) {
-            localStorage.setItem(STORAGE_PLAYER, JSON.stringify(this.currentPlayer));
+            StorageManager.setItem(STORAGE_PLAYER, this.currentPlayer);
         }
     }
 
@@ -40,12 +41,12 @@ export class AuthService {
         this.currentPlayer = null;
         this.isLoggedIn = false;
         this.isGuest = false;
-        localStorage.removeItem(STORAGE_PLAYER);
+        StorageManager.removeItem(STORAGE_PLAYER);
     }
 
     /** Autentica utente. Ritorna dati giocatore o null. */
     async authenticate(username, password) {
-        const players = JSON.parse(localStorage.getItem(STORAGE_PLAYERS) || '{}');
+        const players = ((StorageManager.getItem(StorageKeys.PLAYERS) || {}));
         const player = players[username];
 
         if (!player) return null;
@@ -57,7 +58,7 @@ export class AuthService {
             player.passwordSalt = salt;
             delete player.password;
             players[username] = player;
-            localStorage.setItem(STORAGE_PLAYERS, JSON.stringify(players));
+            StorageManager.setItem(StorageKeys.PLAYERS, players);
         }
 
         const isValid = await securityManager.verifyPassword(password, player.passwordHash, player.passwordSalt);
@@ -86,7 +87,7 @@ export class AuthService {
 
     /** Crea nuovo account. Ritorna dati giocatore o null se username già usato. */
     async createPlayer(username, password) {
-        const players = JSON.parse(localStorage.getItem(STORAGE_PLAYERS) || '{}');
+        const players = ((StorageManager.getItem(StorageKeys.PLAYERS) || {}));
 
         if (players[username]) return null;
 
@@ -107,7 +108,7 @@ export class AuthService {
         };
 
         players[username] = newPlayer;
-        localStorage.setItem(STORAGE_PLAYERS, JSON.stringify(players));
+        StorageManager.setItem(StorageKeys.PLAYERS, players);
 
         return {
             username: newPlayer.username,
@@ -141,11 +142,11 @@ export class AuthService {
         this.savePlayerData();
 
         if (!this.isGuest) {
-            const players = JSON.parse(localStorage.getItem(STORAGE_PLAYERS) || '{}');
+            const players = ((StorageManager.getItem(StorageKeys.PLAYERS) || {}));
             if (players[this.currentPlayer.username]) {
                 players[this.currentPlayer.username].stats = this.currentPlayer.stats;
                 players[this.currentPlayer.username].lastLogin = this.currentPlayer.lastLogin;
-                localStorage.setItem(STORAGE_PLAYERS, JSON.stringify(players));
+                StorageManager.setItem(StorageKeys.PLAYERS, players);
             }
         }
         console.log(`📊 Statistiche aggiornate per ${this.currentPlayer.username}${this.isGuest ? ' (Guest)' : ''}`);

@@ -7,6 +7,7 @@ import { Enemy } from './Enemy.js';
 import { CONFIG } from '../config/index.js';
 import { Utils } from '../utils/index.js';
 import { poolManager } from '../utils/PoolManager.js';
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 export class Boss extends Enemy {
     constructor(x, y, stats) {
@@ -79,8 +80,8 @@ export class Boss extends Enemy {
 
         // Traccia boss kills totali (persistente per sblocco stage)
         try {
-            const totalBossKills = parseInt(localStorage.getItem('ballSurvivalTotalBossKills') || '0') + 1;
-            localStorage.setItem('ballSurvivalTotalBossKills', totalBossKills.toString());
+            const totalBossKills = (StorageManager.getItem(StorageKeys.TOTAL_BOSS_KILLS) || 0) + 1;
+            StorageManager.setItem(StorageKeys.TOTAL_BOSS_KILLS, totalBossKills.toString());
         } catch (e) { /* ignore storage errors */ }
 
         game.showBossUpgradePopup();

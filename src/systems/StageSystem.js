@@ -5,6 +5,7 @@
 
 import { CONFIG } from '../config/index.js';
 import { Particle } from '../entities/Particles.js';
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 export const StageSystem = {
     checkStage() {
@@ -84,7 +85,7 @@ export const StageSystem = {
 
             case 'boss_kill_total':
                 // Controlla boss totali uccisi (persistente)
-                const totalBossKills = parseInt(localStorage.getItem('ballSurvivalTotalBossKills') || '0');
+                const totalBossKills = (StorageManager.getItem(StorageKeys.TOTAL_BOSS_KILLS) || 0);
                 return totalBossKills >= requirement.count;
 
             case 'total_time':
@@ -101,7 +102,7 @@ export const StageSystem = {
             Object.keys(CONFIG.stages).forEach(stageId => {
                 stageProgress[stageId] = CONFIG.stages[stageId].unlocked;
             });
-            localStorage.setItem('ballSurvivalStageProgress', JSON.stringify(stageProgress));
+            StorageManager.setItem(StorageKeys.STAGE_PROGRESS, stageProgress);
         } catch (e) {
             console.error("Impossibile salvare la progressione degli stage:", e);
         }
@@ -109,7 +110,7 @@ export const StageSystem = {
 
     loadStageProgress() {
         try {
-            const savedProgress = localStorage.getItem('ballSurvivalStageProgress');
+            const savedProgress = StorageManager.getItem(StorageKeys.STAGE_PROGRESS);
             if (savedProgress) {
                 const stageProgress = JSON.parse(savedProgress);
                 Object.keys(stageProgress).forEach(stageId => {

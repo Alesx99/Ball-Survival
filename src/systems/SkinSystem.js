@@ -3,6 +3,7 @@
  * Provides 8+ skins unlockable via achievements, easter eggs, gems, and cheat codes
  * @module systems/SkinSystem
  */
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
 const SKIN_STORAGE_KEY = 'ballSurvival_skins';
 
@@ -227,7 +228,7 @@ export class SkinSystem {
 
     load() {
         try {
-            const raw = localStorage.getItem(SKIN_STORAGE_KEY);
+            const raw = StorageManager.getItem(SKIN_STORAGE_KEY);
             if (raw) {
                 const data = JSON.parse(raw);
                 this.equippedSkin = data.equipped || 'default';

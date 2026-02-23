@@ -9,20 +9,20 @@ export const SpellSystem = {
 
     resetSpells() {
         this.spells = {
-            magicMissile: { id: 'magicMissile', name: "Proiettile Magico", level: 0, evolution: 'none', mastered: false, damage: 14, cooldown: 1200, lastCast: 0, speed: 6, size: 5 },
-            fireball: { id: 'fireball', name: "Sfera di Fuoco", level: 0, evolution: 'none', mastered: false, damage: 15, cooldown: 1200, lastCast: 0, size: 8, speed: 7, explosionRadius: 20, burnDamage: 5, meteorCount: 3 },
-            lightning: { id: 'lightning', name: "Fulmine a Catena", level: 0, evolution: 'none', mastered: false, damage: 10, cooldown: 1200, lastCast: 0, range: 250, chains: 2, stunChance: 0.15, stunDuration: 30, fieldDuration: 300, fieldTickRate: 20 },
-            frostbolt: { id: 'frostbolt', name: "Dardo di Gelo", level: 0, evolution: 'none', mastered: false, damage: 12, cooldown: 1200, lastCast: 0, slow: 0.5, slowDuration: 120, size: 7, speed: 6, penetration: 1, stunDuration: 120, auraDps: 5, auraSlow: 0.3 },
-            shotgun: { id: 'shotgun', name: "Fucile Arcano", level: 0, evolution: 'none', mastered: false, damage: 8, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0, spinningDuration: 300, spinningRate: 5 },
-            shockwave: { id: 'shockwave', name: "Onda d'Urto", level: 0, evolution: 'none', mastered: false, damage: 20, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15, resonantCount: 3, resonantDelay: 15 },
-            heal: { id: 'heal', name: "Cura", level: 0, evolution: 'none', mastered: false, amount: 20, cooldown: 10000, lastCast: 0, sanctuaryDuration: 300, sanctuaryHps: 10, lifestealDuration: 300, lifestealPercent: 0.05 },
+            magicMissile: { id: 'magicMissile', name: "Proiettile Magico", level: 0, evolution: 'none', mastered: false, damage: 8, cooldown: 1200, lastCast: 0, speed: 6, size: 5 },
+            fireball: { id: 'fireball', name: "Sfera di Fuoco", level: 0, evolution: 'none', mastered: false, damage: 10, cooldown: 1200, lastCast: 0, size: 8, speed: 7, explosionRadius: 20, burnDamage: 3, meteorCount: 3 },
+            lightning: { id: 'lightning', name: "Fulmine a Catena", level: 0, evolution: 'none', mastered: false, damage: 6, cooldown: 1200, lastCast: 0, range: 250, chains: 2, stunChance: 0.15, stunDuration: 30, fieldDuration: 300, fieldTickRate: 20 },
+            frostbolt: { id: 'frostbolt', name: "Dardo di Gelo", level: 0, evolution: 'none', mastered: false, damage: 8, cooldown: 1200, lastCast: 0, slow: 0.5, slowDuration: 120, size: 7, speed: 6, penetration: 1, stunDuration: 120, auraDps: 3, auraSlow: 0.3 },
+            shotgun: { id: 'shotgun', name: "Fucile Arcano", level: 0, evolution: 'none', mastered: false, damage: 5, count: 5, angleSpread: Math.PI / 4, cooldown: 1500, lastCast: 0, spinningDuration: 300, spinningRate: 5 },
+            shockwave: { id: 'shockwave', name: "Onda d'Urto", level: 0, evolution: 'none', mastered: false, damage: 14, radius: 100, cooldown: 8000, lastCast: 0, knockback: 15, resonantCount: 3, resonantDelay: 15 },
+            heal: { id: 'heal', name: "Cura", level: 0, evolution: 'none', mastered: false, amount: 15, cooldown: 10000, lastCast: 0, sanctuaryDuration: 300, sanctuaryHps: 10, lifestealDuration: 300, lifestealPercent: 0.05 },
             shield: { id: 'shield', name: "Scudo Magico", level: 0, evolution: 'none', mastered: false, duration: 1500, cooldown: 18000, lastCast: 0, active: false, dr: 0.7, reflectDamage: 0.5, orbitalCount: 1, orbitalRadius: 10, orbitalDistance: 60 },
-            cyclone: { id: 'cyclone', name: "Ciclone Vuoto", level: 0, evolution: 'none', mastered: false, damage: 12, cooldown: 6000, lastCast: 0, radius: 100, duration: 180, pullForce: 2 },
+            cyclone: { id: 'cyclone', name: "Ciclone Vuoto", level: 0, evolution: 'none', mastered: false, damage: 8, cooldown: 6000, lastCast: 0, radius: 100, duration: 180, pullForce: 2 },
             armageddon: { id: 'armageddon', name: "Armageddon", level: 0, evolution: 'none', mastered: false, damage: 99999, cooldown: 60000, lastCast: 0 },
             cloaking: { id: 'cloaking', name: "Velo D'Ombra", level: 0, evolution: 'none', mastered: false, duration: 3000, cooldown: 12000, lastCast: 0 },
-            singularity: { id: 'singularity', name: "Singolarità", level: 0, evolution: 'none', mastered: false, damage: 10, cooldown: 5000, lastCast: 0, radius: 150, pullForce: 3 },
-            stellarAura: { id: 'stellarAura', name: "Aura Stellare", level: 0, evolution: 'none', mastered: false, damage: 12, cooldown: 8000, lastCast: 0, radius: 120, duration: 300 },
-            pulsarRay: { id: 'pulsarRay', name: "Raggio Pulsar", level: 0, evolution: 'none', mastered: false, damage: 45, cooldown: 10000, lastCast: 0, width: 30, range: 800 }
+            singularity: { id: 'singularity', name: "Singolarità", level: 0, evolution: 'none', mastered: false, damage: 7, cooldown: 5000, lastCast: 0, radius: 150, pullForce: 3 },
+            stellarAura: { id: 'stellarAura', name: "Aura Stellare", level: 0, evolution: 'none', mastered: false, damage: 8, cooldown: 8000, lastCast: 0, radius: 120, duration: 300 },
+            pulsarRay: { id: 'pulsarRay', name: "Raggio Pulsar", level: 0, evolution: 'none', mastered: false, damage: 30, cooldown: 10000, lastCast: 0, width: 30, range: 800 }
         };
         Object.values(this.spells).forEach(s => s.level = 0);
         this.passives = {};
@@ -34,7 +34,8 @@ export const SpellSystem = {
 
     castSpells() {
         const now = Date.now();
-        const freq = this.player.modifiers.frequency;
+        const baseFreq = this.player.modifiers.frequency;
+        const freq = baseFreq * (this.player.powerUpTimers?.attackSpeedBoost > 0 ? (1 - (this.spells.heal.sanctuaryAttackSpeed || 0.2)) : 1);
         for (const spellKey in this.spells) {
             const s = this.spells[spellKey];
             if (s.level > 0 && now - s.lastCast > s.cooldown * freq) {
@@ -258,14 +259,14 @@ export const SpellSystem = {
             this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
                 angle: angleBase + offset, damage: this.getDamage(s.damage), speed: 10, life: 30,
                 size: 6 * this.player.modifiers.area, penetration: 1, color: '#ffaa00',
-                onDeathEffect: 'explosion', explosionRadius: 40 * this.player.modifiers.area
+                onDeathEffect: 'explosion', explosionRadius: (s.explosionRadius || 40) * this.player.modifiers.area
             }));
         }
         return true;
     },
     castCannon(now) {
         const s = this.spells.shotgun;
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < (s.cannonCount || 20); i++) {
             setTimeout(() => {
                 const angle = Math.random() * 2 * Math.PI;
                 this.addEntity('projectiles', poolManager.get('Projectile', () => new Projectile(0, 0, {})).init(this.player.x, this.player.y, {
@@ -305,6 +306,7 @@ export const SpellSystem = {
         this.getEnemiesAndBosses().forEach(enemy => {
             if (Utils.getDistance(this.player, enemy) <= radius) {
                 enemy.takeDamage(this.getDamage(s.damage), this);
+                if (s.stunDuration) enemy.stunTimer = Math.max(enemy.stunTimer || 0, s.stunDuration);
                 const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
                 enemy.x += Math.cos(kAngle) * s.knockback * 4.0; enemy.y += Math.sin(kAngle) * s.knockback * 4.0;
             }
@@ -317,9 +319,14 @@ export const SpellSystem = {
         this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'emp_wave', maxRadius: radius, life: 30, initialLife: 30, color: '148,0,211' }));
         this.getEnemiesAndBosses().forEach(enemy => {
             if (Utils.getDistance(this.player, enemy) <= radius) {
-                enemy.takeDamage(this.getDamage(s.damage), this);
+                let damageAmount = this.getDamage(s.damage);
+                if (s.executeDamage) {
+                    const missingHp = enemy.maxHp - enemy.hp;
+                    damageAmount += missingHp * 0.15;
+                }
+                enemy.takeDamage(damageAmount, this);
                 const kAngle = Math.atan2(enemy.y - this.player.y, enemy.x - this.player.x);
-                enemy.x += Math.cos(kAngle) * s.knockback * 4.0; enemy.y += Math.sin(kAngle) * s.knockback * 4.0;
+                enemy.x -= Math.cos(kAngle) * s.knockback * 2.0; enemy.y -= Math.sin(kAngle) * s.knockback * 2.0;
             }
         });
         return true;
@@ -328,7 +335,8 @@ export const SpellSystem = {
     castSanctuary(now) {
         const s = this.spells.heal;
         this.addEntity('sanctuaries', new Sanctuary(this.player.x, this.player.y, {
-            life: s.sanctuaryDuration, radius: 100 * this.player.modifiers.area, hps: s.sanctuaryHps
+            life: s.sanctuaryDuration, radius: 100 * this.player.modifiers.area, hps: s.sanctuaryHps,
+            attackSpeed: s.sanctuaryAttackSpeed
         }));
         return true;
     },

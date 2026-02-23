@@ -3,8 +3,9 @@
  * No external assets; unlocks on first user interaction (browser policy)
  * @module systems/AudioManager
  */
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
-const STORAGE_KEY = 'ballSurvivalAudioSettings';
+const STORAGE_KEY = StorageKeys.AUDIO;
 
 export class AudioManager {
     constructor() {
@@ -50,7 +51,7 @@ export class AudioManager {
 
     loadSettings() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
+            const raw = StorageManager.getItem(STORAGE_KEY);
             if (raw) {
                 const s = JSON.parse(raw);
                 this.effectsVolume = Math.max(0, Math.min(1, s.effectsVolume ?? 1));

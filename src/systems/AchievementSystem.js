@@ -1,3 +1,4 @@
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 export class AchievementSystem {
     constructor() {
         this.achievements = {
@@ -33,7 +34,7 @@ export class AchievementSystem {
     }
 
     loadAchievements() {
-        const saved = localStorage.getItem('ballSurvival_achievements');
+        const saved = StorageManager.getItem(StorageKeys.ACHIEVEMENTS);
         if (saved) {
             try {
                 const loaded = JSON.parse(saved);
@@ -49,7 +50,7 @@ export class AchievementSystem {
     }
 
     saveAchievements() {
-        localStorage.setItem('ballSurvival_achievements', JSON.stringify(this.achievements));
+        StorageManager.setItem(StorageKeys.ACHIEVEMENTS, this.achievements);
     }
 
     updateProgress(achievementId, value, game) {

@@ -102,17 +102,17 @@ export class BallSurvivalGame {
         // Setup Auto-Sync Provider
         this.cloudSyncManager.startAutoSync(() => ({
             analytics: this.analyticsManager?.getAnalyticsData?.(),
-            accounts: JSON.parse(localStorage.getItem('ballSurvivalPlayers') || '{}'),
+            accounts: ((StorageManager.getItem(StorageKeys.PLAYERS) || {})),
             saveData: {
-                globalStats: JSON.parse(localStorage.getItem('ballSurvival_globalStats') || '{}'),
+                globalStats: ((StorageManager.getItem(StorageKeys.GLOBAL_STATS) || {})),
                 unlockedCheats: this.cheatCodeSystem?.unlockedCheats || {},
                 discoveredEggs: this.cheatCodeSystem?.discoveredEggs || {},
                 unlockedSkins: this.skinSystem?.unlockedSkins || {},
                 equippedSkin: this.skinSystem?.equippedSkin || 'default',
-                achievements: JSON.parse(localStorage.getItem('ballSurvival_achievements') || '{}'),
-                bossKills: localStorage.getItem('ballSurvivalTotalBossKills') || '0',
-                difficultyTier: localStorage.getItem('ballSurvivalActiveDifficultyTier'),
-                stageProgress: JSON.parse(localStorage.getItem('ballSurvivalStageProgress') || '{}'),
+                achievements: ((StorageManager.getItem(StorageKeys.ACHIEVEMENTS) || {})),
+                bossKills: StorageManager.getItem(StorageKeys.TOTAL_BOSS_KILLS) || '0',
+                difficultyTier: StorageManager.getItem(StorageKeys.DIFFICULTY_TIER),
+                stageProgress: ((StorageManager.getItem(StorageKeys.STAGE_PROGRESS) || {})),
                 bestiary: this.bestiarySystem?.getAllEntries() || {},
                 runHistory: this.runHistorySystem?.getHistory() || []
             }
@@ -274,7 +274,7 @@ export class BallSurvivalGame {
             if (this.stats) {
                 if (!this.stats.archetypesPlayed.includes(this.player.archetype.id)) {
                     this.stats.archetypesPlayed.push(this.player.archetype.id);
-                    try { localStorage.setItem('ballSurvival_archetypesPlayed', JSON.stringify(this.stats.archetypesPlayed)); } catch (e) { }
+                    StorageManager.setItem(StorageKeys.ARCHETYPES_PLAYED, this.stats.archetypesPlayed);
                 }
             }
 
@@ -414,7 +414,7 @@ export class BallSurvivalGame {
             bestComboKills: 0,
             pacifistTimer: 0,
             kills: 0,
-            archetypesPlayed: JSON.parse(localStorage.getItem('ballSurvival_archetypesPlayed') || '[]'),
+            archetypesPlayed: ((StorageManager.getItem(StorageKeys.ARCHETYPES_PLAYED) || [])),
             _comboKillCount: 0,
             _lastKillTime: 0
         };
@@ -599,17 +599,17 @@ export class BallSurvivalGame {
         }
 
         // Monitoraggio versione 5.3 - ogni 30 secondi (30 * CONFIG.FPS)
-        if (this.gameTime > 0 && this.gameTime % (30 * CONFIG.FPS) === 0) {
+        if (this.gameTime > 0 && this.gameTime % CONFIG.timing.RETENTION_CHECK_FRAMES === 0) {
             this.trackRetentionMetrics();
         }
 
         // ANALYTICS VERSIONE 5.4: Auto-bilanciamento ogni 60 secondi (60 * CONFIG.FPS)
-        if (this.gameTime > 0 && this.gameTime % (60 * CONFIG.FPS) === 0) {
+        if (this.gameTime > 0 && this.gameTime % CONFIG.timing.AUTO_BALANCE_FRAMES === 0) {
             this.checkAutoBalance();
         }
 
         // Achievement tracking - ogni 10 secondi (600 frame a 60fps)
-        if (this.gameTime > 0 && this.gameTime % 600 === 0) {
+        if (this.gameTime > 0 && this.gameTime % CONFIG.timing.ACHIEVEMENT_CHECK_FRAMES === 0) {
             if (this.achievementSystem) {
                 // Controlla achievement basati sul tempo
                 this.achievementSystem.checkTimeBasedAchievements(this.gameTime, this);
@@ -633,8 +633,7 @@ export class BallSurvivalGame {
         // --- SYNC CLOUD OGNI 20 MINUTI DALL'AVVIO SESSIONE ---
         if (this.analyticsManager && this.analyticsManager.config.enableCloudSync) {
             const now = Date.now();
-            const ventiMinuti = 20 * 60 * 1000;
-            if (now - this.lastPeriodicCloudSyncTime >= ventiMinuti) {
+            if (now - this.lastPeriodicCloudSyncTime >= CONFIG.timing.CLOUD_SYNC_INTERVAL_MS) {
                 this.analyticsManager.uploadToGist(); // Sync cloud periodico
                 this.lastPeriodicCloudSyncTime = now;
                 console.log('🔄 Sync cloud periodico ogni 20 minuti');
@@ -644,7 +643,7 @@ export class BallSurvivalGame {
 
     loadAccessibilitySettings() {
         try {
-            const raw = localStorage.getItem('ballSurvivalAccessibilitySettings');
+            const raw = StorageManager.getItem(StorageKeys.ACCESSIBILITY);
             if (raw) {
                 const s = JSON.parse(raw);
                 if (CONFIG.accessibility) {
@@ -658,7 +657,7 @@ export class BallSurvivalGame {
 
     saveAccessibilitySettings() {
         try {
-            localStorage.setItem('ballSurvivalAccessibilitySettings', JSON.stringify({
+            localStorage.setItem(StorageKeys.ACCESSIBILITY, JSON.stringify({
                 reduceMotion: !!CONFIG.accessibility?.reduceMotion,
                 highContrast: !!CONFIG.accessibility?.highContrast
             }));

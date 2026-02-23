@@ -2,10 +2,11 @@
  * BestiarySystem - Tracks enemy encounters and kills.
  * @module systems/BestiarySystem
  */
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 export class BestiarySystem {
     constructor(game) {
         this.game = game;
-        this.data = JSON.parse(localStorage.getItem('ballSurvival_bestiary') || '{}');
+        this.data = ((StorageManager.getItem(StorageKeys.BESTIARY) || {}));
         // Data structure: { enemyType: { kills: 0, firstSeen: timestamp, maxKillsInRun: 0 } }
     }
 
@@ -70,7 +71,7 @@ export class BestiarySystem {
      * Saves bestiary data to localStorage.
      */
     save() {
-        localStorage.setItem('ballSurvival_bestiary', JSON.stringify(this.data));
+        StorageManager.setItem(StorageKeys.BESTIARY, this.data);
     }
 
     /**

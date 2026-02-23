@@ -26,6 +26,21 @@ export class Projectile extends Entity {
             this.vx = 0;
             this.vy = 0;
         }
+
+        // Reset pooled properties that might have been left over
+        this.slow = undefined;
+        this.slowDuration = undefined;
+        this.stunChance = undefined;
+        this.stunDuration = undefined;
+        this.drawFunc = undefined;
+        this.onDeathEffect = undefined;
+        this.explosionRadius = undefined;
+        this.burnDamage = undefined;
+        this.customEffect = undefined;
+        this.leavesTrail = false;
+        this.type = undefined;
+        this.color = undefined;
+
         Object.assign(this, props);
         return this;
     }

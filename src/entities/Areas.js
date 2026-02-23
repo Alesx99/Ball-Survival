@@ -145,6 +145,9 @@ export class Sanctuary extends Entity {
         if (this.life <= 0) this.toRemove = true;
         if (Utils.getDistance(this, game.player) < this.radius) {
             game.player.hp = Math.min(game.player.stats.maxHp, game.player.hp + this.hps / 60);
+            if (this.attackSpeed) {
+                game.player.powerUpTimers.attackSpeedBoost = Math.max(game.player.powerUpTimers.attackSpeedBoost || 0, 5);
+            }
         }
     }
 

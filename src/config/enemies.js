@@ -6,15 +6,15 @@ export const ENEMIES_CONFIG = {
         contactDamageCooldown: 0.75,
         scaling: {
             timeFactor: 12,
-            hpPerFactor: 6,
+            hpPerFactor: 10,
             speedPerFactor: 0.025,
-            damagePerFactor: 0.65,
+            damagePerFactor: 1.0,
             xpPerFactor: 1.25,
             xpPowerFactor: 1.05,
             levelFactorMultiplier: 0.75,
             drPerFactor: 0.0008
         },
-        base: { hp: 28, speed: 1.3, radius: 12, damage: 12, xp: 4, dr: 0 }
+        base: { hp: 45, speed: 1.35, radius: 12, damage: 15, xp: 4, dr: 0 }
     },
     difficultyTiers: {
         '1': { time: 300, dr: 0.25, speed: 0.15, message: "DIFFICOLTÀ AUMENTATA: L'Orda si Agita!" },
@@ -26,8 +26,8 @@ export const ENEMIES_CONFIG = {
     },
     boss: {
         spawnThreshold: 120,
-        base: { hp: 1800, speed: 2.0, radius: 45, damage: 40 },
-        scaling: { timeFactor: 50, hpPerFactor: 950 },
+        base: { hp: 2500, speed: 2.1, radius: 45, damage: 50 },
+        scaling: { timeFactor: 50, hpPerFactor: 1200 },
         attack: { cooldown: 1650, projectileSpeed: 5.5, projectileRadius: 10 }
     },
     bossRush: {

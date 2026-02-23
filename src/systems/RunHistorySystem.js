@@ -2,10 +2,11 @@
  * RunHistorySystem - Stores details of past runs.
  * @module systems/RunHistorySystem
  */
+import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 export class RunHistorySystem {
     constructor(game) {
         this.game = game;
-        this.history = JSON.parse(localStorage.getItem('ballSurvival_runHistory') || '[]');
+        this.history = ((StorageManager.getItem(StorageKeys.RUN_HISTORY) || []));
         this.maxEntries = 20;
     }
 
@@ -56,7 +57,7 @@ export class RunHistorySystem {
      * Saves history to localStorage.
      */
     save() {
-        localStorage.setItem('ballSurvival_runHistory', JSON.stringify(this.history));
+        StorageManager.setItem(StorageKeys.RUN_HISTORY, this.history);
     }
 
     /**

@@ -28,7 +28,7 @@ export class Player extends Entity {
 
         if (this.xpNext <= 0) this.xpNext = 1;
 
-        this.powerUpTimers = { invincibility: 0, damageBoost: 0, lifesteal: 0 };
+        this.powerUpTimers = { invincibility: 0, damageBoost: 0, lifesteal: 0, attackSpeedBoost: 0 };
         this.iFramesTimer = 0;
         this.stats = { ...this.baseStats };
         this.modifiers = { power: 1, frequency: 1, area: 1, xpGain: 1, luck: 0, contactBurn: false, contactSlow: false, hpRegen: 0, pickupRadius: 1, iframeTimer: 0, curse: 0 };
@@ -123,6 +123,31 @@ export class Player extends Entity {
         if (this.xp < 0) this.xp = 0;
         if (this.xpNext <= 0) this.xpNext = 1;
         if (this.level < 1) this.level = 1;
+
+        this.clampModifiers();
+    }
+
+    /**
+     * Previene l'infinito scaling delle abilità passive (es. cooldown reduction eccessivo)
+     */
+    clampModifiers() {
+        // Cooldown Reduction (frequency): minimo 0.25 (75% CDR max)
+        this.modifiers.frequency = Math.max(0.25, this.modifiers.frequency);
+
+        // Area Max: 300% (3.0 multiplier)
+        this.modifiers.area = Math.min(3.0, this.modifiers.area);
+
+        // Power Max: +500% damage (6.0 multiplier)
+        this.modifiers.power = Math.min(6.0, this.modifiers.power);
+
+        // Pickup Radius Max: 10x
+        this.modifiers.pickupRadius = Math.min(10.0, this.modifiers.pickupRadius);
+
+        // XP Gain Max: +300% (4.0 multiplier)
+        this.modifiers.xpGain = Math.min(4.0, this.modifiers.xpGain);
+
+        // Speed Max: 3x base speed
+        this.stats.speed = Math.min(this.baseStats.speed * 3.0, this.stats.speed);
     }
 
     applyPermanentUpgrades(p) {
