@@ -81,7 +81,8 @@ export class BallSurvivalGame {
         this.audio.init();
         Object.assign(this, CraftingSystem);
         this.craftingSystem = this;
-        this.balanceSystem = new BalanceSystem(this);
+        Object.assign(this, BalanceSystem);
+        this.balanceSystem = this;
         this.modeManager = new ModeManager(this);
 
         this.storageManager = StorageManager;
