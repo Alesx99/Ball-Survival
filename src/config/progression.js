@@ -1,22 +1,24 @@
 export const PROGRESSION_CONFIG = {
     upgradeTree: {
-        'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 10, type: 'passive' },
+        'health': { id: 'health', name: 'Vitalità', desc: 'Aumenta la salute massima di 60.', maxLevel: 8, type: 'passive' },
         'speed': { id: 'speed', name: 'Rapidità', desc: 'Aumenta la velocità di movimento.', maxLevel: 5, type: 'passive' },
-        'armor': { id: 'armor', name: 'Armatura', desc: 'Aumenta la Riduzione Danno del 3%.', maxLevel: 10, type: 'passive' },
+        'armor': { id: 'armor', name: 'Armatura', desc: 'Aumenta la Riduzione Danno del 3%.', maxLevel: 8, type: 'passive' },
         'attack_speed': { id: 'attack_speed', name: "Velocità d'attacco", desc: 'Riduce la ricarica di tutte le abilità del 8%.', maxLevel: 5, type: 'passive' },
         'regen': { id: 'regen', name: 'Cuore Rigenerante', desc: 'Aumenta la rigenerazione salute.', maxLevel: 5, type: 'passive' },
         'attractorb': { id: 'attractorb', name: 'Magnete Arcano', desc: 'Aumenta il raggio di raccolta sfere.', maxLevel: 5, type: 'passive' },
         'aegis': { id: 'aegis', name: 'Mantello Divino', desc: 'Estende la finestra di invulnerabilità ai danni.', maxLevel: 5, type: 'passive' },
         'skull': { id: 'skull', name: 'Teschio Maledetto', desc: 'Aumenta exp, ma i nemici sono più forti e numerosi (+10% Curse).', maxLevel: 5, type: 'passive' },
-        'torrona': { id: 'torrona', name: 'Scatola di Torrona', desc: 'Aumenta stats generali. Attenzione: al Liv 9 aggiunge +100% Curse.', maxLevel: 9, type: 'passive' },
+        'torrona': { id: 'torrona', name: 'Scatola di Torrona', desc: 'Aumenta stats generali. Attenzione: al Liv 5 aggiunge +100% Curse.', maxLevel: 5, type: 'passive' },
         'magicMissile': { id: 'magicMissile', name: 'Proiettile Magico', desc: "L'attacco base, non potenziabile.", type: 'active' },
         'cyclone': { id: 'cyclone', name: 'Ciclone Vuoto', desc: 'Vortice statico che attrae debolmente i nemici prima di esplodere.', maxLevel: 4, type: 'active' },
         'armageddon': { id: 'armageddon', name: 'Armageddon', desc: 'Danno planetario enorme a schermo intero ogni minuto.', maxLevel: 1, type: 'active' },
         'cloaking': { id: 'cloaking', name: 'Velo D\'Ombra', desc: 'Diventi intangibile temporaneamente.', maxLevel: 4, type: 'active' },
-        // Cosmic Spells
-        'singularity': { id: 'singularity', name: 'Singolarità', desc: 'Lancia un proiettile gravitazionale che attrae i nemici.', maxLevel: 4, type: 'active' },
-        'stellarAura': { id: 'stellarAura', name: 'Aura Stellare', desc: 'Crea un campo di stelle rotanti che danneggiano i nemici vicini.', maxLevel: 4, type: 'active' },
-        'pulsarRay': { id: 'pulsarRay', name: 'Raggio Pulsar', desc: 'Spara un raggio di energia pura altamente perforante.', maxLevel: 4, type: 'active' },
+        // Cosmic Spells (late game, rari)
+        // minPlayerLevel: livello minimo del giocatore perché possano apparire tra le scelte (eccetto archetipi che le hanno come startingWeapon)
+        // rarity: 'cosmic' => probabilità ridotta anche quando disponibili
+        'singularity': { id: 'singularity', name: 'Singolarità', desc: 'Lancia un proiettile gravitazionale che attrae i nemici.', maxLevel: 4, type: 'active', minPlayerLevel: 22, rarity: 'cosmic' },
+        'stellarAura': { id: 'stellarAura', name: 'Aura Stellare', desc: 'Crea un campo di stelle rotanti che danneggiano i nemici vicini.', maxLevel: 4, type: 'active', minPlayerLevel: 26, rarity: 'cosmic' },
+        'pulsarRay': { id: 'pulsarRay', name: 'Raggio Pulsar', desc: 'Spara un raggio di energia pura altamente perforante.', maxLevel: 4, type: 'active', minPlayerLevel: 30, rarity: 'cosmic' },
         'fireball': { id: 'fireball', name: 'Sfera di Fuoco', desc: 'Lancia una palla di fuoco che esplode.', details: "+8 Danni, +8 Raggio Esplosione", maxLevel: 4 },
         'fireball_evolve_giant': { id: 'fireball_evolve_giant', name: 'EVO: Palla di Fuoco Gigante', desc: 'Palla di fuoco lenta ma devastante.', type: 'evolution' },
         'fireball_evolve_meteor': { id: 'fireball_evolve_meteor', name: 'EVO: Pioggia di Meteore', desc: 'Fa piovere meteore dal cielo.', type: 'evolution' },

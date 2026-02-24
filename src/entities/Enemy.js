@@ -188,8 +188,7 @@ export class Enemy extends Entity {
             game.addEntity('gemOrbs', new GemOrb(this.x, this.y, 1));
         }
 
-        // Drop materials
-        game.tryDropMaterial(this);
+        // Drop materials (disattivato: nuovo sistema di core/armi via chest)
 
         // Track elite kills
         if (this.stats.isElite) {
