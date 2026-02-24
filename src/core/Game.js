@@ -23,6 +23,7 @@ import { SpawnSystem } from '../systems/SpawnSystem.js';
 import { StageSystem } from '../systems/StageSystem.js';
 import { WeaponSystem } from '../systems/WeaponSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
+import { CraftingSystem } from '../systems/CraftingSystem.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { BalanceSystem } from '../systems/BalanceSystem.js';
 import { ModeManager } from './ModeManager.js';
