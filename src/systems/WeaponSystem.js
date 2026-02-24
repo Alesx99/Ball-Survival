@@ -236,6 +236,15 @@ export const WeaponSystem = {
                     slow = 0.2 + (level - 1) * 0.05;
                     radius = 35;
                     break;
+                case 'chaos_blade':
+                    count = 4 + (level - 1);
+                    damage = (weapon.effect.damage ?? 22) + (level - 1) * 4;
+                    slow = (weapon.effect.slow ?? 0.3) + (level - 1) * 0.03;
+                    radius = 40;
+                    break;
+                case 'reality_rend':
+                    damage = (weapon.effect.damage ?? 28) + (level - 1) * 6;
+                    break;
                 case 'stellar_pulse':
                 case 'pulse_wave':
                     damage = baseDmg + (level - 1) * 5;

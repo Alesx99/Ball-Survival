@@ -6,12 +6,8 @@
 import { CONFIG } from '../config/index.js';
 import { getItemIcon } from '../data/icons.js';
 
-/** Popola inventario materiali, crafting, arsenale */
+/** Popola inventario (solo arsenale: core/armi equip/equipaggiabili) */
 export function populateInventory(game) {
-    populateMaterialsList(game, 'coreMaterialsList', CONFIG.materials.coreMaterials);
-    populateMaterialsList(game, 'weaponMaterialsList', CONFIG.materials.weaponMaterials);
-    populateCraftingList(game, 'coresList', CONFIG.cores, 'core');
-    populateCraftingList(game, 'weaponsList', CONFIG.weapons, 'weapon');
     populateArsenal(game);
 }
 

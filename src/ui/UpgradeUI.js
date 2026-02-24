@@ -90,11 +90,12 @@ export const UpgradeUI = {
         const shuffled = passives.sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, 3);
 
-        // Aggiungi un affisso casuale ad ogni scelta
         const affixKeys = Object.keys(CONFIG.affixes);
         return selected.map(choice => {
-            const randomAffix = affixKeys[Math.floor(Math.random() * affixKeys.length)];
-            return { ...choice, affix: randomAffix };
+            const currentLevel = this.passives[choice.id]?.level ?? 0;
+            const isMaxLevel = currentLevel >= (choice.maxLevel ?? 0);
+            const affix = isMaxLevel ? affixKeys[Math.floor(Math.random() * affixKeys.length)] : null;
+            return { ...choice, affix };
         });
     },
 
@@ -110,7 +111,11 @@ export const UpgradeUI = {
         }
         if (!target) return;
 
-        target.level++;
+        // Niente overcap infinito: il livello non supera maxLevel
+        const maxLevel = upgrade.maxLevel ?? Infinity;
+        if (target.level < maxLevel) {
+            target.level++;
+        }
 
         // Applica i bonus dell'affisso
         if (affixId && CONFIG.affixes[affixId]) {

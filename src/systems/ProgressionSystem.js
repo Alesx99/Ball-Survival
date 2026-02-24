@@ -117,22 +117,37 @@ export const ProgressionSystem = {
         }
 
         Object.keys(upgradeTree).forEach(id => {
-            if (upgradeTree[id].type === 'evolution' || upgradeTree[id].type === 'mastery' || id === 'magicMissile') return;
+            const up = upgradeTree[id];
+            if (up.type === 'evolution' || up.type === 'mastery' || id === 'magicMissile') return;
 
-            if (upgradeTree[id].type === 'passive') {
-                if (!this.passives[id] || this.passives[id].level < upgradeTree[id].maxLevel) {
-                    otherUpgradesPool.push(upgradeTree[id]);
+            if (up.type === 'passive') {
+                if (!this.passives[id] || this.passives[id].level < up.maxLevel) {
+                    otherUpgradesPool.push(up);
                 }
             } else {
                 const baseId = id.split('_')[0];
                 const spell = this.spells[baseId];
-                if (spell) {
-                    const extraLevels = this.player._prismExtraSpellLevels || 0;
-                    if (spell.level === 0) {
-                        newSkillsPool.push(upgradeTree[id]);
-                    } else if (spell.level > 0 && spell.level < ((upgradeTree[id].maxLevel || Infinity) + extraLevels) && spell.evolution === 'none') {
-                        otherUpgradesPool.push(upgradeTree[id]);
+                if (!spell) return;
+
+                // Gating per livello giocatore / cosmic rarity
+                const playerLevel = this.player?.level ?? 1;
+                if (typeof up.minPlayerLevel === 'number') {
+                    const starting = this.player?.archetype?.startingWeapon;
+                    const isStartingWeapon = starting && (baseId === starting || up.id === starting);
+                    if (!isStartingWeapon && playerLevel < up.minPlayerLevel) {
+                        return;
                     }
+                }
+                if (up.rarity === 'cosmic') {
+                    // Anche quando sbloccate, le cosmic hanno probabilità molto bassa di entrare nel pool
+                    if (Math.random() > 0.25) return;
+                }
+
+                const extraLevels = this.player._prismExtraSpellLevels || 0;
+                if (spell.level === 0) {
+                    newSkillsPool.push(up);
+                } else if (spell.level > 0 && spell.level < ((up.maxLevel || Infinity) + extraLevels) && spell.evolution === 'none') {
+                    otherUpgradesPool.push(up);
                 }
             }
         });
@@ -237,6 +252,16 @@ export const ProgressionSystem = {
         }
 
         if (!target) { return; }
+
+        // Rispetta il maxLevel (con bonus extra spell livelli per Prism), niente overcap infinito
+        const extraLevels = this.player?._prismExtraSpellLevels || 0;
+        const maxLevel = upgrade.type === 'passive'
+            ? (upgrade.maxLevel ?? Infinity)
+            : ((upgrade.maxLevel ?? Infinity) + extraLevels);
+
+        if (target.level >= maxLevel) {
+            return;
+        }
 
         target.level++;
 

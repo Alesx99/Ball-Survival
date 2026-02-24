@@ -22,7 +22,6 @@ import { SpellSystem } from '../systems/SpellSystem.js';
 import { SpawnSystem } from '../systems/SpawnSystem.js';
 import { StageSystem } from '../systems/StageSystem.js';
 import { WeaponSystem } from '../systems/WeaponSystem.js';
-import { CraftingSystem } from '../systems/CraftingSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { BalanceSystem } from '../systems/BalanceSystem.js';
@@ -55,7 +54,6 @@ export class BallSurvivalGame {
         this.lastFrameTime = 0;
         this.totalElapsedTime = 0;
         this.menuCooldown = 0;
-        this.materials = {}; // Inizializza l'inventario materiali
         this.cores = {}; // Inizializza i core
         this.weapons = {}; // Inizializza le armi
         this.arsenal = {
@@ -79,8 +77,6 @@ export class BallSurvivalGame {
         this.analyticsManager = new AnalyticsManager();
         this.audio = new AudioManager();
         this.audio.init();
-        Object.assign(this, CraftingSystem);
-        this.craftingSystem = this;
         Object.assign(this, BalanceSystem);
         this.balanceSystem = this;
         this.modeManager = new ModeManager(this);
@@ -757,6 +753,111 @@ export class BallSurvivalGame {
             case 'INVINCIBILITY': this.player.powerUpTimers.invincibility = 600; break;
             case 'DAMAGE_BOOST': this.player.powerUpTimers.damageBoost = 1200; break;
             case 'LEGENDARY_ORB': this.player.powerUpTimers.damageBoost = 60 * CONFIG.FPS; this.player.powerUpTimers.invincibility = 60 * CONFIG.FPS; break;
+        }
+    }
+
+    /**
+     * Nuovo sistema di loot equip: core e armi trovati nelle chest.
+     * In base alla rarità del forziere e allo stage corrente, assegna
+     * nuovi core/armi o ne aumenta il livello fino al maxLevel.
+     */
+    giveChestEquipment(rarity) {
+        const coresCfg = CONFIG.cores || {};
+        const weaponsCfg = CONFIG.weapons || {};
+        const stage = parseInt(this.currentStage || '1', 10);
+
+        const coreCandidates = [];
+        for (const [id, core] of Object.entries(coresCfg)) {
+            if (core.stage && core.stage > stage) continue;
+            const owned = this.cores?.[id];
+            const maxLevel = core.maxLevel ?? 1;
+            if (!owned || owned.level < maxLevel) {
+                coreCandidates.push({ id, def: core, type: 'core' });
+            }
+        }
+
+        const weaponCandidates = [];
+        for (const [id, weapon] of Object.entries(weaponsCfg)) {
+            if (weapon.stage && weapon.stage > stage) continue;
+            const owned = this.weapons?.[id];
+            const maxLevel = weapon.maxLevel ?? 1;
+            if (!owned || owned.level < maxLevel) {
+                weaponCandidates.push({ id, def: weapon, type: 'weapon' });
+            }
+        }
+
+        if (coreCandidates.length === 0 && weaponCandidates.length === 0) return;
+
+        // Numero di roll equip in base alla rarità del forziere
+        let rolls = 0;
+        if (rarity === 'legendary') {
+            rolls = 2 + (Math.random() < 0.5 ? 1 : 0); // 2–3 roll
+        } else if (rarity === 'epic') {
+            rolls = 1 + (Math.random() < 0.3 ? 1 : 0); // 1–2 roll
+        } else {
+            const luck = this.player?.modifiers?.luck || 0;
+            if (Math.random() < 0.4 + luck * 0.15) rolls = 1; // un po' più frequente
+        }
+
+        for (let r = 0; r < rolls; r++) {
+            const pool = [...coreCandidates, ...weaponCandidates];
+            if (pool.length === 0) break;
+            // Pesiamo: preferisci nuovi equip, e quelli di stage alto più rari
+            let totalWeight = 0;
+            const weighted = pool.map(entry => {
+                const owned = entry.type === 'core' ? this.cores?.[entry.id] : this.weapons?.[entry.id];
+                let w = owned ? 1 : 2; // nuovo più probabile
+                const st = entry.def.stage || 1;
+                if (st >= 4) w *= 0.6;
+                if (st >= 5) w *= 0.4;
+                if (typeof entry.def.lootWeight === 'number') {
+                    w *= entry.def.lootWeight;
+                }
+                totalWeight += w;
+                return { entry, w };
+            });
+            let roll = Math.random() * totalWeight;
+            let choice = weighted[0].entry;
+            for (const w of weighted) {
+                if (roll < w.w) { choice = w.entry; break; }
+                roll -= w.w;
+            }
+
+            if (choice.type === 'core') {
+                const maxLevel = choice.def.maxLevel ?? 1;
+                if (!this.cores[choice.id]) {
+                    this.cores[choice.id] = { level: 1, equipped: false };
+                    if (!this.arsenal.activeCore && typeof this.equipCore === 'function') {
+                        this.equipCore(choice.id);
+                    }
+                    this.notifications.push({ text: `Nuovo Core: ${choice.def.name}`, life: 260, color: '#00ffcc' });
+                } else {
+                    const data = this.cores[choice.id];
+                    if (data.level < maxLevel) {
+                        data.level++;
+                        this.notifications.push({ text: `Core migliorato: ${choice.def.name} (Lv ${data.level})`, life: 260, color: '#00ffcc' });
+                    }
+                }
+            } else {
+                const maxLevel = choice.def.maxLevel ?? 1;
+                if (!this.weapons[choice.id]) {
+                    this.weapons[choice.id] = { level: 1, equipped: false };
+                    if (this.arsenal.activeWeapons.length < 2 && typeof this.equipWeapon === 'function') {
+                        this.equipWeapon(choice.id);
+                    }
+                    this.notifications.push({ text: `Nuova Arma: ${choice.def.name}`, life: 260, color: '#ffcc00' });
+                } else {
+                    const data = this.weapons[choice.id];
+                    if (data.level < maxLevel) {
+                        data.level++;
+                        this.notifications.push({ text: `Arma migliorata: ${choice.def.name} (Lv ${data.level})`, life: 260, color: '#ffcc00' });
+                    }
+                }
+            }
+        }
+
+        if (typeof this.saveGameData === 'function') {
+            this.saveGameData();
         }
     }
 

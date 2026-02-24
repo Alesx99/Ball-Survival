@@ -128,7 +128,8 @@ export class Player extends Entity {
     }
 
     /**
-     * Previene l'infinito scaling delle abilità passive (es. cooldown reduction eccessivo)
+     * Previene l'infinito scaling delle abilità passive (CDR, DR, regen, ecc.)
+     * usando cap duri e curve con rendimenti decrescenti.
      */
     clampModifiers() {
         // Cooldown Reduction (frequency): minimo 0.25 (75% CDR max)
@@ -137,7 +138,7 @@ export class Player extends Entity {
         // Area Max: 300% (3.0 multiplier)
         this.modifiers.area = Math.min(3.0, this.modifiers.area);
 
-        // Power Max: +500% damage (6.0 multiplier)
+        // Power Max: +500% damage (6.0 multiplier) – il danno effettivo usa anche getEffectivePower
         this.modifiers.power = Math.min(6.0, this.modifiers.power);
 
         // Pickup Radius Max: 10x
@@ -148,6 +149,19 @@ export class Player extends Entity {
 
         // Speed Max: 3x base speed
         this.stats.speed = Math.min(this.baseStats.speed * 3.0, this.stats.speed);
+
+        // Damage Reduction: comprime i valori verso un cap < 100%
+        const rawDr = Math.max(0, this.stats.dr || 0);
+        const effectiveDr = rawDr / (rawDr + 1); // raw=1 -> 50%, raw=2 -> ~67%, raw=3 -> 75%
+        this.stats.dr = Math.min(0.9, effectiveDr); // cap di sicurezza al 90%
+
+        // HP Regen: rendimenti decrescenti verso un massimo proporzionale agli HP base
+        const rawRegen = Math.max(0, this.modifiers.hpRegen || 0);
+        const maxExtraPerSecond = this.baseStats.hp * 0.2; // teorico 20% max HP / sec
+        if (maxExtraPerSecond > 0) {
+            const regenPerSecond = maxExtraPerSecond * (1 - Math.exp(-rawRegen / maxExtraPerSecond));
+            this.modifiers.hpRegen = regenPerSecond;
+        }
     }
 
     applyPermanentUpgrades(p) {

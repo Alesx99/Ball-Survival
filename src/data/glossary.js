@@ -27,7 +27,7 @@ export const GLOSSARY = {
         materiali: {
             name: 'Materiali',
             category: 'base',
-            desc: 'Frammenti raccolti dai nemici (es. Ferro, Legno, Veleno). Servono per craftare Core e Armi nell\'Inventario. Ogni materiale ha una rarità (common, uncommon, rare, epic, legendary).',
+            desc: 'Frammenti collezionabili utilizzati nelle versioni precedenti per il crafting. Il sistema attuale basa il progresso di Core e Armi principalmente sul loot dai Forzieri.',
         },
         rarita: {
             name: 'Rarità',
@@ -103,12 +103,12 @@ export const GLOSSARY = {
         core: {
             name: 'Core',
             category: 'equip',
-            desc: 'Equipaggiamento passivo craftabile. Puoi equipaggiarne 1 alla volta. Conferisce effetti permanenti (magnet, resistenza, aura danni, ecc.).',
+            desc: 'Equipaggiamento passivo che trovi principalmente nei Forzieri (soprattutto Epici/Leggendari). Puoi equipaggiarne 1 alla volta. Conferisce effetti permanenti (magnet, resistenza, aura danni, ecc.).',
         },
         arma: {
             name: 'Arma',
             category: 'equip',
-            desc: 'Equipaggiamento offensivo/defensivo craftabile. Puoi equipaggiarne 2. Ogni arma ha un effetto attivo (spine, barriera, lame, ecc.).',
+            desc: 'Equipaggiamento offensivo/defensivo ottenibile dai Forzieri e dall\'Arsenale. Puoi equipaggiarne 2. Ogni arma ha un effetto attivo (spine, barriera, lame, ecc.).',
         },
         arsenale: {
             name: 'Arsenale',

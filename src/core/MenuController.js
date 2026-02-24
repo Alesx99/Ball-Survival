@@ -93,8 +93,7 @@ export class MenuController {
         if (this.game.dom.buttons.closeBestiary) this.game.dom.buttons.closeBestiary.onclick = () => this.game.uiSystem?.hideBestiary();
         if (this.game.dom.buttons.runHistory) this.game.dom.buttons.runHistory.onclick = () => this.game.uiSystem?.showRunHistory();
         if (this.game.dom.buttons.closeRunHistory) this.game.dom.buttons.closeRunHistory.onclick = () => this.game.uiSystem?.hideRunHistory();
-        if (this.game.dom.buttons.craftingPreview) this.game.dom.buttons.craftingPreview.onclick = () => this.game.uiSystem?.showCrafting();
-        if (this.game.dom.buttons.closeCrafting) this.game.dom.buttons.closeCrafting.onclick = () => this.game.uiSystem?.hideCrafting();
+        // Crafting disattivato: le core/armi ora si trovano dai Forzieri
 
         // Logo tap easter egg
         const logo = document.querySelector('.main-menu-logo');

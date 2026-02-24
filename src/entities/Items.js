@@ -44,7 +44,7 @@ export class Chest extends Entity {
                 if (Math.random() < 0.5) itemDrops = 3;
             }
 
-            // Spawn items
+            // Spawn items (consumabili/buff)
             for (let i = 0; i < itemDrops; i++) {
                 let typeToSpawn;
                 if (i === 0 && guaranteedItem) {
@@ -72,6 +72,11 @@ export class Chest extends Entity {
                 const gemsFound = gemMin + Math.floor(Math.random() * (gemMax - gemMin) * (1 + luck));
                 game.gemsThisRun += gemsFound;
                 game.notifications.push({ text: `+${gemsFound} Gemme!${this.rarity !== 'normal' ? ' (' + this.rarity.toUpperCase() + ')' : ''}`, life: 200, color: '#f1c40f' });
+            }
+
+            // Loot core/armi dal forziere (nuovo sistema di progressione equip)
+            if (typeof game.giveChestEquipment === 'function') {
+                game.giveChestEquipment(this.rarity);
             }
 
             // Visual explosion
