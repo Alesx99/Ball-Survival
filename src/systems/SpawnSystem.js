@@ -214,7 +214,7 @@ export const SpawnSystem = {
             const gStats = { ...CONFIG.boss.base, hp: 2000, maxHp: 2000, speed: 1, damage: 15, radius: 40, dr: 0.3, isGolden: true, color: '#ffd700' };
             const gBoss = new Boss(gx, gy, gStats);
             gBoss._entryTimer = 90;
-            gBoss._goldenReward = 500;
+            gBoss._goldenReward = 120;
             this.addEntity('bosses', gBoss);
             this.audio?.playBossSpawn();
             this.addScreenShake?.(20);

@@ -30,28 +30,56 @@ export class MenuController {
             const desc = document.getElementById('modeDescription');
             if (mode === 'standard') {
                 this.game.dom.buttons.modeStandard?.classList.add('active');
-                if (desc) desc.innerText = "Sopravvivi 30 minuti.";
+                if (desc) desc.innerText = "Sopravvivi il più a lungo possibile. La difficoltà aumenta col tempo.";
+                const stageCard = document.querySelector('.stage-card');
+                if (stageCard) stageCard.style.display = 'none';
             } else if (mode === 'endless') {
                 this.game.dom.buttons.modeEndless?.classList.add('active');
                 if (desc) desc.innerText = "Sopravvivi il più a lungo possibile. Difficoltà infinita.";
+                const stageCard = document.querySelector('.stage-card');
+                if (stageCard) stageCard.style.display = '';
             } else if (mode === 'daily') {
                 this.game.dom.buttons.modeDaily?.classList.add('active');
                 if (desc) desc.innerText = "Sfida giornaliera con seed e build fissa.";
+                const stageCard = document.querySelector('.stage-card');
+                if (stageCard) stageCard.style.display = '';
                 this.game.showDailyChallengePopup();
             } else if (mode === 'bossRush') {
                 this.game.dom.buttons.modeBossRush?.classList.add('active');
                 if (desc) desc.innerText = "Combatti contro ondate di boss senza sosta!";
+                const stageCard = document.querySelector('.stage-card');
+                if (stageCard) stageCard.style.display = '';
             } else if (mode === 'tutorial') {
                 this.game.dom.buttons.modeTutorial?.classList.add('active');
                 if (desc) desc.innerText = "Impara come giocare a Ball Survival.";
+                const stageCard = document.querySelector('.stage-card');
+                if (stageCard) stageCard.style.display = '';
             }
         };
 
         if (this.game.dom.buttons.modeStandard) this.game.dom.buttons.modeStandard.onclick = () => updateModeUI('standard');
-        if (this.game.dom.buttons.modeEndless) this.game.dom.buttons.modeEndless.onclick = () => updateModeUI('endless');
-        if (this.game.dom.buttons.modeDaily) this.game.dom.buttons.modeDaily.onclick = () => updateModeUI('daily');
-        if (this.game.dom.buttons.modeBossRush) this.game.dom.buttons.modeBossRush.onclick = () => updateModeUI('bossRush');
-        if (this.game.dom.buttons.modeTutorial) this.game.dom.buttons.modeTutorial.onclick = () => updateModeUI('tutorial');
+        if (this.game.dom.buttons.modeEndless) this.game.dom.buttons.modeEndless.onclick = () => {
+            updateModeUI('endless');
+            const stageCard = document.querySelector('.stage-card');
+            if (stageCard) stageCard.style.display = '';
+        };
+        if (this.game.dom.buttons.modeDaily) this.game.dom.buttons.modeDaily.onclick = () => {
+            updateModeUI('daily');
+            const stageCard = document.querySelector('.stage-card');
+            if (stageCard) stageCard.style.display = '';
+        };
+        if (this.game.dom.buttons.modeBossRush) this.game.dom.buttons.modeBossRush.onclick = () => {
+            updateModeUI('bossRush');
+            const stageCard = document.querySelector('.stage-card');
+            if (stageCard) stageCard.style.display = '';
+        };
+        if (this.game.dom.buttons.modeTutorial) this.game.dom.buttons.modeTutorial.onclick = () => {
+            updateModeUI('tutorial');
+            const stageCard = document.querySelector('.stage-card');
+            if (stageCard) stageCard.style.display = '';
+        };
+
+        updateModeUI(this.game.selectedMode || 'standard');
 
         // Daily Challenge Popup Handlers
         if (this.game.dom.buttons.startDaily) {
@@ -128,6 +156,11 @@ export class MenuController {
         this.game._wireSettingsAccessibility();
         // Pulsante inventario
         if (this.game.dom.buttons.inventory) this.game.dom.buttons.inventory.onclick = () => this.game.showInventory();
+        if (document.getElementById('researchBtn')) {
+            document.getElementById('researchBtn').onclick = () => {
+                this.game.showPopup('shop');
+            };
+        }
         if (this.game.dom.buttons.closeInventory) this.game.dom.buttons.closeInventory.onclick = () => this.game.closeInventory();
 
         // Pulsanti popup personaggi

@@ -103,6 +103,7 @@
                 <div class="menu-actions">
                     <button id="startGameBtn" class="btn-cta">Inizia Partita</button>
                     <div class="menu-actions-secondary">
+                        <button id="researchBtn" class="menu-btn-secondary" title="Ricerca (Albero abilità)">🔬</button>
                         <button id="glossaryBtn" class="menu-btn-secondary" title="Glossario">📖</button>
                         <button id="inventoryBtn" class="menu-btn-secondary" title="Inventario">📦</button>
                         <button id="achievementsBtn" class="menu-btn-secondary" title="Achievements">🏆</button>
@@ -237,12 +238,12 @@
             </div>
         </div>
         <div id="gameOver" class="popup-menu" style="display:none;">
-            <h2>Game Over!</h2>
-            <p>Sei sopravvissuto per <span id="survivalTime">0</span> secondi</p>
+            <h2>Game Over</h2>
+            <p class="game-over-highlight">Tempo di sopravvivenza: <strong><span id="survivalTime">0 min 0 s</span></strong></p>
             <p>Livello raggiunto: <span id="levelReached">1</span></p>
             <p>Nemici sconfitti: <span id="enemiesKilled">0</span></p>
-            <p>Cristalli raccolti: <span id="gemsEarned">0</span></p>
-            <p>Punteggio Finale: <span id="finalScore">0</span></p>
+            <p>Gemme ottenute: <span id="gemsEarned">0</span> — usale per la Ricerca!</p>
+            <p>Punteggio: <span id="finalScore">0</span></p>
             <div class="save-load-container">
                 <p>Copia il codice per salvare i tuoi progressi:</p>
                 <label for="saveCodeOutput" class="visually-hidden">Codice salvataggio</label>
@@ -281,50 +282,28 @@
             <div id="secretShopOptions" class="menu-content"></div>
         </div>
         <div id="inventoryMenu" class="popup-menu" style="display:none;">
-            <h3>📦 Inventario Materiali</h3>
-            <div class="inventory-tabs">
-                <button class="tab-btn active" data-tab="materials">Materiali</button>
-                <button class="tab-btn" data-tab="cores">Core</button>
-                <button class="tab-btn" data-tab="weapons">Armi</button>
-                <button class="tab-btn" data-tab="arsenal">Arsenale</button>
-            </div>
+            <h3>⚔️ Arsenale</h3>
             <div id="inventoryContent" class="menu-content">
-                <div id="materialsTab" class="tab-content active">
-                    <h4>Materiali per Core</h4>
-                    <div id="coreMaterialsList" class="materials-list"></div>
-                    <h4>Materiali per Armi</h4>
-                    <div id="weaponMaterialsList" class="materials-list"></div>
+                <h4>Equipaggiamento</h4>
+                <div class="arsenal-section">
+                    <h5>Core Attivo</h5>
+                    <div id="activeCoreDisplay" class="active-item-display">
+                        <div class="no-item">Nessun core equipaggiato</div>
+                    </div>
                 </div>
-                <div id="coresTab" class="tab-content">
-                    <h4>Core Disponibili</h4>
-                    <div id="coresList" class="crafting-list"></div>
+                <div class="arsenal-section">
+                    <h5>Armi Attive (Max 2)</h5>
+                    <div id="activeWeaponsDisplay" class="active-weapons-display">
+                        <div class="no-item">Nessuna arma equipaggiata</div>
+                    </div>
                 </div>
-                <div id="weaponsTab" class="tab-content">
-                    <h4>Armi Disponibili</h4>
-                    <div id="weaponsList" class="crafting-list"></div>
+                <div class="arsenal-section">
+                    <h5>Core Disponibili</h5>
+                    <div id="availableCoresDisplay" class="available-items-display"></div>
                 </div>
-                <div id="arsenalTab" class="tab-content">
-                    <h4>Arsenale Attivo</h4>
-                    <div class="arsenal-section">
-                        <h5>Core Attivo</h5>
-                        <div id="activeCoreDisplay" class="active-item-display">
-                            <div class="no-item">Nessun core equipaggiato</div>
-                        </div>
-                    </div>
-                    <div class="arsenal-section">
-                        <h5>Armi Attive (Max 2)</h5>
-                        <div id="activeWeaponsDisplay" class="active-weapons-display">
-                            <div class="no-item">Nessuna arma equipaggiata</div>
-                        </div>
-                    </div>
-                    <div class="arsenal-section">
-                        <h5>Core Disponibili</h5>
-                        <div id="availableCoresDisplay" class="available-items-display"></div>
-                    </div>
-                    <div class="arsenal-section">
-                        <h5>Armi Disponibili</h5>
-                        <div id="availableWeaponsDisplay" class="available-items-display"></div>
-                    </div>
+                <div class="arsenal-section">
+                    <h5>Armi Disponibili</h5>
+                    <div id="availableWeaponsDisplay" class="available-items-display"></div>
                 </div>
             </div>
             <div class="menu-actions">

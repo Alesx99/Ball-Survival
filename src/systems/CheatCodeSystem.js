@@ -27,7 +27,7 @@ export class CheatCodeSystem {
     get codes() {
         return {
             konami: { sequence: '↑↑↓↓←→←→BA', name: 'Konami Code', reward: 'skin', skinId: 'retro_8bit', desc: 'Sblocca la skin Retro 8-bit!' },
-            abba: { sequence: 'AABBAA', name: 'ABBA', reward: 'gems', gems: 200, desc: '+200 💎 gemme!' },
+            abba: { sequence: 'AABBAA', name: 'ABBA', reward: 'gems', gems: 80, desc: '+80 💎 gemme!' },
             all_directions: { sequence: '↑→↓←↑→↓←', name: 'All Directions', reward: 'effect', effect: 'matrix', desc: 'Modalità Matrix attivata!' },
             secret_boss: { sequence: '↓↓↓BBB', name: 'Secret Boss', reward: 'boss', desc: 'Un Boss Dorato apparirà!' },
             rainbow: { sequence: '←→←→XYXY', name: 'Rainbow', reward: 'skin', skinId: 'rainbow', desc: 'Sblocca la skin Arcobaleno!' },
@@ -41,10 +41,10 @@ export class CheatCodeSystem {
         return {
             logo_tap: { name: '🔟 Logo Segreto', hint: 'Tocca il logo 10 volte velocemente nel menu', desc: 'Apre la Dev Room con statistiche globali e crediti.' },
             night_mode: { name: '🌙 Giocatore Notturno', hint: 'Gioca tra mezzanotte e le 5 di mattina', desc: 'Sblocca la skin "Ombra Notturna" e un titolo speciale.' },
-            golden_enemy: { name: '✨ Nemico Dorato', hint: 'Raro spawn casuale (0.1%)', desc: 'Un nemico dorato che dropa 500 gemme e fuochi d\'artificio!' },
+            golden_enemy: { name: '✨ Nemico Dorato', hint: 'Raro spawn casuale (0.1%)', desc: 'Un nemico dorato che dropa molte gemme e fuochi d\'artificio!' },
             balletto: { name: '💃 Il Balletto', hint: 'Ruota il joystick 5 giri in 3 secondi', desc: 'Esplosione di coriandoli intorno al giocatore.' },
             six_six_six: { name: '😈 666', hint: 'Raggiungi esattamente 666 kills', desc: 'Lo sfondo pulsa rosso per 10 secondi.' },
-            shake_world: { name: '📳 Scuoti il Mondo', hint: 'Mobile: scuoti il dispositivo. PC: premi S nello start screen', desc: 'Screen shake + pioggia di 50 gemme!' },
+            shake_world: { name: '📳 Scuoti il Mondo', hint: 'Mobile: scuoti il dispositivo. PC: premi S nello start screen', desc: 'Screen shake + pioggia di gemme!' },
             dev_signature: { name: '✍️ Firma dello Sviluppatore', hint: 'Tieni premuto 5s sull\'icona settings', desc: 'Popup: "Made with ❤️ by Alesx99"' },
             pacifist: { name: '☮️ Pacifista', hint: 'Sopravvivi 3 minuti senza uccidere', desc: 'Sblocca la skin "Aura di Pace".' },
             konami_code: { name: '🎮 Konami Code', hint: 'Usa la schermata CODICI: ↑↑↓↓←→←→BA', desc: 'Sblocca la skin "Retro 8-bit".' },
@@ -53,7 +53,7 @@ export class CheatCodeSystem {
             survival_666s: { name: '⏱️ Demone del Tempo', hint: 'Sopravvivi esattamente 666 secondi (11:06)', desc: 'Fa spawnare il Mercante Segreto nella run.' },
             no_damage_60: { name: '🛡️ Intoccabile', hint: 'Sopravvivi 60 secondi senza subire danni', desc: 'Ricevi una piccola mancia in gemme.' },
             speedrun_lv10: { name: '⚡ Speed Demon', hint: 'Raggiungi il livello 10 in meno di 60 secondi', desc: 'Sblocca un bonus gemme immediato.' },
-            collector: { name: '💎 Collezionista', hint: 'Raccogli 500 gemme in una singola partita', desc: 'Un tesoro incalcolabile ti aspetta.' },
+            collector: { name: '💎 Collezionista', hint: 'Raccogli 200 gemme in una singola partita', desc: 'Un tesoro ti aspetta.' },
             night_merchant: { name: '🦉 Mercante della Notte', hint: 'Parla con il mercante tra le 00:00 e le 05:00', desc: 'Prezzi folli per folletti notturni.' }
         };
     }
@@ -429,7 +429,7 @@ export class CheatCodeSystem {
         if (!this.discoveredEggs.shake_world) {
             this.discoverEgg('shake_world');
             if (this.game) {
-                this.game.totalGems = (this.game.totalGems || 0) + 50;
+                this.game.totalGems = (this.game.totalGems || 0) + 15;
                 this.game.addScreenShake?.(20);
             }
         }

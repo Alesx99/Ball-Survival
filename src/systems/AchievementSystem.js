@@ -16,19 +16,19 @@ export class AchievementSystem {
             level_20: { id: 'level_20', name: 'Level 20', description: 'Reach level 20', icon: '📈', thresholds: [20], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             level_30: { id: 'level_30', name: 'Level 30', description: 'Reach level 30', icon: '📈', thresholds: [30], currentValue: 0, bestValue: 0, unlocked: false, tier: 0 },
             // Combattimento
-            boss_kills: { id: 'boss_kills', name: 'Boss Slayer', description: 'Uccidi boss', icon: '👑', thresholds: [5, 15, 30], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [5, 15, 50] },
-            damage_dealt: { id: 'damage_dealt', name: 'Devastatore', description: 'Infliggi danno totale', icon: '💥', thresholds: [10000, 50000, 200000], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [5, 15, 50] },
-            no_damage_run: { id: 'no_damage_run', name: 'Intoccabile', description: 'Sopravvivi senza danni per X secondi', icon: '🛡️', thresholds: [60, 120, 300], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [5, 15, 50] },
-            combo_kills: { id: 'combo_kills', name: 'Combo Master', description: 'Uccidi X nemici in 3 secondi', icon: '🔥', thresholds: [10, 20, 50], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [5, 15, 50] },
-            spell_casts: { id: 'spell_casts', name: 'Incantatore', description: 'Lancia spell totali', icon: '✨', thresholds: [500, 2000, 10000], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [5, 15, 50] },
+            boss_kills: { id: 'boss_kills', name: 'Boss Slayer', description: 'Uccidi boss', icon: '👑', thresholds: [5, 15, 30], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [2, 6, 20] },
+            damage_dealt: { id: 'damage_dealt', name: 'Devastatore', description: 'Infliggi danno totale', icon: '💥', thresholds: [10000, 50000, 200000], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [2, 6, 20] },
+            no_damage_run: { id: 'no_damage_run', name: 'Intoccabile', description: 'Sopravvivi senza danni per X secondi', icon: '🛡️', thresholds: [60, 120, 300], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [2, 6, 20] },
+            combo_kills: { id: 'combo_kills', name: 'Combo Master', description: 'Uccidi X nemici in 3 secondi', icon: '🔥', thresholds: [10, 20, 50], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [2, 6, 20] },
+            spell_casts: { id: 'spell_casts', name: 'Incantatore', description: 'Lancia spell totali', icon: '✨', thresholds: [500, 2000, 10000], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [2, 6, 20] },
             // Esplorazione
-            all_cores: { id: 'all_cores', name: 'Collezionista di Core', description: 'Crafta tutti i core', icon: '🧲', thresholds: [14], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [50] },
-            all_weapons: { id: 'all_weapons', name: 'Armaiolo Supremo', description: 'Crafta tutte le armi', icon: '⚔️', thresholds: [14], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [50] },
-            all_stages: { id: 'all_stages', name: 'Viaggiatore', description: 'Sblocca tutti gli stage', icon: '🌍', thresholds: [5], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [50] },
+            all_cores: { id: 'all_cores', name: 'Collezionista di Core', description: 'Crafta tutti i core', icon: '🧲', thresholds: [14], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [20] },
+            all_weapons: { id: 'all_weapons', name: 'Armaiolo Supremo', description: 'Crafta tutte le armi', icon: '⚔️', thresholds: [14], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [20] },
+            all_stages: { id: 'all_stages', name: 'Viaggiatore', description: 'Sblocca tutti gli stage', icon: '🌍', thresholds: [5], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [20] },
             // Sfide speciali (segrete)
-            pacifist_3min: { id: 'pacifist_3min', name: 'Pacifista', description: 'Sopravvivi 3 min senza uccidere', icon: '☮️', thresholds: [180], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [50], secret: true },
-            speedrun_lv10: { id: 'speedrun_lv10', name: 'Speed Demon', description: 'Lv 10 in meno di 60s', icon: '⚡', thresholds: [1], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [50], secret: true },
-            all_archetypes_run: { id: 'all_archetypes_run', name: 'Versatilologo', description: 'Gioca con tutti gli archetipi', icon: '🎭', thresholds: [9], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [50] }
+            pacifist_3min: { id: 'pacifist_3min', name: 'Pacifista', description: 'Sopravvivi 3 min senza uccidere', icon: '☮️', thresholds: [180], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [20], secret: true },
+            speedrun_lv10: { id: 'speedrun_lv10', name: 'Speed Demon', description: 'Lv 10 in meno di 60s', icon: '⚡', thresholds: [1], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [20], secret: true },
+            all_archetypes_run: { id: 'all_archetypes_run', name: 'Versatilologo', description: 'Gioca con tutti gli archetipi', icon: '🎭', thresholds: [9], currentValue: 0, bestValue: 0, unlocked: false, tier: 0, gemReward: [20] }
         };
         this.loadAchievements();
     }
@@ -176,9 +176,8 @@ export class AchievementSystem {
         achievement.unlocked = true;
         achievement.tier = Math.max(achievement.tier || 0, tier);
 
-        // Gem rewards per tier
-        const gemRewards = achievement.gemReward || [5, 15, 50];
-        const gemAmount = gemRewards[tier] || gemRewards[gemRewards.length - 1] || 5;
+        const gemRewards = achievement.gemReward || [2, 6, 20];
+        const gemAmount = gemRewards[tier] || gemRewards[gemRewards.length - 1] || 2;
         if (game?.totalGems !== undefined) {
             game.totalGems += gemAmount;
         }

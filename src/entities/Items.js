@@ -27,19 +27,19 @@ export class Chest extends Entity {
             const luck = game.player.modifiers?.luck || 0;
 
             let itemDrops = 1;
-            let gemMin = 5;
-            let gemMax = 15;
+            let gemMin = 2;
+            let gemMax = 8;
             let possibleItems = Object.keys(CONFIG.itemTypes).filter(k => k !== 'LEGENDARY_ORB');
             let guaranteedItem = null;
 
             if (this.rarity === 'epic') {
-                gemMin = 20;
-                gemMax = 50;
+                gemMin = 6;
+                gemMax = 18;
                 possibleItems = ['DAMAGE_BOOST', 'INVINCIBILITY', 'HEAL_POTION']; // High value standard items
                 if (Math.random() < 0.3) itemDrops = 2;
             } else if (this.rarity === 'legendary') {
-                gemMin = 100;
-                gemMax = 100; // Fixed 100 guaranteed, plus standard gem scaling later
+                gemMin = 25;
+                gemMax = 25;
                 guaranteedItem = 'LEGENDARY_ORB';
                 if (Math.random() < 0.5) itemDrops = 3;
             }

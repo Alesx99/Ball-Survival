@@ -42,8 +42,8 @@ export class ModeManager {
     triggerDailyVictory() {
         if (this.game.state === 'gameOver') return;
         this.game.score += 5000;
-        this.game.gemsThisRun += 1000;
-        this.game.notifications.push({ text: '🏆 SFIDA GIORNALIERA COMPLETATA! +1000 Gemme', life: 300, color: '#FFD700' });
+        this.game.gemsThisRun += 350;
+        this.game.notifications.push({ text: '🏆 SFIDA GIORNALIERA COMPLETATA! +350 Gemme', life: 300, color: '#FFD700' });
 
         const gameOverTitle = this.game.dom.popups.gameOver.querySelector('h2');
         if (gameOverTitle) gameOverTitle.textContent = "🏆 Sfida Completata!";

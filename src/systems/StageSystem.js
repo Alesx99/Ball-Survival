@@ -7,9 +7,20 @@ import { CONFIG } from '../config/index.js';
 import { Particle } from '../entities/Particles.js';
 import { StorageManager, StorageKeys } from '../core/StorageManager.js';
 
+/** Minuti di gioco per avanzare allo stage successivo (modalità Standard) */
+const MINUTES_PER_STAGE = 4;
+const SECONDS_PER_STAGE = MINUTES_PER_STAGE * 60;
+
 export const StageSystem = {
     checkStage() {
-        // Controlla solo se gli stage possono essere sbloccati
+        if (this._timeBasedStageProgression) {
+            const stageFromTime = 1 + Math.min(7, Math.floor(this.totalElapsedTime / SECONDS_PER_STAGE));
+            const nextStage = Math.min(8, stageFromTime);
+            if (nextStage > parseInt(this.currentStage || '1', 10)) {
+                this.changeStage(String(nextStage));
+            }
+            return;
+        }
         this.checkStageUnlocks();
     },
 

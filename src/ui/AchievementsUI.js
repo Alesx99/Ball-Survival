@@ -54,9 +54,8 @@ export const AchievementsUI = {
                 }
             }
 
-            // Gems per il prossimo tier
-            const gemRewards = achievement.gemReward || [5, 15, 50];
-            const nextGem = gemRewards[currentTier] || gemRewards[gemRewards.length - 1] || 5;
+            const gemRewards = achievement.gemReward || [2, 6, 20];
+            const nextGem = gemRewards[currentTier] || gemRewards[gemRewards.length - 1] || 2;
 
             // Color della barra
             const barColor = currentTier >= 2 ? '#ffd700' : currentTier >= 1 ? '#c0c0c0' : '#cd7f32';

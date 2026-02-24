@@ -1,6 +1,5 @@
 import { CONFIG } from '../config/index.js';
-import { poolManager } from '../utils/PoolManager.js';
-import { Particle } from '../entities/index.js';
+import { Particle, Effect } from '../entities/index.js';
 
 export class MetaProgressionSystem {
     constructor(game) {
@@ -127,38 +126,28 @@ export class MetaProgressionSystem {
     spawnMeteor() {
         if (!this.game.entities || !this.game.player) return;
 
-        // Seleziona un bersaglio casuale (o zona attorno al player)
-        const enemies = this.game.enemies || [];
+        const enemies = this.game.getEnemiesAndBosses?.() || [];
         let targetX = this.game.player.x;
         let targetY = this.game.player.y;
 
         if (enemies.length > 0) {
-            const rx = Math.floor(Math.random() * enemies.length);
-            targetX = enemies[rx].x;
-            targetY = enemies[rx].y;
+            const idx = Math.floor(Math.random() * enemies.length);
+            targetX = enemies[idx].x;
+            targetY = enemies[idx].y;
         }
 
-        // Simula lo spawn di uno shockwave o meteorite
-        const meteor = poolManager.get('Projectile');
-        if (meteor) {
-            // Proprietà di base per sfruttare le logiche esistenti
-            meteor.x = targetX;
-            meteor.y = targetY;
-            meteor.vx = 0;
-            meteor.vy = 0;
-            meteor.width = 100;
-            meteor.height = 100;
-            meteor.color = '#ff4500';
-            meteor.damage = 500 * (this.game.getEffectivePower?.() ?? this.game.player.modifiers.power); // Danno elevato (power linearizzato)
-            meteor.piercing = 999;
-            meteor.duration = 500; // 0.5 sec explosion
-            meteor.isExplosion = true; // Flag fittizia
-            // Custom draw/update se possibile, oppure usiamo projectile base con duration bassa e size grande
-            if (!this.game.entities.projectiles) this.game.entities.projectiles = [];
-            this.game.entities.projectiles.push(meteor);
+        const explosionRadius = 80 * (this.game.player.modifiers?.area ?? 1);
+        const damage = this.game.getDamage?.(500) ?? 500 * (this.game.player?.modifiers?.power ?? 1);
 
-            this.game.addEntity('particles', new Particle(targetX, targetY, { color: '#ff4500', life: 50, vx: 0, vy: 0 }));
-        }
+        this.game.addEntity('effects', new Effect(targetX, targetY, { type: 'meteor_indicator', radius: explosionRadius, life: 45, initialLife: 45 }));
+        setTimeout(() => {
+            if (this.game.createExplosion) {
+                this.game.createExplosion(targetX, targetY, explosionRadius, damage);
+            }
+            for (let k = 0; k < 15; k++) {
+                this.game.addEntity('particles', new Particle(targetX, targetY, { vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 40, color: '#ff4500' }));
+            }
+        }, 750);
     }
 
     onPlayerDeath(player) {

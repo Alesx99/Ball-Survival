@@ -38,6 +38,7 @@ export const SpellSystem = {
         const freq = baseFreq * (this.player.powerUpTimers?.attackSpeedBoost > 0 ? (1 - (this.spells.heal.sanctuaryAttackSpeed || 0.2)) : 1);
         for (const spellKey in this.spells) {
             const s = this.spells[spellKey];
+            if (s.fusedInto) continue;
             if (s.level > 0 && now - s.lastCast > s.cooldown * freq) {
                 let castFunctionName;
 

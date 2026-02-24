@@ -140,8 +140,8 @@ export class Enemy extends Entity {
 
         // Golden enemy reward
         if (this.stats.isGolden) {
-            game.gemsThisRun += 500;
-            game.notifications?.push?.({ text: '✨ NEMICO DORATO! +500 💎', life: 300, color: '#ffd700' });
+            game.gemsThisRun += 120;
+            game.notifications?.push?.({ text: '✨ NEMICO DORATO! +120 💎', life: 300, color: '#ffd700' });
             game.cheatCodeSystem?.discoverEgg('golden_enemy');
             game.audio?.playAchievementUnlock?.();
             // Confetti particles

@@ -83,15 +83,8 @@ export const UISystem = {
     },
 
     showInventory() {
-        console.log('showInventory chiamato');
-        console.log('Popup inventory:', this.dom.popups.inventory);
-        console.log('Materiali:', this.materials);
-
         this.showPopup('inventory');
         this.populateInventory();
-        this.setupInventoryTabs();
-
-        console.log('Inventario popolato');
     },
 
     closeInventory() {
@@ -121,25 +114,6 @@ export const UISystem = {
 
     populateArsenal() {
         InventoryUI.populateArsenal(this);
-    },
-
-    setupInventoryTabs() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTab = button.getAttribute('data-tab');
-
-                // Rimuovi la classe active da tutti i tab
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                // Aggiungi la classe active al tab selezionato
-                button.classList.add('active');
-                document.getElementById(targetTab + 'Tab').classList.add('active');
-            });
-        });
     },
 
     hideAllPopups(forceNoResume) {

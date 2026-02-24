@@ -7,7 +7,7 @@ export const ITEMS_CONFIG = {
         normalChance: 0.85,
         epicChance: 0.12,
         legendaryChance: 0.03,
-        gemDrop: { min: 10, random: 15 } // Base gems
+        gemDrop: { min: 3, random: 7 }
     },
     merchant: { x: 4000, y: 2800, size: 40, interactionRadius: 60 },
     xpOrbs: { mapSpawn: { interval: 4, batch: 15, max: 300, value: 5 }, pickupRadius: 100 },

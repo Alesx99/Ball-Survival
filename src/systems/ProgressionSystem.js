@@ -192,11 +192,6 @@ export const ProgressionSystem = {
             if (f.bonus?.knockback) this.spells[f.primary].knockback = (this.spells[f.primary].knockback || 10) * (1 + f.bonus.knockback);
             if (f.bonus?.chains) this.spells[f.primary].chains = (this.spells[f.primary].chains || 2) + f.bonus.chains;
             if (f.bonus?.reflectDamage) this.spells[f.primary].reflectDamage = (this.spells[f.primary].reflectDamage || 1.0) * f.bonus.reflectDamage;
-            if (f.bonus?.timeStop) {
-                this._timeStopActive = true;
-                this._timeStopTimer = f.bonus.timeStop / 16.6; // Convert ms to frames approx
-                this.notifications?.push({ text: "TEMPO FERMO!", life: 120, color: '#00ffff' });
-            }
             if (f.bonus?.healAmount && f.primary === 'shield') {
                 this.spells[f.primary].healAmount = f.bonus.healAmount; // Adding a custom property handled elsewhere or just as a flag
                 this.spells[f.primary].autoHealInterval = setInterval(() => {

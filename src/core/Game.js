@@ -200,10 +200,6 @@ export class BallSurvivalGame {
                 upgradeOptions: document.getElementById('upgradeOptions'),
                 pauseStatsContainer: document.getElementById('pauseStatsContainer'),
                 runStatsContainer: document.getElementById('runStatsContainer'),
-                coreMaterialsList: document.getElementById('coreMaterialsList'),
-                weaponMaterialsList: document.getElementById('weaponMaterialsList'),
-                coresList: document.getElementById('coresList'),
-                weaponsList: document.getElementById('weaponsList'),
                 selectedCharacterPreview: document.getElementById('selectedCharacterPreview'),
                 stageDropdown: document.getElementById('stageDropdown'),
                 achievementsList: document.getElementById('achievementsList')
@@ -244,7 +240,13 @@ export class BallSurvivalGame {
 
         if (!isLoadedRun) {
             this.resetRunState();
-            this.currentStage = this.selectedStage; // Inizia con lo stage selezionato
+            if (this.gameMode === 'standard') {
+                this.currentStage = 1;
+                this._timeBasedStageProgression = true;
+            } else {
+                this.currentStage = this.selectedStage;
+                this._timeBasedStageProgression = false;
+            }
             this.player.resetForNewRun(this.permanentUpgrades, this.selectedArchetype);
             this.metaProgressionSystem?.applyModifiersToPlayer(this.player);
 
@@ -363,7 +365,9 @@ export class BallSurvivalGame {
             mode: this.gameMode || 'standard'
         });
 
-        document.getElementById('survivalTime').textContent = Math.floor(this.totalElapsedTime);
+        const sec = Math.floor(this.totalElapsedTime);
+        const survivalStr = `${Math.floor(sec / 60)} min ${sec % 60} s`;
+        document.getElementById('survivalTime').textContent = survivalStr;
         const levelEl = document.getElementById('levelReached');
         if (levelEl) levelEl.textContent = this.player?.level ?? 1;
         document.getElementById('enemiesKilled').textContent = this.enemiesKilled;
@@ -402,6 +406,7 @@ export class BallSurvivalGame {
         this._timeStopActive = false;
         this._timeStopTimer = 0;
         if (this.player) this.player._spectralVeilTimer = 0;
+        this._timeBasedStageProgression = false;
 
         // Stats tracking per achievement
         this.stats = {
@@ -561,8 +566,8 @@ export class BallSurvivalGame {
             // Nuovi Easter Eggs Controls
             if (this.stats.noDamageTimer >= 60 && this.cheatCodeSystem) {
                 if (this.cheatCodeSystem.discoverEgg('no_damage_60')) {
-                    this.totalGems += 50;
-                    this.notifications.push({ text: '+50 Gemme (Intoccabile)!', life: 250, color: '#f1c40f' });
+                    this.totalGems += 15;
+                    this.notifications.push({ text: '+15 Gemme (Intoccabile)!', life: 250, color: '#f1c40f' });
                 }
             }
         }
@@ -576,12 +581,12 @@ export class BallSurvivalGame {
             }
             if (this.player.level >= 10 && this.totalElapsedTime <= 60) {
                 if (this.cheatCodeSystem.discoverEgg('speedrun_lv10')) {
-                    this.totalGems += 100;
+                    this.totalGems += 35;
                 }
             }
-            if (this.gemsThisRun >= 500) {
-                if (this.cheatCodeSystem.discoverEgg('collector')) {
-                    this.totalGems += 200; // Bonus extra
+            if (this.gemsThisRun >= 200) {
+                if (this.cheatCodeSystem?.discoverEgg('collector')) {
+                    this.totalGems += 60;
                 }
             }
         }
