@@ -100,12 +100,7 @@ export class Enemy extends Entity {
         const dist = Utils.getDistance(this, game.player);
         if (dist < game.player.stats.radius + this.stats.radius) {
             if (!game.player._phantomPassthrough) {
-                const cooldownSec = CONFIG.enemies.contactDamageCooldown ?? 0.9;
-                const cooldownFrames = cooldownSec * 60;
-                if (game.totalElapsedTime - this.lastContactDamageTime >= cooldownFrames) {
-                    game.player.takeDamage(this.stats.damage, game, this);
-                    this.lastContactDamageTime = game.totalElapsedTime;
-                }
+                game.player.takeDamage(this.stats.damage, game, this);
             }
 
             // Contact effects from player archetype

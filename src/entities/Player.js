@@ -427,7 +427,6 @@ export class Player extends Entity {
         if (!Number.isFinite(this.xpNext) || this.xpNext <= 0) this.xpNext = 1;
 
         this.hp = this.stats.maxHp;
-        this.powerUpTimers.invincibility = 60;
         game?.audio?.playLevelUp();
     }
 

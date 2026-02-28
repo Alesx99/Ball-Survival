@@ -16,11 +16,18 @@ export const ProgressionSystem = {
     checkForLevelUp() {
         if (this.state !== 'running') return;
 
+        // Level cap: 70 base + 30 extra passive = 100 max
+        const LEVEL_CAP = 100;
+        if (this.player.level >= LEVEL_CAP) {
+            this.player.xp = 0;
+            return;
+        }
+
         // Controlli di sicurezza per evitare loop infiniti
         let levelUpCount = 0;
         const maxLevelUpsPerFrame = 10; // Limite di sicurezza
 
-        while (this.player.xp >= this.player.xpNext && this.player.xpNext > 0 && levelUpCount < maxLevelUpsPerFrame) {
+        while (this.player.xp >= this.player.xpNext && this.player.xpNext > 0 && levelUpCount < maxLevelUpsPerFrame && this.player.level < LEVEL_CAP) {
             this.handleLevelUp();
             levelUpCount++;
         }
@@ -34,7 +41,7 @@ export const ProgressionSystem = {
     handleLevelUp() {
         this.player.levelUp(this);
         this.addEntity('effects', new Effect(this.player.x, this.player.y, { type: 'level_up_burst', maxRadius: 60, life: 30, initialLife: 30 }));
-        this.notifications.push({ text: "Scudo temporaneo attivato!", life: 120 });
+        this.notifications.push({ text: `Livello ${this.player.level}!`, life: 120 });
         this.populateUpgradeMenu();
         this.showPopup('upgrade');
     },
@@ -116,21 +123,42 @@ export const ProgressionSystem = {
             }
         }
 
+        // === Helper: check if basic passives are all maxed (for aegis/skull/torrona gating) ===
+        const basicPassiveIds = ['health', 'speed', 'armor', 'attack_speed', 'regen', 'attractorb'];
+        const allBasicPassivesMaxed = basicPassiveIds.every(pid => {
+            const pConfig = upgradeTree[pid];
+            const pState = this.passives[pid];
+            return pState && pConfig && pState.level >= pConfig.maxLevel;
+        });
+
+        // === Level > 70: only passives ===
+        const SPELL_LEVEL_CAP = 70;
+        const playerLevel = this.player?.level ?? 1;
+        const passiveOnlyMode = playerLevel > SPELL_LEVEL_CAP;
+
         Object.keys(upgradeTree).forEach(id => {
             const up = upgradeTree[id];
             if (up.type === 'evolution' || up.type === 'mastery' || id === 'magicMissile') return;
 
             if (up.type === 'passive') {
+                // Check requiresMaxedPassives gate
+                if (up.requiresMaxedPassives && !allBasicPassivesMaxed) return;
+
+                // Check minPlayerLevel for passives too
+                if (typeof up.minPlayerLevel === 'number' && playerLevel < up.minPlayerLevel) return;
+
                 if (!this.passives[id] || this.passives[id].level < up.maxLevel) {
                     otherUpgradesPool.push(up);
                 }
             } else {
+                // Spells: blocked after level 70
+                if (passiveOnlyMode) return;
+
                 const baseId = id.split('_')[0];
                 const spell = this.spells[baseId];
                 if (!spell) return;
 
                 // Gating per livello giocatore / cosmic rarity
-                const playerLevel = this.player?.level ?? 1;
                 if (typeof up.minPlayerLevel === 'number') {
                     const starting = this.player?.archetype?.startingWeapon;
                     const isStartingWeapon = starting && (baseId === starting || up.id === starting);
