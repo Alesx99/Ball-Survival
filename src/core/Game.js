@@ -12,7 +12,8 @@ import {
     Projectile, Aura, Orbital, StaticField, Sanctuary, AnomalousArea,
     XpOrb, GemOrb, MaterialOrb,
     Chest, DroppedItem, Relic,
-    Particle, FireTrail, Effect
+    Particle, FireTrail, Effect,
+    GroundPickup
 } from '../entities/index.js';
 import { AnalyticsManager, RetentionMonitor, QuickFeedback, ProgressionOptimizer, AchievementSystem } from '../systems/index.js';
 import { MetaProgressionSystem } from '../systems/MetaProgressionSystem.js';
@@ -115,7 +116,7 @@ export class BallSurvivalGame {
                 runHistory: this.runHistorySystem?.getHistory() || []
             }
         }));
-        this._entityClasses = { Projectile, Aura, Orbital, StaticField, Sanctuary, AnomalousArea, XpOrb, GemOrb, MaterialOrb, Chest, DroppedItem, Particle, FireTrail, Effect, Boss, Enemy };
+        this._entityClasses = { Projectile, Aura, Orbital, StaticField, Sanctuary, AnomalousArea, XpOrb, GemOrb, MaterialOrb, Chest, DroppedItem, Particle, FireTrail, Effect, Boss, Enemy, GroundPickup };
         this.unlockedArchetypes = new Set(['standard']);
 
         this.loadGameData();
@@ -389,7 +390,14 @@ export class BallSurvivalGame {
         }, 100);
     }
     resetRunState() {
-        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [], anomalousAreas: [] };
+        this.entities = { enemies: [], bosses: [], projectiles: [], enemyProjectiles: [], xpOrbs: [], gemOrbs: [], materialOrbs: [], particles: [], effects: [], chests: [], droppedItems: [], fireTrails: [], auras: [], orbitals: [], staticFields: [], sanctuaries: [], anomalousAreas: [], groundPickups: [] };
+        // Storm event state
+        this._stormActive = false;
+        this._stormTimer = 0;
+        this._stormXpBonusTimer = 0;
+        this._stormNextTime = undefined;
+        // Necromancer death positions
+        this._recentDeathPositions = [];
         this.notifications = []; this.score = 0; this.enemiesKilled = 0; this.gemsThisRun = 0;
         this.runKillsByType = {};
         this.totalElapsedTime = 0; this.enemiesKilledSinceBoss = 0;
@@ -549,6 +557,7 @@ export class BallSurvivalGame {
             this.spawnChests();
             this.spawnMapXpOrbs();
             this.spawnDynamicEvents();
+            this.spawnGroundPickups();
         }
         this.castSpells();
 

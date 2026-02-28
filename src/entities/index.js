@@ -12,3 +12,4 @@ export { Aura, Orbital, StaticField, Sanctuary, AnomalousArea } from './Areas.js
 export { XpOrb, GemOrb, MaterialOrb } from './Orbs.js';
 export { Chest, DroppedItem, Relic } from './Items.js';
 export { Particle, FireTrail, Effect } from './Particles.js';
+export { GroundPickup } from './GroundPickup.js';

@@ -252,6 +252,30 @@ export const HUDRenderer = {
         const mapX = w - mapSize - margin;
         const mapY = margin + 60;
 
+        // === COMBO COUNTER (above minimap) ===
+        if (this.stats && this.stats._comboKillCount >= 5) {
+            const combo = this.stats._comboKillCount;
+            let comboColor, comboGlow;
+            if (combo >= 20) {
+                comboColor = '#ff1744'; comboGlow = '#ff1744';
+            } else if (combo >= 10) {
+                comboColor = '#ff9100'; comboGlow = '#ff6d00';
+            } else {
+                comboColor = '#ffd600'; comboGlow = '#ffc400';
+            }
+            const fontSize = Math.min(24, 14 + combo * 0.3);
+            const pulse = Math.sin(Date.now() / 200) * 0.15 + 0.85;
+            ctx.save();
+            ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+            ctx.textAlign = 'center';
+            ctx.shadowColor = comboGlow;
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = comboColor;
+            ctx.globalAlpha = pulse;
+            ctx.fillText(`COMBO ×${combo}`, mapX + mapSize / 2, mapY - 10);
+            ctx.restore();
+        }
+
         ctx.save();
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';

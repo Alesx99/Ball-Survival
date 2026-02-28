@@ -9,6 +9,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { Chest } from '../entities/Items.js';
 import { XpOrb } from '../entities/Orbs.js';
+import { GroundPickup } from '../entities/GroundPickup.js';
 import { poolManager } from '../utils/PoolManager.js';
 
 export const SpawnSystem = {
@@ -19,77 +20,75 @@ export const SpawnSystem = {
             return;
         }
         /**
-         * SISTEMA SPAWN NEMICI OTTIMIZZATO - VERSIONE 7.0
+         * SISTEMA SPAWN NEMICI OTTIMIZZATO - VERSIONE 8.0
          * 
          * Spawn rate dinamico basato sul tempo di gioco.
          * Esteso per supportare sessioni 30+ minuti con nuovi stage e difficulty tiers.
+         * Aggiunto: typed enemies con comportamenti unici.
          * 
          * Session time target: 15-25 min (media), 30+ min (esperti)
          */
         const timeInMinutes = this.totalElapsedTime / 60;
 
-        // === NUOVO: WAVE-BASED SCALING ===
-        // Calcoliamo la fase dell'onda (ciclo di 3 minuti, allineato col BalanceSystem)
+        // === WAVE-BASED SCALING ===
         const wavePeriod = 180;
         const phase = (this.totalElapsedTime % wavePeriod) / wavePeriod;
-        // La sinusoide da -1 a 1, dove > 0 è l'assalto (spike), < 0 è il respiro (valley)
         const waveSine = Math.sin(phase * Math.PI * 2);
 
-        // Intensità base: decresce col tempo per spammare di più
+        // Base spawn interval
         let baseSpawnInterval = 1.2 * Math.exp(-0.06 * timeInMinutes);
-        baseSpawnInterval = Math.max(0.25, baseSpawnInterval); // Minimo 0.25s di base
+        baseSpawnInterval = Math.max(0.25, baseSpawnInterval);
 
-        // L'intervallo devia fino a +/- 40% in base all'ondata
-        // Se c'è uno spike (waveSine positivo), intervallo è MINORE (spawn rapido)
         let dynamicSpawnInterval = baseSpawnInterval * (1 - waveSine * 0.40);
 
         // ENDLESS MODE SCALING
         if (this.gameMode === 'endless' && timeInMinutes >= 30) {
             dynamicSpawnInterval = Math.max(0.08, 0.25 - (timeInMinutes - 30) * 0.012);
-            dynamicSpawnInterval *= (1 - waveSine * 0.3); // Le onde continuano nell'endless
+            dynamicSpawnInterval *= (1 - waveSine * 0.3);
         }
 
         // Curse scaling
         const curse = this.player.modifiers?.curse || 0;
         dynamicSpawnInterval /= (1 + curse);
 
-        // Applica spawnMultiplier da difficulty tier attivo
+        // Difficulty tier
         const activeTier = this._getActiveDifficultyTier();
         if (activeTier?.spawnMultiplier) {
             dynamicSpawnInterval /= activeTier.spawnMultiplier;
         }
 
-        // Daily challenge modifiers: spawn rate (SOLO se in modalità daily)
+        // Storm event: doubles spawn rate
+        if (this._stormActive) {
+            dynamicSpawnInterval /= (CONFIG.stormEvent?.spawnMultiplier || 2.0);
+        }
+
+        // Daily challenge modifiers
         if (this.gameMode === 'daily') {
             const dailyModId = this.dailyChallengeSystem?.config?.modifier?.id;
             if (dailyModId === 'horde' || dailyModId === 'tiny_trouble') {
-                dynamicSpawnInterval *= 0.67; // +50% spawn rate
+                dynamicSpawnInterval *= 0.67;
             }
         }
 
         if (this.lastEnemySpawnTime && (this.totalElapsedTime - this.lastEnemySpawnTime < dynamicSpawnInterval)) return;
         this.lastEnemySpawnTime = this.totalElapsedTime;
 
-        // Max enemies — scala col tempo E con le ondate
+        // Max enemies
         let baseMaxEnemies = 26 + Math.floor(timeInMinutes * 12);
-        // Durante lo spike, i max nemici a schermo superano il limite normale (+50%)
         let waveMaxEnemiesMod = 1 + Math.max(0, waveSine * 0.50);
         let maxEnemies = Math.min(350, Math.floor(baseMaxEnemies * waveMaxEnemiesMod));
         maxEnemies = Math.floor(maxEnemies * (1 + curse));
 
-        // Endless mode: cap increases +12 per minute after 30m
         if (this.gameMode === 'endless' && timeInMinutes > 30) {
             maxEnemies = 300 + Math.floor((timeInMinutes - 30) * 12);
         }
         if (this.entities.enemies.length >= maxEnemies) return;
 
-        // Batch size dinamico (più nemici per spawn durante le ondate)
+        // Batch size
         let batchSize = 3 + Math.floor(timeInMinutes / 4) + Math.floor(this.rng.next() * 3);
-        // Durante uno spike spamma molti nemici insieme
         if (waveSine > 0.5) batchSize = Math.floor(batchSize * 1.8);
-        else if (waveSine < -0.5) batchSize = Math.max(1, Math.floor(batchSize * 0.5)); // Respiro
+        else if (waveSine < -0.5) batchSize = Math.max(1, Math.floor(batchSize * 0.5));
 
-        // Endless mode batch size scaling
         if (this.gameMode === 'endless' && timeInMinutes > 30) {
             batchSize += Math.floor((timeInMinutes - 30) / 1.8);
         }
@@ -112,9 +111,13 @@ export const SpawnSystem = {
 
             const timeFactor = this.totalElapsedTime / CONFIG.enemies.scaling.timeFactor;
             const levelFactor = this.player.level * CONFIG.enemies.scaling.levelFactorMultiplier;
-            let combinedFactor = timeFactor + levelFactor;
+            let rawFactor = timeFactor + levelFactor;
 
-            // Endless mode exponential scaling after 30 mins
+            // Smooth ramp: softer scaling for the first 15 minutes
+            let combinedFactor = rawFactor < 75
+                ? rawFactor * (0.5 + 0.5 * Math.min(1, rawFactor / 75))  // S-curve ramp
+                : rawFactor;
+
             if (this.gameMode === 'endless' && timeInMinutes > 30) {
                 const overload = timeInMinutes - 30;
                 combinedFactor *= Math.pow(1.06, overload);
@@ -130,49 +133,105 @@ export const SpawnSystem = {
                 dr: Math.min(0.75, combinedFactor * scaling.drPerFactor)
             };
 
-            // Applica le proprietà dello stage corrente
+            // Stage modifiers
             const stageInfo = CONFIG.stages[this.currentStage];
             if (stageInfo && stageInfo.difficulty) {
                 finalStats.dr += stageInfo.difficulty.dr;
                 finalStats.speed *= (1 + stageInfo.difficulty.speed);
             }
 
-            // Applica i bonus degli stage
             if (stageInfo && stageInfo.effects) {
                 finalStats.xp = Math.floor(finalStats.xp * stageInfo.effects.xpBonus);
             }
 
-            // Applica difficulty tier DR e speed bonus
+            // Difficulty tier bonuses
             if (activeTier) {
                 finalStats.dr = Math.min(0.95, finalStats.dr + (activeTier.dr || 0));
                 finalStats.speed *= (1 + (activeTier.speed || 0));
-                // Nemici che si rigenerano (tier 4+)
                 if (activeTier.enemyRegen) {
                     finalStats.regen = activeTier.enemyRegen;
                 }
             }
 
-            // Elite spawn graduale
+            // Storm speed boost
+            if (this._stormActive && CONFIG.stormEvent) {
+                finalStats.speed *= (CONFIG.stormEvent.speedMultiplier || 1.2);
+            }
+
+            // Elite spawn
             let eliteChance = 0.02 + Math.min(0.15, this.totalElapsedTime / 900);
             if (stageInfo && stageInfo.difficulty && stageInfo.difficulty.eliteChance) {
                 eliteChance = stageInfo.difficulty.eliteChance * 0.8;
             }
-            // Applica eliteChanceMultiplier da difficulty tier
             if (activeTier?.eliteChanceMultiplier) {
                 eliteChance *= activeTier.eliteChanceMultiplier;
             }
 
-            // Elite spawn solo dopo 3 minuti
+            let isElite = false;
             if (this.totalElapsedTime > 180 && this.rng.next() < eliteChance) {
                 finalStats.hp *= 5; finalStats.damage *= 2; finalStats.speed *= 0.8;
                 finalStats.radius *= 1.5; finalStats.xp *= 5; finalStats.isElite = true;
+                isElite = true;
             }
 
-            // Applica modificatori giornalieri su stats nemici (SOLO in modalità daily)
+            // Champion spawn (from championChance in difficulty tier)
+            let isChampion = false;
+            if (!isElite && activeTier?.championChance && this.rng.next() < activeTier.championChance) {
+                finalStats.hp *= 2; finalStats.damage *= 2;
+                finalStats.xp *= 2; finalStats.isChampion = true;
+                isChampion = true;
+            }
+
+            // === ENEMY TYPE SELECTION ===
+            const selectedType = this._selectEnemyType(isElite, activeTier);
+            if (selectedType) {
+                const typeDef = CONFIG.enemies.enemyTypes[selectedType];
+                if (typeDef) {
+                    // Apply type multipliers to base stats
+                    finalStats.hp = Math.floor(finalStats.hp * typeDef.hp);
+                    finalStats.speed *= typeDef.speed;
+                    finalStats.damage = Math.floor(finalStats.damage * typeDef.damage);
+                    finalStats.radius = Math.floor(finalStats.radius * typeDef.radius);
+                    finalStats.xp = Math.floor(finalStats.xp * typeDef.xp);
+                    finalStats.color = typeDef.color;
+                    finalStats.behavior = typeDef.behavior;
+                    finalStats.type = selectedType;
+
+                    // Copy behavior-specific properties
+                    if (typeDef.prepTime) finalStats.prepTime = typeDef.prepTime;
+                    if (typeDef.dashSpeed) finalStats.dashSpeed = typeDef.dashSpeed;
+                    if (typeDef.dashDuration) finalStats.dashDuration = typeDef.dashDuration;
+                    if (typeDef.orbitRadius) finalStats.orbitRadius = typeDef.orbitRadius;
+                    if (typeDef.orbitSpeed) finalStats.orbitSpeed = typeDef.orbitSpeed;
+                    if (typeDef.lungeTimer) finalStats.lungeTimer = typeDef.lungeTimer;
+                    if (typeDef.splitCount) finalStats.splitCount = typeDef.splitCount;
+                    if (typeDef.maxGeneration) finalStats.maxGeneration = typeDef.maxGeneration;
+                    if (typeDef.explosionRadius) finalStats.explosionRadius = typeDef.explosionRadius;
+                    if (typeDef.explosionDamage) {
+                        finalStats.explosionDamage = Math.floor(typeDef.explosionDamage * (1 + combinedFactor * 0.1));
+                    }
+                    if (typeDef.range) finalStats.range = typeDef.range;
+                    if (typeDef.shootCooldown) finalStats.shootCooldown = typeDef.shootCooldown;
+                    if (typeDef.projectileSpeed) finalStats.projectileSpeed = typeDef.projectileSpeed;
+                    if (typeDef.reviveRadius) finalStats.reviveRadius = typeDef.reviveRadius;
+                    if (typeDef.reviveCooldown) finalStats.reviveCooldown = typeDef.reviveCooldown;
+                    if (typeDef.maxRevives) finalStats.maxRevives = typeDef.maxRevives;
+                    // Phase 2: Tank, Teleporter, Summoner
+                    if (typeDef.bonusDr) finalStats.bonusDr = typeDef.bonusDr;
+                    if (typeDef.knockbackForce) finalStats.knockbackForce = typeDef.knockbackForce;
+                    if (typeDef.teleportCooldown) finalStats.teleportCooldown = typeDef.teleportCooldown;
+                    if (typeDef.teleportDistance) finalStats.teleportDistance = typeDef.teleportDistance;
+                    if (typeDef.summonCooldown) finalStats.summonCooldown = typeDef.summonCooldown;
+                    if (typeDef.maxMinions) finalStats.maxMinions = typeDef.maxMinions;
+                    if (typeDef.summonCount) finalStats.summonCount = typeDef.summonCount;
+                }
+            }
+
+            // Daily challenge modifiers
             const dailyModId = this.gameMode === 'daily' ? this.dailyChallengeSystem?.config?.modifier?.id : null;
             if (this.gameMode === 'daily' && dailyModId) {
                 if (dailyModId === 'horde') {
-                    finalStats.hp = Math.max(1, Math.floor(finalStats.hp * 0.8)); // -20% HP
+                    finalStats.hp = Math.max(1, Math.floor(finalStats.hp * 0.8));
                     finalStats.maxHp = finalStats.hp;
                 } else if (dailyModId === 'giant_slayer') {
                     finalStats.hp = Math.floor(finalStats.hp * 1.5);
@@ -186,14 +245,14 @@ export const SpawnSystem = {
 
             finalStats.maxHp = finalStats.hp;
 
-            // Sanitize: previeni NaN che corromperebbe il sistema XP
+            // Sanitize
             for (const key of ['hp', 'speed', 'damage', 'xp', 'dr', 'maxHp', 'radius']) {
                 if (!Number.isFinite(finalStats[key])) {
                     finalStats[key] = CONFIG.enemies.base[key] || 0;
                 }
             }
 
-            // Easter egg: Golden enemy (0.1% chance, once per run)
+            // Golden enemy
             if (!this._goldenSpawned && this.rng.next() < 0.001) {
                 finalStats.isGolden = true;
                 finalStats.hp *= 3;
@@ -202,7 +261,9 @@ export const SpawnSystem = {
                 this._goldenSpawned = true;
             }
 
-            finalStats.type = finalStats.isGolden ? 'golden' : finalStats.isElite ? 'elite' : 'enemy';
+            if (!finalStats.type || finalStats.type === 'enemy') {
+                finalStats.type = finalStats.isGolden ? 'golden' : finalStats.isElite ? 'elite' : 'enemy';
+            }
             this.addEntity('enemies', poolManager.get('Enemy', () => new Enemy(spawnX, spawnY, finalStats)).init(spawnX, spawnY, finalStats));
         }
 
@@ -220,6 +281,59 @@ export const SpawnSystem = {
             this.addScreenShake?.(20);
             this.notifications.push({ text: '✨ UN BOSS DORATO È APPARSO! ✨', life: 400 });
         }
+    },
+
+    /**
+     * Seleziona un tipo di nemico dalla spawnTable in base a tempo e stage.
+     * Ritorna null se deve spawnare un nemico standard.
+     */
+    _selectEnemyType(isElite, activeTier) {
+        if (!CONFIG.enemies.spawnTable) return null;
+
+        const currentStage = parseInt(this.currentStage || '1');
+        const availableTypes = CONFIG.enemies.spawnTable.filter(entry => {
+            if (this.totalElapsedTime < entry.minTime) return false;
+            if (currentStage < entry.minStage) return false;
+            // Tier con allTypesUnlocked bypassa minTime/minStage
+            if (activeTier?.allTypesUnlocked) return true;
+            return true;
+        });
+
+        if (availableTypes.length === 0) return null;
+
+        // 35% chance di spawnare un tipo speciale (cresce col tempo fino al 60%)
+        const specialChance = Math.min(0.60, 0.35 + this.totalElapsedTime / 3600 * 0.25);
+        if (this.rng.next() > specialChance) return null;
+
+        // Elite enemies non sono typed (restano come erano)
+        if (isElite) return null;
+
+        // === Wave-type linking: picchi -> aggressivi, cali -> tattici ===
+        const wavePeriod = 180;
+        const phase = (this.totalElapsedTime % wavePeriod) / wavePeriod;
+        const waveSine = Math.sin(phase * Math.PI * 2);
+
+        let weightedTypes = availableTypes.map(e => ({ ...e }));
+        if (waveSine > 0.5) {
+            // Peak: boost dasher/bomber/tank weights
+            weightedTypes.forEach(e => {
+                if (e.type === 'dasher' || e.type === 'bomber' || e.type === 'tank') e.weight *= 1.8;
+            });
+        } else if (waveSine < -0.4) {
+            // Valley: boost sniper/necromancer/summoner weights
+            weightedTypes.forEach(e => {
+                if (e.type === 'sniper' || e.type === 'necromancer' || e.type === 'summoner') e.weight *= 2.0;
+            });
+        }
+
+        // Weighted random selection
+        const totalWeight = weightedTypes.reduce((sum, e) => sum + e.weight, 0);
+        let roll = this.rng.next() * totalWeight;
+        for (const entry of weightedTypes) {
+            roll -= entry.weight;
+            if (roll <= 0) return entry.type;
+        }
+        return weightedTypes[weightedTypes.length - 1].type;
     },
 
     /** Restituisce il difficulty tier attivo più alto, o null */
@@ -242,7 +356,6 @@ export const SpawnSystem = {
             const stageMultiplier = stageLevel - 1;
             const timeFactor = this.totalElapsedTime / CONFIG.boss.scaling.timeFactor;
 
-            // Twin boss dal difficulty tier 5
             const activeTier = this._getActiveDifficultyTier?.() || null;
             const bossCount = activeTier?.twinBoss ? 2 : 1;
 
@@ -264,7 +377,7 @@ export const SpawnSystem = {
                 };
                 stats.maxHp = stats.hp;
                 const boss = new Boss(x, y, stats);
-                boss._entryTimer = 90; // 1.5s entry animation
+                boss._entryTimer = 90;
                 this.addEntity('bosses', boss);
             }
             this.notifications.push({ text: bossCount > 1 ? "!!! BOSS GEMELLI SONO APPARSI !!!" : "!!! UN BOSS È APPARSO !!!", life: 300 });
@@ -288,7 +401,6 @@ export const SpawnSystem = {
                 attempts++;
             } while (dist < this.camera.width && attempts < 50);
 
-            // Determine Rarity
             let rarity = 'normal';
             const roll = this.rng.next();
             const epicThreshold = 1.0 - (CONFIG.chest.legendaryChance || 0.03) - (CONFIG.chest.epicChance || 0.12);
@@ -302,7 +414,6 @@ export const SpawnSystem = {
 
             this.addEntity('chests', new Chest(x, y, rarity));
 
-            // Notification only
             if (rarity === 'legendary') {
                 this.notifications.push({ text: "UN FORZIERE LEGGENDARIO È APPARSO!", life: 300, color: '#f1c40f' });
             } else if (rarity === 'epic') {
@@ -326,11 +437,11 @@ export const SpawnSystem = {
             const spawnY = y + Math.sin(angle) * radius;
 
             const timeFactor = this.totalElapsedTime / 50;
-            if (rarity === 'legendary' && i % 4 === 0) { // Some bosses for legendary
+            if (rarity === 'legendary' && i % 4 === 0) {
                 const stats = { ...CONFIG.boss.base, hp: 1500 + timeFactor * 500, speed: 1.5, type: 'golem_boss' };
                 stats.maxHp = stats.hp;
                 this.addEntity('bosses', new Boss(spawnX, spawnY, stats));
-            } else { // Elites
+            } else {
                 const stats = { ...CONFIG.enemies.base, hp: CONFIG.enemies.base.hp * 8, damage: CONFIG.enemies.base.damage * 2, speed: CONFIG.enemies.base.speed * 0.9, radius: 25, xp: 50, isElite: true, type: 'elite' };
                 this.addEntity('enemies', new Enemy(spawnX, spawnY, stats));
             }
@@ -355,10 +466,13 @@ export const SpawnSystem = {
     spawnDynamicEvents() {
         if (this.gameMode === 'tutorial' || this.gameMode === 'bossRush') return;
 
-        this._lastEventSpawnTime = this._lastEventSpawnTime || 0;
-        const eventInterval = (5 + this.rng.next() * 3) * 60; // 5 to 8 minutes in secondi
+        // === STORM EVENTS ===
+        this._updateStormEvent();
 
-        // Prima volta dopo 3 min
+        // === ANOMALOUS AREA EVENTS ===
+        this._lastEventSpawnTime = this._lastEventSpawnTime || 0;
+        const eventInterval = (5 + this.rng.next() * 3) * 60;
+
         if (this._lastEventSpawnTime === 0 && this.totalElapsedTime < 3 * 60) {
             return;
         }
@@ -366,7 +480,7 @@ export const SpawnSystem = {
         if (this.totalElapsedTime - this._lastEventSpawnTime > eventInterval) {
             this._lastEventSpawnTime = this.totalElapsedTime;
 
-            if (this.entities.anomalousAreas && this.entities.anomalousAreas.length >= 1) return; // solo 1 alla volta
+            if (this.entities.anomalousAreas && this.entities.anomalousAreas.length >= 1) return;
 
             const isKillEvent = this.rng.next() > 0.5;
             const eventType = isKillEvent ? 'kill' : 'survive';
@@ -376,8 +490,8 @@ export const SpawnSystem = {
             const x = this.player.x + Math.cos(angle) * distance;
             const y = this.player.y + Math.sin(angle) * distance;
 
-            const maxProgress = isKillEvent ? 20 + Math.floor(this.totalElapsedTime / 60) : 60 * 60; // 20+ kills, or 60s
-            const duration = isKillEvent ? 120 * 60 : 70 * 60; // 120s max for kill, 70s max for 60s survive
+            const maxProgress = isKillEvent ? 20 + Math.floor(this.totalElapsedTime / 60) : 60 * 60;
+            const duration = isKillEvent ? 120 * 60 : 70 * 60;
 
             const { AnomalousArea } = this._entityClasses;
             this.addEntity('anomalousAreas', new AnomalousArea(x, y, {
@@ -385,13 +499,118 @@ export const SpawnSystem = {
                 duration: duration,
                 eventType: eventType,
                 maxProgress: maxProgress,
-                reward: 'epic_chest', // Always force epic chest
+                reward: 'epic_chest',
                 color: isKillEvent ? '#ff4444' : '#4444ff'
             }));
 
             if (this.notifications) {
                 this.notifications.push({ text: "ANOMALIA RILEVATA NEI PARAGGI!", life: 250, color: '#ff00ff' });
             }
+        }
+    },
+
+    /** Storm Event System */
+    _updateStormEvent() {
+        const stormConfig = CONFIG.stormEvent;
+        if (!stormConfig) return;
+
+        // Initialize storm state
+        if (this._stormNextTime === undefined) {
+            this._stormNextTime = stormConfig.minTime;
+            this._stormActive = false;
+            this._stormTimer = 0;
+            this._stormXpBonusTimer = 0;
+        }
+
+        // Post-storm XP bonus
+        if (this._stormXpBonusTimer > 0) {
+            this._stormXpBonusTimer--;
+            if (this._stormXpBonusTimer === 0 && this.notifications) {
+                this.notifications.push({ text: "⚡ Bonus XP terminato", life: 120, color: '#888888' });
+            }
+        }
+
+        // Active storm
+        if (this._stormActive) {
+            this._stormTimer--;
+            if (this._stormTimer <= 0) {
+                // Storm ends
+                this._stormActive = false;
+                this._stormXpBonusTimer = stormConfig.xpBonusDuration || 900;
+                const interval = stormConfig.interval;
+                this._stormNextTime = this.totalElapsedTime + interval[0] + this.rng.next() * (interval[1] - interval[0]);
+                if (this.notifications) {
+                    this.notifications.push({ text: "🌟 Tempesta conclusa! Bonus XP ×1.5 per 15s!", life: 300, color: '#00ff88' });
+                }
+            }
+            return;
+        }
+
+        // Check if it's time for a new storm
+        if (this.totalElapsedTime >= this._stormNextTime) {
+            this._stormActive = true;
+            const duration = stormConfig.duration;
+            this._stormTimer = Math.floor(duration[0] + this.rng.next() * (duration[1] - duration[0]));
+            if (this.notifications) {
+                this.notifications.push({ text: "⚡ TEMPESTA IN ARRIVO! ⚡", life: 250, color: '#ffcc00' });
+            }
+            this.addScreenShake?.(10);
+        }
+    },
+
+    /** Ground Pickup Spawner */
+    spawnGroundPickups() {
+        if (this.gameMode === 'tutorial' || this.gameMode === 'bossRush') return;
+
+        const pickupConfig = CONFIG.groundPickups;
+        if (!pickupConfig) return;
+
+        // Initialize pickup list if not present
+        if (!this.entities.groundPickups) {
+            this.entities.groundPickups = [];
+        }
+
+        // Initialize next spawn time
+        if (this._nextPickupSpawnTime === undefined) {
+            this._nextPickupSpawnTime = 60; // First pickup after 1 minute
+        }
+
+        // Update existing pickups
+        for (let i = this.entities.groundPickups.length - 1; i >= 0; i--) {
+            const pickup = this.entities.groundPickups[i];
+            pickup.update(this);
+            if (pickup.toRemove) {
+                this.entities.groundPickups.splice(i, 1);
+            }
+        }
+
+        // Spawn new pickup
+        if (this.totalElapsedTime >= this._nextPickupSpawnTime && this.entities.groundPickups.length < pickupConfig.maxOnMap) {
+            const typeKeys = Object.keys(pickupConfig.types);
+            const selectedType = typeKeys[Math.floor(this.rng.next() * typeKeys.length)];
+
+            // Spawn near player but not too close
+            const angle = this.rng.next() * Math.PI * 2;
+            const distance = 200 + this.rng.next() * 400;
+            let px = this.player.x + Math.cos(angle) * distance;
+            let py = this.player.y + Math.sin(angle) * distance;
+            px = Math.max(50, Math.min(CONFIG.world.width - 50, px));
+            py = Math.max(50, Math.min(CONFIG.world.height - 50, py));
+
+            this.entities.groundPickups.push(new GroundPickup(px, py, selectedType));
+
+            const typeDef = pickupConfig.types[selectedType];
+            if (this.notifications) {
+                this.notifications.push({
+                    text: `✨ ${typeDef.name} apparso nelle vicinanze!`,
+                    life: 180,
+                    color: typeDef.color
+                });
+            }
+
+            // Set next spawn time
+            const interval = pickupConfig.spawnInterval;
+            this._nextPickupSpawnTime = this.totalElapsedTime + interval[0] + this.rng.next() * (interval[1] - interval[0]);
         }
     }
 };

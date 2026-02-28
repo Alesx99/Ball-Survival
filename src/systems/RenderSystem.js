@@ -45,6 +45,7 @@ export const RenderSystem = {
             this.entities.materialOrbs.filter(inView).forEach(e => e.draw(this.ctx, this));
             this.entities.chests.forEach(e => e.draw(this.ctx, this));
             this.entities.droppedItems.forEach(e => e.draw(this.ctx, this));
+            if (this.entities.groundPickups) this.entities.groundPickups.filter(inView).forEach(e => e.draw(this.ctx, this));
             this.entities.enemies.forEach(e => e.draw(this.ctx, this));
             this.entities.bosses.forEach(e => e.draw(this.ctx, this));
             this.entities.projectiles.forEach(e => e.draw(this.ctx, this));
@@ -72,6 +73,23 @@ export const RenderSystem = {
             this.ctx.fillStyle = `rgba(255, 0, 0, ${pulse666})`;
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
             this._666PulseTimer--;
+        }
+        // Storm visual overlay
+        if (this._stormActive) {
+            const stormAlpha = 0.08 + Math.sin(Date.now() / 300) * 0.04;
+            this.ctx.fillStyle = `rgba(80, 50, 180, ${stormAlpha})`;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            // Random lightning flash
+            if (Math.random() < 0.02) {
+                this.ctx.fillStyle = 'rgba(200, 200, 255, 0.15)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+        }
+        // Post-storm XP bonus glow
+        if (this._stormXpBonusTimer > 0) {
+            const bonusAlpha = Math.min(0.06, (this._stormXpBonusTimer / 900) * 0.06);
+            this.ctx.fillStyle = `rgba(0, 255, 100, ${bonusAlpha})`;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
         const cx = this.canvas.width / 2;
         const cy = this.canvas.height / 2;
