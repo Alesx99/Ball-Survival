@@ -86,14 +86,12 @@ export const EnvironmentRenderer = {
             const parallaxX = this.camera.x * layer.speed;
             const parallaxY = this.camera.y * layer.speed;
 
-            // Disegna il pattern coprendo solo la view camera
-            // Troviamo il tile top-left della camera
+            // Tile che copre la vista camera con l'offset parallasse
             const startX = Math.floor((this.camera.x - parallaxX) / tileSize) * tileSize + parallaxX;
             const startY = Math.floor((this.camera.y - parallaxY) / tileSize) * tileSize + parallaxY;
 
             for (let x = startX - tileSize; x < this.camera.x + this.camera.width + tileSize; x += tileSize) {
-                for (let y = startY - Math.floor(this.camera.y / 100); y < this.camera.y + this.camera.height + tileSize; y += tileSize) {
-                    // Culling check approssimato
+                for (let y = startY - tileSize; y < this.camera.y + this.camera.height + tileSize; y += tileSize) {
                     if (x + tileSize > this.camera.x && x < this.camera.x + this.camera.width &&
                         y + tileSize > this.camera.y && y < this.camera.y + this.camera.height) {
                         this.ctx.drawImage(canvas, x, y);
@@ -129,6 +127,48 @@ export const EnvironmentRenderer = {
         const pattern = stageInfo.background.pattern;
 
         if (pattern === 'grid') {
+            // Layer 0: slow-moving background dots (speed 0.3) — creates parallax depth
+            ctx0.fillStyle = 'rgba(0, 245, 255, 0.12)';
+            for (let i = 0; i < 30; i++) {
+                const sx = (i * 137.5) % ts;
+                const sy = (i * 89.3 + 41) % ts;
+                ctx0.beginPath();
+                ctx0.arc(sx, sy, 1 + (i % 3) * 0.5, 0, Math.PI * 2);
+                ctx0.fill();
+            }
+            // Background subtle grid lines
+            ctx0.strokeStyle = 'rgba(0, 245, 255, 0.04)';
+            ctx0.lineWidth = 1;
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize * 2) {
+                ctx0.beginPath(); ctx0.moveTo(cx, 0); ctx0.lineTo(cx, ts); ctx0.stroke();
+            }
+            for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize * 2) {
+                ctx0.beginPath(); ctx0.moveTo(0, cy); ctx0.lineTo(ts, cy); ctx0.stroke();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.3 });
+
+            // Layer 0.5: mid-speed crossing lines (speed 0.65)
+            const canvas05 = document.createElement('canvas');
+            canvas05.width = ts; canvas05.height = ts;
+            const ctx05 = canvas05.getContext('2d');
+            ctx05.strokeStyle = 'rgba(0, 245, 255, 0.06)';
+            ctx05.lineWidth = 1;
+            for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize * 1.5) {
+                ctx05.beginPath(); ctx05.moveTo(cx, 0); ctx05.lineTo(cx, ts); ctx05.stroke();
+            }
+            for (let cy = 0; cy < ts; cy += CONFIG.world.gridSize * 1.5) {
+                ctx05.beginPath(); ctx05.moveTo(0, cy); ctx05.lineTo(ts, cy); ctx05.stroke();
+            }
+            // Some brighter dots
+            ctx05.fillStyle = 'rgba(0, 245, 255, 0.15)';
+            for (let i = 0; i < 15; i++) {
+                const sx = (i * 97.3 + 20) % ts;
+                const sy = (i * 63.7 + 55) % ts;
+                ctx05.beginPath(); ctx05.arc(sx, sy, 1.5, 0, Math.PI * 2); ctx05.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas05, speed: 0.65 });
+
+            // Layer 1: foreground grid (speed 1.0)
             for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize) {
                 ctx1.beginPath(); ctx1.moveTo(cx, 0); ctx1.lineTo(cx, ts); ctx1.stroke();
             }
@@ -268,7 +308,13 @@ export const EnvironmentRenderer = {
             this._parallaxCache.layers.push({ canvas: canvas1, speed: 0.7 });
 
         } else {
-            // Fallback (render basic grid)
+            // Fallback: add slow background dots + grid
+            ctx0.fillStyle = 'rgba(255,255,255,0.1)';
+            for (let i = 0; i < 20; i++) {
+                ctx0.beginPath(); ctx0.arc((i * 137.5) % ts, (i * 89.3 + 41) % ts, 1, 0, Math.PI * 2); ctx0.fill();
+            }
+            this._parallaxCache.layers.push({ canvas: canvas0, speed: 0.3 });
+
             for (let cx = 0; cx < ts; cx += CONFIG.world.gridSize) {
                 ctx1.beginPath(); ctx1.moveTo(cx, 0); ctx1.lineTo(cx, ts); ctx1.stroke();
             }
