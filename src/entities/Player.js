@@ -487,7 +487,11 @@ export class Player extends Entity {
         const finalDamage = amount * (1 - damageReduction);
         this.hp -= finalDamage;
         // Reset no-damage timer per achievement
-        if (game?.stats) game.stats.noDamageTimer = 0;
+        if (game?.stats) {
+            game.stats.noDamageTimer = 0;
+            // Reset combo on hit — combo only counts consecutive kills without taking damage
+            game.stats._comboKillCount = 0;
+        }
         game?.audio?.playDamage();
         game?.addScreenShake?.(10);
         if (!CONFIG.accessibility?.reduceMotion) game.hitFlashTimer = CONFIG.effects?.hitFlashFrames ?? 10;

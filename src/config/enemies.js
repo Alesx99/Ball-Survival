@@ -14,7 +14,7 @@ export const ENEMIES_CONFIG = {
             levelFactorMultiplier: 0.75,
             drPerFactor: 0.0005   // Ridotto (era 0.0008) per late-game meno tanky
         },
-        base: { hp: 31, speed: 1.35, radius: 12, damage: 15, xp: 4, dr: 0 }, // hp -30% (era 45)
+        base: { hp: 31, speed: 1.49, radius: 12, damage: 15, xp: 4, dr: 0 }, // speed +10% (era 1.35)
 
         /** Tipi di nemici con comportamenti unici. I moltiplicatori sono relativi alle stats base calcolate. */
         enemyTypes: {

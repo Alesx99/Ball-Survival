@@ -4,7 +4,7 @@ export const PLAYER_CONFIG = {
     player: {
         base: { hp: 220, speed: 3, radius: 15, dr: 0 },
         iFramesDuration: 0.35,
-        xpCurve: { base: 12, growth: 1.15, levelFactor: 10, power: 1.0 }
+        xpCurve: { base: 50, growth: 1.18, levelFactor: 25, power: 1.0 }
     },
     characterArchetypes: {
         'standard': {
